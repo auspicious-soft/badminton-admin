@@ -27,14 +27,14 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${raleway.variable}`}>
-        <SessionProvider session={session}>
+        {/* <SessionProvider session={session}> */}
           <Providers>
           <Toaster richColors />
           <AppRouterCacheProvider>
             {children}
           </AppRouterCacheProvider>
           </Providers>
-        </SessionProvider>
+        {/* </SessionProvider> */}
       </body>
     </html>
   );
