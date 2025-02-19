@@ -9,6 +9,9 @@
 // next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    domains: ["placehold.co"],
+  },
   webpack: (config: import('webpack').Configuration, { isServer }: { isServer: boolean }) => {
     if (!isServer) {
       config.resolve = config.resolve || {};

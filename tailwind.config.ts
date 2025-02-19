@@ -9,6 +9,15 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        "max-3xl": "2000px",
+        "max-2xl": "1536px",
+        "max-xl": "1280px",
+        "max-lg": "1024px",
+        "max-md": "768px",
+        "max-sm": "640px",
+        "max-xs": "480px",
+      },
       colors: {
         background: "(--background)",
         foreground: "var(--foreground)",
