@@ -660,9 +660,9 @@ export const ViewEyeIcon = () => (
 <path d="M25 14C26.1046 14 27 13.1046 27 12C27 10.8954 26.1046 10 25 10C23.8954 10 23 10.8954 23 12C23 13.1046 23.8954 14 25 14Z" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round"/>
 </svg>
 );
-export const TiltedArrowIcon = () => (
+export const TiltedArrowIcon = ({ stroke = "#10375C" }: { stroke?: string }) => (
 <svg width="31" height="31" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M10.0009 20.9998L20.0009 10.9998M20.0009 10.9998H13.3342M20.0009 10.9998V17.6664" stroke="#10375C" strokeWidth="0.825893" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M10.0009 20.9998L20.0009 10.9998M20.0009 10.9998H13.3342M20.0009 10.9998V17.6664" stroke={stroke} strokeWidth="0.825893" strokeLinecap="round" strokeLinejoin="round"/>
 </svg>
 );
 
