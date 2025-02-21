@@ -218,19 +218,41 @@ const StatCard = ({ value, label, Icon }) => (
   </div>
 );
 
-const BookingRow = ({ name, game, city, date, index }) => {
+// const BookingRow = ({ name, game, city, date, index }) => {
+//   const bgColor = index % 2 === 0 ? "bg-[#f2f2f4]" : "bg-white";
+
+//   return (
+//     <div className={`rounded-[10px] justify-start items-center flex flex-wrap md:flex-nowrap ${bgColor} w-full py-3 px-2 md:px-4`}> 
+//       <div className="w-full md:w-2/6 flex items-center gap-2 mb-2 md:mb-0">
+//         <Image className="rounded-full" src={Profile} alt={name} width={23} height={23} />
+//         <div className="text-[#1b2229] text-xs font-medium ">{name}</div>
+//       </div>
+//       <div className="w-1/2 md:w-1/6 text-xs font-medium ">{game}</div>
+//       <div className="w-1/2 md:w-1/6 text-xs font-medium ">{city}</div>
+//       <div className="w-1/2 md:w-1/6 text-xs font-medium text-right md:text-left">{date}</div>
+//       <div className="w-1/2 md:w-1/6 flex justify-end md:justify-start">
+//         <ViewEyeIcon />
+//       </div>
+//     </div>
+//   );
+// };
+const BookingRow = ({ name, game, city, date, image, index }) => {
   const bgColor = index % 2 === 0 ? "bg-[#f2f2f4]" : "bg-white";
 
   return (
-    <div className={`rounded-[10px] justify-start items-center flex flex-wrap md:flex-nowrap ${bgColor} w-full py-3 px-2 md:px-4`}> 
-      <div className="w-full md:w-2/6 flex items-center gap-2 mb-2 md:mb-0">
-        <Image className="rounded-full" src={Profile} alt={name} width={23} height={23} />
-        <div className="text-[#1b2229] text-xs font-medium ">{name}</div>
+    <div className={` rounded-[10px] justify-start items-center inline-flex ${bgColor} w-full ring-offset-purple-950  py-3`}>
+      <div className=" w-1/6 grow shrink basis-0 self-stretch justify-start items-center gap-1 flex">
+        {/* <div className="w-1/5"> */}
+        <Image className=" rounded-full" src={Profile} alt={name} width={23} height={23} />
+        <div className=" text-[#1b2229] text-xs font-medium ">{name}</div>
       </div>
-      <div className="w-1/2 md:w-1/6 text-xs font-medium ">{game}</div>
-      <div className="w-1/2 md:w-1/6 text-xs font-medium ">{city}</div>
-      <div className="w-1/2 md:w-1/6 text-xs font-medium text-right md:text-left">{date}</div>
-      <div className="w-1/2 md:w-1/6 flex justify-end md:justify-start">
+      <div className="w-1/6 h-3.5 text-[#1b2229] text-xs font-medium ">
+        {/* <div className="w-1/5"> */}
+        {game}
+      </div>
+      <div className="w-1/6 text-[#1b2229] text-xs font-medium ">{city}</div>
+      <div className=" w-1/6 h-3.5 text-right text-[#1b2229] text-xs font-medium ">{date}</div>
+      <div className="w-1/6 ">
         <ViewEyeIcon />
       </div>
     </div>
@@ -333,9 +355,9 @@ const Dashboard = () => {
             </div>
           </div> */}
                     <div className=" rounded-[20px] w-full ">
-            <div className=" bg-[#f2f2f4] p-2 rounded-[20px] flex w-full gap-4">
+            <div className=" bg-[#f2f2f4] p-2 rounded-[20px] flex flex-col md:flex-row w-full gap-4">
               {/* Left Section: Recent Bookings */}
-              <div className="w-[55%] p-2">
+              <div className="w-full p-4 md:w-[55%] md:p-2">
                 <div className="flex items-center justify-between mb-6">
                   <div className="text-[#10375c] text-xl font-medium font-['Raleway']">Recent Bookings</div>
                   <div className="rounded-[50px] bg-white">
@@ -344,7 +366,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   {/* Table Header */}
-                  <div className="flex items-center gap-6 text-[#7e7e8a] text-xs font-medium mb-2 ">
+                  <div className="flex items-center gap-6 text-[#7e7e8a] text-xs font-medium mb-2  ">
                     <div className="w-2/6">Name of Person</div>
                     <div className="w-1/6">Game</div>
                     <div className="w-1/6">City</div>
