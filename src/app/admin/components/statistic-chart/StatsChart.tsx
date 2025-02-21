@@ -49,7 +49,7 @@ const SalesChart = ({ selectedYear, data, onYearChange }: Props) => {
 
   return (
     <div className="rounded-[10px] bg-[#1c2329] text-[#FFFFFF] h-full ">
-      <div className="flex justify-between items-center p-5">
+      <div className="flex justify-between items-center p-5 mb-4">
         <h2 className="text-white font-bold ">Statistics</h2>
         <select
           value={selectedYear}
@@ -61,8 +61,8 @@ const SalesChart = ({ selectedYear, data, onYearChange }: Props) => {
           ))}
         </select>
       </div>
-      <div className=" text-[#8B8E98] pr-8">
-        <ResponsiveContainer width="100%" height={300}>
+      <div className=" text-[#8B8E98] pr-8 pt-5">
+        <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorPadel" x1="0" y1="0" x2="0" y2="1">

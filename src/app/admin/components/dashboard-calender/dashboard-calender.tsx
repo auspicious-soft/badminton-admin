@@ -94,7 +94,7 @@ const ScheduleCalender = () => {
   }, []);
 
   return (
-    <div className="bg-[#f2f2f4] p-5 rounded-[20px] shadow-lg w-80">
+    <div className="bg-[#f2f2f4] p-5 rounded-[20px] shadow-lg " >
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-[#10375c] text-xl font-medium ">Today&apos;s Schedule</h2>
