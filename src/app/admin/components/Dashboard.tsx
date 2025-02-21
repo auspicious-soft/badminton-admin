@@ -292,7 +292,7 @@ const Dashboard = () => {
   };
   return (
     <div className="bg-[#fbfaff]  ">
-      <div className="flex flex-wrap justify-between mb-4 pt-6">
+      <div className="flex flex-wrap justify-between mb-4 pt-6 p-2">
         <h1 className="text-[#10375c] text-2xl md:text-3xl font-semibold">Welcome to Barnton Park LTC</h1>
       
       
@@ -366,11 +366,11 @@ const Dashboard = () => {
               <div className="flex-1">{openPanelIndex !== -1 && bookingsData[openPanelIndex] && <OngoingMatchesPanel open={true} data={bookingsData[openPanelIndex]} />}</div>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row gap-8 mt-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-8 mt-6 mb-6 w-full">
             <div className="w-full md:w-2/3">
               <SalesChart selectedYear={selectedYear} data={{}} onYearChange={handleYearChange} />
             </div>
-            <div className="w-full md:w-1/3">
+            <div className="w-full md:w-2/4">
               <LoyaltyCard />
               <div className="bg-[#f2f2f4] rounded-[20px]  mt-[20px] pb-[20px] w-full">
                   <h2 className="text-[#10375c] text-xl font-medium pt-[16px] pl-[16px]">Game Booking Composition</h2>
