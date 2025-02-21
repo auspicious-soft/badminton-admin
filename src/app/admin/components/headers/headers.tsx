@@ -104,7 +104,7 @@ export default function Headers() {
       <div className="max-w-[1920px] mx-auto">
         <div className="flex items-center justify-between w-full">
           <Link 
-            href="/" 
+            href="/admin/dashboard" 
             className="flex items-center rounded-[44px] border-[#10375C] border px-3 py-2 md:px-4 md:py-2 lg:px-6 lg:py-3 hover:bg-gray-50 transition-colors"
           >
             <span className="text-orange-500 font-semibold">
