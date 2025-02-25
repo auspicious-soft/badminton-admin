@@ -1,5 +1,5 @@
 import React from 'react';
-import AllMatches from '../components/AllMatches';
+import AllMatches from '../components/Matches/AllMatches';
 
 const Page = () => {
     return (

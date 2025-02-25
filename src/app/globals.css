@@ -86,9 +86,9 @@ textarea:focus-visible {
 font-family: var(--font-raleway);
 text-align: left;
 }
-.table-normal th, .table-normal td {
+/* .table-normal th, .table-normal td {
 padding: 16px 18px;
-}
+} */
 .table-common {
   border-radius: 20px;
   background: #FFF;
@@ -107,13 +107,13 @@ padding: 16px 18px;
   font-weight: normal;
   text-align: left;
   font-size: 12px;
-  padding: 10px 16px;
+  /* padding: 10px 16px; */
 }
 .table-common table thead tr {
   border-bottom: 1px dashed #D0D0D0;
 }
 th, td {
-  padding: 12px 18px;
+  padding: 12px 14px;
   color: #060606;
   white-space: nowrap;
 }
@@ -134,7 +134,10 @@ th, td {
 .table-common tr td:last-child {
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px; 
+    
+
 }
+
 .table-common tr td:not(:first-child):not(:last-child) {
     border-left: none;
     border-right: none;
@@ -180,6 +183,10 @@ font-size: 14px;
   background-repeat: no-repeat;
   padding-right: 30px;
   background-size: 14%;
+}
+.tr{
+  border-radius: 10px;
+
 }
 @media screen and (min-width: 1024px) {
   .sideNav.collapsed .navList li a {
