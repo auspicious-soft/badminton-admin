@@ -1,126 +1,58 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
+"use client"
+import Login from "@/assets/images/LoginImage.png"
+import Logo from "@/assets/images/appLogo.png"
 import Image from "next/image";
-import { useRouter } from "next/navigation"; 
-import Logo from "@/assets/images/logo.png"; 
-import { toast } from "sonner";
-import { useSession } from "next-auth/react";
-import { loginAction } from "@/actions";
-import InputField from "./(auth)/components/InputField";
-import LoginImage from "./(auth)/components/LoginImage";
-
-export default function Page() {
-  const { data: session } = useSession();
-  const [username, serUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const router = useRouter();
-  const [isPending, startTransition] = React.useTransition();
-  useEffect(() => {
-    if (session) {
-      if ((session as any)?.user?.role === "publisher") {
-        window.location.href = "/publisher/dashboard";
-      } else {
-        window.location.href = "/admin/dashboard";
-      }
-    }
-  }, [router, session]);
-
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
-    event
-  ) => {
-    event.preventDefault();
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // const phoneRegex = /^\+45\s?\d{2}(\s?\d{2}){3}$/;
-    const phoneRegex = /^\d{10}$/;
-    let loginFieldType = '';
-    if (emailRegex.test(username)) {
-      loginFieldType = 'username';
-    } else if (phoneRegex.test(username)) {
-      loginFieldType = 'username';
-    } else {
-      toast.error('Please enter a valid email');
-      return;
-    }
-
-    if (!password) {
-      toast.error("Password is required.");
-      return;
-    }
-    try {
-      startTransition(async () => {
-        const response = await loginAction({ [loginFieldType]: username, password });
-
-        if (response?.success) {
-          toast.success('Logged in successfully');
-          if (response?.data?.user?.role === 'publisher') {
-            window.location.href = '/publisher/dashboard';
-          } else {
-            window.location.href = '/admin/dashboard';
-          }
-        } else {
-          toast.error( 'An error occurred during login.');
-        }
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Something went wrong! Please try again.');
-    }
-  };
-
+export default function LoginPage() {
   return (
-    <div className="bg-[#ebdfd7] rounded-[30px]  pt-5 md:pt-0">
-      <div className="grid md:grid-cols-2 gap-8 md:gap-3 lg:gap-0 items-center md:min-h-screen ">
-        <div className="bg-white h-full rounded-[15px] md:rounded-[30px] m-5 md:m-0  ">
-          <div className="flex flex-col justify-center h-full max-w-[465px] p-5 mx-auto ">
-            <div className="mb-5 md:mb-10 text-center">
-              <Image
-                src={Logo}
-                alt="animate"
-                className="mx-auto max-w-[184px]"
+    <div className="flex h-screen w-screen items-center justify-center bg-gray-100">
+      <div className="flex w-full h-full bg-white shadow-lg">
+        {/* Left Side - Illustration */}
+        <div className="hidden rounded-[20px] md:flex w-[40%] bg-[#e9f5fe] items-center justify-center p-10 ">
+          <Image src={Login} alt="Illustration" className=" h-150" />
+        </div>
+
+        {/* Right Side - Login Form */}
+        <div className="w-[60%] md:w-1/2 p-8 flex flex-col justify-center">
+          <div className="text-center mb-6 space-y-[50px]">
+            <Image src={Logo} alt="Play Adel Pickle" className="mx-auto w-24" />
+            <h2 className="text-center text-[#1b2229] text-3xl font-semibold ">Welcome Back</h2>
+          </div>
+
+          <form className="w-full space-y-[20px] max-w-sm mx-auto">
+            <div className="space-y-[10px]">
+              <label className="text-[#1b2229] text-base font-medium">Email Address</label>
+              <input
+                type="email"
+                className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border  focus:border-[#176dbf] focus:ring-blue-400"
+                placeholder="Enter your email"
               />
             </div>
-            <h2 className="text-orange text-center font-aeonikBold text-2xl md:text-[30px] mb-5 md:mb-9 ">
-              Welcome Back
-            </h2>
-            <div className="login rounded-[20px] bg-white">
-              <div className="">
-                <form onSubmit={handleSubmit}>
-                  <InputField
-                    type="text"
-                    label="Email Address"
-                    value={username}
-                    placeholder="Email.."
-                    onChange={(e) => serUsername(e.target.value)}
-                  />
-                  <InputField
-                    type="password"
-                    label="Your Password"
-                    value={password}
-                    placeholder="Your Password"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
 
-                  <div className="justify-end mt-[-10px] mb-7 md:mb-[50px] flex items-center">
-                    <Link
-                      href="/forgot-password"
-                      className="text-[#1657FF] md:text-[20px] font-aeonikBold  "
-                    >
-                      Forgot Password?
-                    </Link>
-                  </div>
-
-                  <button type="submit" className="login-button  w-full">
-                    {!isPending ? "Log In" : "Logging In"}
-                  </button>
-                </form>
-              </div>
+            <div className="space-y-[10px]">
+              <label className="text-[#1b2229] text-base font-medium">Your Password</label>
+              <input
+                type="password"
+                className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border  focus:border-[#176dbf] focus:ring-blue-400"
+                placeholder="Enter your password"
+              />
             </div>
-          </div>
+
+            <div className="flex justify-between items-center mb-4 ">
+              <label className="flex items-center text-[#1b2229] text-base font-medium">
+                <input type="checkbox" className="w-[15px] h-[15px] bg-[#f4f5f7] rounded shadow-[inset_0px_4px_4px_0px_rgba(0,0,0,0.10)] text-[#1b2229] text-base font-medium " />
+                 <span className="ml-[10px] text-[#1b2229] text-base font-medium">Keep me logged in</span>
+              </label>
+              <a href="#" className="text-right text-[#176dbf] text-base font-medium  hover:underline">Forgot Password?</a>
+            </div>
+
+            <button
+              type="submit"
+              className="text-white text-base font-medium h-[50px] w-full bg-[#176dbf] rounded-[49px]  hover:bg-blue-600 transition"
+            >
+              Log In
+            </button>
+          </form>
         </div>
-        <LoginImage />
       </div>
     </div>
   );
