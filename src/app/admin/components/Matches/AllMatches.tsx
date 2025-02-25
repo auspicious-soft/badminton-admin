@@ -9,13 +9,13 @@ const MatchesPage = () => {
   const [selectedTab, setSelectedTab] = useState("Upcoming");
 
   return (
-    <div className="p-6">
+    <div className="">
       {/* Header with Tabs & Filters */}
       <div>
         <MatchesHeader selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
       </div>
       {/* Render Content Based on Selected Tab */}
-      <div className="mt-6">
+      <div className="mt-6 mb-6">
         {selectedTab === "Upcoming" && <MatchesComponent name="Upcoming Matches"/>}
         {selectedTab === "Previous" && <MatchesComponent name="Previous Matches"/>}
         {selectedTab === "Cancelled" && <MatchesComponent name="Cancelled Matches"/>}

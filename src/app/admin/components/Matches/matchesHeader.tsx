@@ -22,7 +22,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
   return (
     <div className="space-y-[10px] relative">
       <p className="text-[#10375c] text-3xl font-semibold">Matches</p>
-      <div className="flex w-[65%] justify-between">
+      <div className="flex w-[65%] justify-between flex-wrap gap-[15px]">
         {/* Tabs */}
         <div className="bg-white rounded-[44px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)] justify-start items-start inline-flex">
           {tabs.map((tab) => (
