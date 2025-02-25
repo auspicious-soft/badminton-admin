@@ -1,79 +1,62 @@
-"use client";
-
-import React, { useState, useTransition } from "react";  
+"use client"
+import { useState } from "react";
+import ForgotPasswordImage from "@/assets/images/LoginImage.png";
+import Logo from "@/assets/images/appLogo.png";
 import Image from "next/image";
-import Logo from "@/assets/images/logo.png";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import InputField from "../components/InputField";
-import LoginImage from "../components/LoginImage";
-import { forgotPasswordService } from "@/services/admin-services";
 
-export default function Page() { 
-    const router = useRouter()
-    const [username, setUsername] = useState("")
-    const [isPending, startTransition] = useTransition()
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
 
-  const handleChange = (e: any) => {
-    setUsername(e.target.value)
-  }
-  const handleSubmit = (e: any) => {
-    e.preventDefault()
-    startTransition(async () => {
-      try {
-        const response = await forgotPasswordService({ username })
-        if (response?.status === 200) {
-          toast.success("OTP send successfully")
-          router.push('/otp')
-        }
-        else {
-          toast.error("Something went wrong")
-        }
-      }
-    catch (err: any) {
-        if (err.status == 404) toast.error('Username not found')
-        else toast.error("Something went wrong")
-      }
-    })
-  }
-  
+  const handleChange = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(" Email:", email);
+  };
+
   return (
-    <div className="bg-[#ebdfd7] rounded-[30px]  pt-5 md:pt-0">
-      <div className="grid md:grid-cols-2 gap-8 md:gap-3 lg:gap-0 items-center md:min-h-screen ">
-        <div className="bg-white h-full rounded-[15px] md:rounded-[30px] m-5 md:m-0  ">
-          <div className="flex flex-col justify-center h-full max-w-[465px] p-5 mx-auto ">
-            <div className="mb-5 md:mb-10 text-center">
-              <Image
-                src={Logo}
-                alt="animate"
-                className="mx-auto max-w-[184px]"
+    <div className="flex h-screen w-screen items-center justify-center bg-gray-100">
+      <div className="flex w-full h-full bg-white shadow-lg">
+        {/* Left Side - Illustration */}
+        <div className="m-[20px] hidden w-full rounded-[20px] md:flex md:w-[50%] bg-[#e9f5fe] items-center justify-center">
+          <Image src={ForgotPasswordImage} alt="Illustration" className="w-[80%]" />
+        </div>
+
+        {/* Right Side - Forgot Password Form */}
+        <div className="w-full md:w-[60%] p-8 flex flex-col justify-center">
+          <div className="text-center mb-6 space-y-[50px]">
+            <Image src={Logo} alt="Play Adel Pickle" className="mx-auto w-24" />
+            <h2 className="text-center text-[#10375c] text-3xl font-semibold">Forgot Password</h2>
+          </div>
+
+          <form className="w-full space-y-[20px] max-w-sm mx-auto" onSubmit={handleSubmit}>
+            <div className="space-y-[10px]">
+              <label className="text-[#1b2229] text-base font-medium">Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={handleChange}
+                className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400"
+                placeholder="Enter your email"
               />
             </div>
-            <h2 className="text-orange text-center font-aeonikBold text-2xl md:text-[30px] mb-5 md:mb-9 ">
-            Forgot Password?
-            </h2>
-            <div className="login rounded-[20px] bg-white">
-              <div className="">
-                <form>
-                  <InputField
-                    type="text"
-                    label="Email Address"
-                    value={username}
-                    placeholder="loewmipsaume@dummymail.com"
-                    onChange={handleChange}
-                  />
-   
-                  <button disabled={isPending} onClick={handleSubmit} className="login-button  w-full">
-                  Confirm
-                  </button>
-                </form>
-              </div>
+
+            <button
+              type="submit"
+              className="text-white text-base font-medium h-[50px] w-full bg-[#176dbf] rounded-[49px] hover:bg-blue-600 transition"
+            >
+              Log In
+            </button>
+
+            <div className="text-center mt-4">
+              <span className="text-[#1b2229] text-base font-medium">Remember Password? </span>
+              <a href="#" className="text-[#176dbf] text-base font-medium hover:underline">Login</a>
             </div>
-          </div>
+          </form>
         </div>
-        <LoginImage />
       </div>
     </div>
   );
-};
-
+}

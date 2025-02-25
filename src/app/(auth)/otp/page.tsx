@@ -1,122 +1,86 @@
-"use client";
-
-import React, { useState, useTransition } from "react";  
+"use client"
+import { useState, useRef } from "react";
+import OtpImage from "@/assets/images/LoginImage.png";
+import Logo from "@/assets/images/appLogo.png";
 import Image from "next/image";
-import Logo from "@/assets/images/logo.png";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import InputField from "../components/InputField";
-import LoginImage from "../components/LoginImage";
-import { sendOtpService } from "@/services/admin-services";
 
-export default function Page() { 
-    const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
-    const router = useRouter()
-    const [isPending, startTransition] = useTransition()
-    const handleOtpChange = (index: number, value: string) => {
-      const sanitizedValue = value.slice(-1);
-  
-      if (sanitizedValue && !/^\d$/.test(sanitizedValue)) {
-        return;
-      }
-      const newOtpValues = [...otpValues];
-      newOtpValues[index] = sanitizedValue;
-      setOtpValues(newOtpValues);
-  
-      if (sanitizedValue && index < 5) {
-        const nextInput = document.querySelector(`input[name="otp-${index + 1}"]`) as HTMLInputElement;
-        if (nextInput) nextInput.focus();
-      }
-    };
-  
-    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-      e.preventDefault();
-      const pastedData = e.clipboardData.getData('text');
-      const pastedNumbers = pastedData.replace(/\D/g, '').slice(0, 6).split('');
-      
-  
-      const newOtpValues = [...otpValues];
-      pastedNumbers.forEach((num, index) => {
-        if (index < 6) newOtpValues[index] = num;
-      });
-      setOtpValues(newOtpValues);
-  
-      const nextEmptyIndex = newOtpValues.findIndex(value => !value);
-      const targetIndex = nextEmptyIndex === -1 ? 5 : nextEmptyIndex;
-      const nextInput = document.querySelector(`input[name="otp-${targetIndex}"]`) as HTMLInputElement;
-      if (nextInput) nextInput.focus();
-    };
-  
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      const completeOtp = otpValues.join('');
-      startTransition(async () => {
-        try {
-          const response = await sendOtpService({ otp: completeOtp })
-          if (response.status === 200) {
-            toast.success("OTP verified successfully")
-            router.push(`/change-password?otp=${completeOtp}`)
-          }
-          else {
-            toast.error("Something went wrong")
-          }
-        }
-        catch (err: any) {
-          if (err.status == 404 || err.status == 400) {
-           alert("Invalid OTP ")
-          }
-          else toast.error("Something went wrong")
-        }
-      })
-    };
+export default function OtpPage() {
+  const [otp, setOtp] = useState(new Array(6).fill(""));
+  const inputRefs = useRef([]);
+
+  const handleChange = (index, e) => {
+    const value = e.target.value;
+    if (!/^[0-9]?$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1].focus();
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Entered OTP:", otp.join(""));
+  };
+
   return (
-    <div className="bg-[#ebdfd7] rounded-[30px]  pt-5 md:pt-0">
-      <div className="grid md:grid-cols-2 gap-8 md:gap-3 lg:gap-0 items-center md:min-h-screen ">
-        <div className="bg-white h-full rounded-[15px] md:rounded-[30px] m-5 md:m-0  ">
-          <div className="flex flex-col justify-center h-full max-w-[465px] p-5 mx-auto ">
-            <div className="mb-5 md:mb-10 text-center">
-              <Image
-                src={Logo}
-                alt="animate"
-                className="mx-auto max-w-[184px]"
-              />
-            </div>
-            <h2 className="text-orange text-center font-aeonikBold text-2xl md:text-[30px] mb-5 md:mb-[72px] ">
-            Enter OTP
-            </h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-5 md:mb-[50px] otp-inputs justify-center flex gap-[11px] items-center">
-                {otpValues.map((value, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="\d*"
-                    name={`otp-${index}`}
-                    value={value}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onPaste={handlePaste}
-                    maxLength={1}
-                    required
-                    className="w-12 h-12 text-center bg-[#F4F5F7] border border-[#C4C4C4] rounded-full focus-visible:border-orange focus-visible:outline-none focus-visible:outline-1  "
-                    onKeyDown={(e) => {
-                      if (e.key === 'Backspace' && !value && index > 0) {
-                        const prevInput = document.querySelector(`input[name="otp-${index - 1}"]`) as HTMLInputElement;
-                        if (prevInput) prevInput.focus();
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-              <button type="submit" className="login-button  w-full">
-                  Confirm
-                  </button>
-            </form>
-          </div>
+    <div className="flex h-screen w-screen items-center justify-center bg-gray-100">
+      <div className="flex w-full h-full bg-white shadow-lg">
+        {/* Left Side - Illustration */}
+        <div className="m-[20px] hidden w-full rounded-[20px] md:flex md:w-[50%] bg-[#e9f5fe] items-center justify-center">
+          <Image src={OtpImage} alt="Illustration" className="w-[80%]" />
         </div>
-        <LoginImage />
+
+        {/* Right Side - OTP Form */}
+        <div className="w-full md:w-[60%] p-8 flex flex-col justify-center">
+          <div className="text-center mb-6 space-y-[50px]">
+            <Image src={Logo} alt="Play Adel Pickle" className="mx-auto w-24" />
+            <h2 className="text-center text-[#10375c] text-3xl font-semibold">Enter OTP</h2>
+          </div>
+
+          <form className="w-full space-y-[20px] max-w-[26rem] mx-auto" onSubmit={handleSubmit}>
+            <div className="flex justify-center space-x-[22px]">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleChange(index, e)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  // ref={(el) => (inputRefs.current[index] = el)}
+                  ref={(el) => {
+                    if (el) {
+                      inputRefs.current[index] = el;
+                    }
+                  }}
+                  className="w-[51px] h-[50px] bg-[#f4f5f7] rounded-[49px] border text-center text-[#5e5e5e] text-xl font-bold font-['SF Pro Display'] focus:border-[#176dbf] focus:ring-blue-400"
+                />
+              ))}
+            </div>
+
+            <button
+              type="submit"
+              className="text-white text-base font-medium h-[50px] w-full bg-[#176dbf] rounded-[49px] hover:bg-blue-600 transition"
+            >
+              Log In
+            </button>
+
+            <div className="text-center mt-4">
+              <span className="text-[#1b2229] text-base font-medium">Remember Password? </span>
+              <a href="#" className="text-[#176dbf] text-base font-medium hover:underline">Login</a>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
-};
-
+}

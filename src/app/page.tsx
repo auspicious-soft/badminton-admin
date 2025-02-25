@@ -7,12 +7,12 @@ export default function LoginPage() {
     <div className="flex h-screen w-screen items-center justify-center bg-gray-100">
       <div className="flex w-full h-full bg-white shadow-lg">
         {/* Left Side - Illustration */}
-        <div className="hidden rounded-[20px] md:flex w-[40%] bg-[#e9f5fe] items-center justify-center p-10 ">
-          <Image src={Login} alt="Illustration" className=" h-150" />
+        <div className="m-[20px] hidden w-full rounded-[20px] md:flex md:w-[50%] bg-[#e9f5fe] items-center justify-center">
+          <Image src={Login} alt="Illustration" className=" w-[80%]" />
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="w-[60%] md:w-1/2 p-8 flex flex-col justify-center">
+        <div className="w-full md:w-[60%] p-8 flex flex-col justify-center">
           <div className="text-center mb-6 space-y-[50px]">
             <Image src={Logo} alt="Play Adel Pickle" className="mx-auto w-24" />
             <h2 className="text-center text-[#1b2229] text-3xl font-semibold ">Welcome Back</h2>
