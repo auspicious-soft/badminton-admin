@@ -3,6 +3,7 @@ import { useState } from "react";
 import ForgotPasswordImage from "@/assets/images/LoginImage.png";
 import Logo from "@/assets/images/appLogo.png";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -52,7 +53,7 @@ export default function ForgotPasswordPage() {
 
             <div className="text-center mt-4">
               <span className="text-[#1b2229] text-base font-medium">Remember Password? </span>
-              <a href="#" className="text-[#176dbf] text-base font-medium hover:underline">Login</a>
+              <Link  href="/" className="text-[#176dbf] text-base font-medium hover:underline">Login</Link >
             </div>
           </form>
         </div>

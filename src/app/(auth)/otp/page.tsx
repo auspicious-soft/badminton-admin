@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import OtpImage from "@/assets/images/LoginImage.png";
 import Logo from "@/assets/images/appLogo.png";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function OtpPage() {
   const [otp, setOtp] = useState(new Array(6).fill(""));
@@ -75,7 +76,7 @@ export default function OtpPage() {
 
             <div className="text-center mt-4">
               <span className="text-[#1b2229] text-base font-medium">Remember Password? </span>
-              <a href="#" className="text-[#176dbf] text-base font-medium hover:underline">Login</a>
+              <Link  href="/" className="text-[#176dbf] text-base font-medium hover:underline">Login</Link >
             </div>
           </form>
         </div>

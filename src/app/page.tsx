@@ -2,6 +2,7 @@
 import Login from "@/assets/images/LoginImage.png"
 import Logo from "@/assets/images/appLogo.png"
 import Image from "next/image";
+import Link from "next/link";
 export default function LoginPage() {
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-100">
@@ -42,7 +43,7 @@ export default function LoginPage() {
                 <input type="checkbox" className="w-[15px] h-[15px] bg-[#f4f5f7] rounded shadow-[inset_0px_4px_4px_0px_rgba(0,0,0,0.10)] text-[#1b2229] text-base font-medium " />
                  <span className="ml-[10px] text-[#1b2229] text-base font-medium">Keep me logged in</span>
               </label>
-              <a href="#" className="text-right text-[#176dbf] text-base font-medium  hover:underline">Forgot Password?</a>
+              <Link  href="/forgot-password" className="text-right text-[#176dbf] text-base font-medium  hover:underline">Forgot Password?</Link >
             </div>
 
             <button
