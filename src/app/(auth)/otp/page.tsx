@@ -78,6 +78,7 @@ export default function OtpPage() {
               <span className="text-[#1b2229] text-base font-medium">Remember Password? </span>
               <Link  href="/" className="text-[#176dbf] text-base font-medium hover:underline">Login</Link >
             </div>
+            
           </form>
         </div>
       </div>
