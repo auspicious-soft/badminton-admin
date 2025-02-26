@@ -46,8 +46,8 @@ export default function OtpPage() {
             <h2 className="text-center text-[#10375c] text-3xl font-semibold">Enter OTP</h2>
           </div>
 
-          <form className="w-full space-y-[20px] max-w-[26rem] mx-auto" onSubmit={handleSubmit}>
-            <div className="flex justify-center space-x-[22px]">
+          <form className="w-full space-y-[20px] max-w-sm mx-auto" onSubmit={handleSubmit}>
+            <div className="flex justify-center space-x-[10px]">
               {otp.map((digit, index) => (
                 <input
                   key={index}
@@ -56,7 +56,6 @@ export default function OtpPage() {
                   value={digit}
                   onChange={(e) => handleChange(index, e)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  // ref={(el) => (inputRefs.current[index] = el)}
                   ref={(el) => {
                     if (el) {
                       inputRefs.current[index] = el;
