@@ -1,10 +1,10 @@
 import React from 'react';
-import AllMatches from '../components/Matches/AllMatches';
+import UsesComponent from '../components/users/userComponent';
 
 const Page = () => {
     return (
         <div>
-           <AllMatches/>
+           <UsesComponent name="Users"/>
         </div>
     );
 }

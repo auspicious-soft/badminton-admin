@@ -6,6 +6,7 @@ interface SearchBarProps {
     query?: string
 }
 
+/*************  ✨ Codeium Command 🌟  *************/
 const SearchBar = (props: SearchBarProps) => {
   
     const [inputValue, setInputValue] = useState('');
@@ -33,5 +34,6 @@ const SearchBar = (props: SearchBarProps) => {
         </div>
     );
 }
+/******  2d2bac53-eb17-401f-a2c1-153e60960ba7  *******/
 
 export default SearchBar;

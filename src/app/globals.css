@@ -23,8 +23,8 @@ p {
   color: #fff;
   line-height: normal;
   border-radius: 49px;
-  font-family: var(--font-raleway);
-  background: var(--tw-bg-orange);
+  /* font-family: var(--font-raleway); */
+  /* background: var(--tw-bg-orange); */
   font-size: 18px;
   height: 50px;
   display: flex;
@@ -57,13 +57,29 @@ p {
 .navList li {
   margin-bottom: 10px;
 }
-.navList li.active a {
+
+.mui-1js8wpa-MuiButtonBase-root-MuiPaginationItem-root {
+  color: #176dbf !important;  /* Change to your blue */
+  background-color: #fff !important; /* Adjust as needed */
+}
+
+/* Add hover and selected states if needed */
+.mui-1js8wpa-MuiButtonBase-root-MuiPaginationItem-root.Mui-selected {
+  color: #fff !important;
+  background-color: #176dbf !important;
+}
+
+.mui-1js8wpa-MuiButtonBase-root-MuiPaginationItem-root:hover {
+  color: #fff !important;
+  background-color: #176dbf !important;
+}
+/* .navList li.active a {
   background: #fff;
   color: var(--tw-bg-orange);
-}
-.navList li.active svg path {
+} */
+/* .navList li.active svg path {
   fill: var(--tw-bg-orange);
-}
+} */
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
