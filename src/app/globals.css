@@ -59,19 +59,19 @@ p {
 }
 
 .mui-1js8wpa-MuiButtonBase-root-MuiPaginationItem-root {
-  color: #176dbf !important;  /* Change to your blue */
+  color: blue !important;  /* Change to your blue */
   background-color: #fff !important; /* Adjust as needed */
 }
 
 /* Add hover and selected states if needed */
 .mui-1js8wpa-MuiButtonBase-root-MuiPaginationItem-root.Mui-selected {
   color: #fff !important;
-  background-color: #176dbf !important;
+  background-color: blue !important;
 }
 
 .mui-1js8wpa-MuiButtonBase-root-MuiPaginationItem-root:hover {
   color: #fff !important;
-  background-color: #176dbf !important;
+  background-color: blue !important;
 }
 /* .navList li.active a {
   background: #fff;
