@@ -7,8 +7,9 @@ import rebeccaAndSteven from "@/assets/images/rebeccaAndSteven.png";
 import rebecca from "@/assets/images/rebecca.png";
 import UserProfile from "@/assets/images/userprofile.png";
 import UserProfile2 from "@/assets/images/UserProfile2.png";
-import { Calender, Clock, Downarrow, EyeIcon, Icon, PlusIcon } from "@/utils/svgicons";
+import { Calender, Clock, Downarrow, EyeIcon, Icon, PlusIcon, Pluss } from "@/utils/svgicons";
 import SearchBar from "../../components/SearchBar";
+import trophy from "@/assets/images/trophy.png";
 
 const matches = [
  { id: 1, team1: "Alex Parker", team2: "Alex Parker", game: "Padel", date: "22-01-2024" },
@@ -43,7 +44,7 @@ const Page = () => {
 
     <div className="h-10 lg:ml-[300px] lg:mr-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-[5px] inline-flex">
      <div className="text-white text-sm font-medium font-['Raleway']">Game</div>
-     <Downarrow/>
+    <Downarrow/>
     </div>
 
     <div className="h-10 px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-[5px] inline-flex">
@@ -51,10 +52,15 @@ const Page = () => {
      <Downarrow/>
     </div>
 
-    <div className="flex float-end  h-10 lg:ml-[200px] px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-2.5 ">
-    <PlusIcon/>
-     <div className="text-white text-sm font-medium font-['Raleway']">Add A New Tournament</div>
+    <div className="flex float-end h-10 lg:ml-[200px] px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-2.5 ">
+    
+     <PlusIcon/>
+     <div className="text-white text-sm font-medium ">Add A New Tournament</div>
     </div>
+
+
+
+    
 
     {/* left */}
     <div className="flex flex-col lg:flex-row w-full">
@@ -66,7 +72,7 @@ const Page = () => {
 
        <div className="mr-[10px] h-10 px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-[5px] inline-flex">
         <div className="text-white text-sm font-medium">Download</div>
-        <Downarrow/>
+        <Downarrow />
        </div>
       </div>
 
@@ -79,7 +85,7 @@ const Page = () => {
             <div className="w-1/6 h-3.5 text-[#7e7e8a] text-xs font-medium text-center">Action</div>
           </div>
           <div className="w-full h-[0px] border border-[#d0d0d0] border-dotted mt-[8px]"></div>
-
+          
           <div className="p-[29px]">
             {matches.map((match, index) => (
               <div
@@ -107,17 +113,18 @@ const Page = () => {
           </div>
         </div>
      </div>
+
      {/* right */}
      <div className="lg:w-[30%] w-full h-fit mt-[10px] lg:ml-[10px] bg-[#f2f2f4] rounded-[20px]">
       <Image className="rounded-[10px] h-[40%] w-full p-[15px]" alt="padel game image" src={MatchImage} />
 
-      <div className="h-[47px] flex-col justify-start items-start gap-2 inline-flex">
+      <div className="h-[47px] flex-col justify-start items-start gap-2 inline-flex md:justify-between">
        <div className="self-stretch justify-start items-center gap-[28px] inline-flex">
-        <div className="text-[#1b2229] mt-[10px] ml-[15px] text-lg font-semibold font-['Raleway'] leading-snug">Padel Tournament</div>
+        <div className="text-[#1b2229] mt-[10px] ml-[15px] text-lg font-semibold ">Padel Tournament</div>
         <div className="justify-start items-center gap-5 flex">
          <div className="justify-start items-center gap-2.5 flex">
           <Calender/>
-          <div className="text-[#5f6a7c] text-xs font-medium ml-[20px] ">17 Sept 2024</div>
+          <div className="text-[#5f6a7c] text-xs font-medium ml-[40px]">17 Sept 2024</div>
          </div>
          <div className="justify-start items-center gap-2.5 flex">
         <Clock/>
@@ -160,37 +167,27 @@ const Page = () => {
         </div>
        </div>
      
-       <div className="mt-[15px] p-[20px] bg-white shadow-lg rounded-2xl">
-        <div className="flex justify-between items-center mb-[20px]">
-         <p className="text-[#1b2229] text-sm font-semibold">Teams Joined</p>
-         <p className="text-right text-[#1c2329] text-sm font-semibold">3/16</p>
-        </div>
 
-        <div className="flex mb-[10px]">
-         <div className="relative w-8 h-8 sm:mr-[15px]">
-          <Image className="w-[30px] h-[30px] left-0 top-0 absolute border rounded-full object-cover border-[#10375c]" src={rebecca} alt="girl image" />
-          <Image className="w-[30px] h-[30px] left-[10px] top-0 absolute rounded-full border border-[#10375c]" src={rebeccaAndSteven} alt="boy image" />
-         </div>
-         <span className="text-[#1c2329] text-xs font-semibold ml-[15px] mb-[8px] mt-[8px]">Rebecca & Steven</span>
+
+
+<div className="mt-[15px] mb-[55px] px-[20px] py-[17px] bg-white rounded-[10px] flex flex-col  md:flex-row justify-center items-center">
+    <div className="flex justify-center items-center gap-[20px]">
+        <div className="flex justify-start items-start gap-5">
+            <Image className="w-[119px] h-[98px] p-[15px]" alt="trophy image" src={trophy} />
         </div>
-        <div className="flex mb-[10px]">
-         <div className="relative w-8 h-8 sm:mr-[15px]">
-          <Image className="w-[30px] h-[30px] left-0 top-0 absolute border rounded-full object-cover border-[#10375c]" src={rebecca} alt="girl image" />
-          <Image className="w-[30px] h-[30px] left-[10px] top-0 absolute rounded-full border border-[#10375c]" src={rebeccaAndSteven} alt="boy image" />
-         </div>
-         <span className="text-[#1c2329] text-xs font-semibold ml-[15px] mb-[8px] mt-[8px]">Rebecca & Steven</span>
+        <div className="flex flex-col justify-start items-center gap-[11px] w-full md:w-[209px]">
+            <div className="flex justify-start items-center gap-[18px]">
+                <Image className="w-[54px] object-cover h-[54px] rounded-full border-2 border-[#f2f2f4]" src={rebecca} alt="girl image" />
+                <Image className="w-[54px] h-[54px] rounded-full border-2 border-[#f2f2f4]" src={rebeccaAndSteven} alt="boy image"/>
+            </div>
+            <div className="text-[#1b2229] font-semibold self-stretch text-center mt-[11px] mb-[11px] text-[21px]">Rebeca & Steven</div>
+            <div className="self-stretch text-center text-[#1c2329] mb-[20px] text-xs font-semibold">Winners of the Tournament</div>
         </div>
-        <div className="flex">
-         <div className="relative w-8 h-8 sm:mr-[15px]">
-          <Image className="w-[30px] h-[30px] left-0 top-0 absolute border rounded-full object-cover border-[#10375c]" src={rebecca} alt="girl image" />
-          <Image className="w-[30px] h-[30px] left-[10px] top-0 absolute rounded-full border border-[#10375c]" src={rebeccaAndSteven} alt="boy image" />
-         </div>
-         <span className="text-[#1c2329] text-xs font-semibold ml-[15px] mb-[8px] mt-[8px]">Rebecca & Steven</span>
-        </div>
-       </div>
+    </div>
+</div>
       
-       <div className="mt-[31px] h-12 px-[173px] py-4 bg-[#10375c] rounded-[28px] justify-center items-center gap-2.5 inline-flex">
-        <button className="text-white text-sm font-medium font-['Raleway']">View Details</button>
+       <div className="mt-[31px] mb-[21px] h-12 px-[173px] py-4 bg-[#10375c] rounded-[28px] justify-center items-center gap-2.5 inline-flex">
+        <button className="text-white text-sm font-medium ">View Details</button>
        </div>
       </div>
      </div>
