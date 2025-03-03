@@ -38,6 +38,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
 
         {/* Filters */}
         <div className="flex gap-[5px] relative">
+
           <div className="relative">
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
               {selectedGame || "Game"}
@@ -65,6 +66,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
               </div>
             )}
           </div>
+          
 
           <div className="relative" onClick={() => dateInputRef.current?.showPicker()}>
             <button className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] w-full flex items-center justify-between">
