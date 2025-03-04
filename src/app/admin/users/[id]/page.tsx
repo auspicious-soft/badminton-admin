@@ -1,10 +1,10 @@
 import React from 'react';
-import UsesComponent from '../components/users/userComponent';
+import UserProfileComponent from '../../components/users/singleUserProfile';
 
 const Page = () => {
     return (
         <div>
-           <UsesComponent/>
+           <UserProfileComponent />
         </div>
     );
 }
