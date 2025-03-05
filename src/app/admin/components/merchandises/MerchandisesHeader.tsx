@@ -105,8 +105,8 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
           </div>
         </div>
 }
-        {selectedTab==="Orders" && <button className="flex h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Record A New Sale</button>}
-        {selectedTab==="Inventory" &&<button onClick={()=>{handleAddProduct()}} className="flex h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Add New Product</button>}
+        {selectedTab==="Orders" && <button className="flex items-center h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Record A New Sale</button>}
+        {selectedTab==="Inventory" &&<button onClick={()=>{handleAddProduct()}} className="flex items-center h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Add New Product</button>}
       </div>
     </div>
   );
