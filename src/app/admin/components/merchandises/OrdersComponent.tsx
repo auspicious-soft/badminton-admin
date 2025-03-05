@@ -37,12 +37,10 @@ const userDetails = {
 
 const games = ["Padel", "Pickleball"];
 
-export default function MerchandiseComponent() {
+export default function OrdersComponent() {
   const router = useRouter();
  const [selectedUser, setSelectedUser] = useState({ id: 1, name: "Alex Parker", level: 6000, email: "james.smith@example.com", phone: "+1 555-234-5678" });
  const [searchParams, setSearchParams] = useState("");
- const [selectedGame, setSelectedGame] = useState("");
- const [gameDropdown, setGameDropdown] = useState(false);
  const [page, setPage] = useState(1);
  const itemsPerPage = 10;
 
@@ -57,33 +55,6 @@ export default function MerchandiseComponent() {
  return (
   <>
    <div className="flex w-full lg:w-2/3 justify-between mb-[15px]">
-    <div className="text-[#10375c] text-3xl font-semibold ">Merchandise</div>
-    <div className="relative lg:mr-[15px]">
-     <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
-      {selectedGame || "Sort"}
-      <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
-     </button>
-     {gameDropdown && (
-      <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-0 p-[20px] w-[168px] h-[81px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
-       {games.map((game) => (
-        <label key={game} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
-         <input
-          type="radio"
-          name="game"
-          value={game}
-          checked={selectedGame === game}
-          onChange={(e) => {
-           setSelectedGame(e.target.value);
-           setGameDropdown(false);
-          }}
-          className="bg-[#1b2229]"
-         />
-         {game}
-        </label>
-       ))}
-      </div>
-     )}
-    </div>
    </div>
    <div className="flex flex-col lg:flex-row w-full  rounded-[20px] gap-6 mb-[40px]">
     {/* Left Panel: User List */}
@@ -143,13 +114,10 @@ export default function MerchandiseComponent() {
          <path d="M0 20 Q0 0 20 0 H451 Q471 0 471 20 V155.046 C471 155.046 372.679 132.651 235.5 155.046 C98.3213 177.442 0 155.046 0 155.046 Z" fill="#176dbf" />
         </svg>
         <div className="absolute top-0 left-0 w-full h-full flex gap-[25px] items-center p-2 pl-[20px] text-white">
-         <Image src={UserProfileImage} alt="User Avatar" className="rounded-full border border-2 border-white w-81 h-81 " height={81} width={81} />
+         <Image src={UserProfileImage} alt="User Avatar" className="rounded-full  border-2 border-white w-81 h-81 " height={81} width={81} />
          <div>
           <div className="text-white text:2xl md:text-3xl font-bold leading-10 tracking-wide">{userDetails.name}</div>
          </div>
-         {/* <div className="h-10 px-5 py-3 bg-[#10375c] rounded-[28px]  gap-[5px] inline-flex mb-[30px]">
-          <div className="text-white text-sm font-medium ">₹2000</div>
-         </div> */}
         </div>
        </div>
 

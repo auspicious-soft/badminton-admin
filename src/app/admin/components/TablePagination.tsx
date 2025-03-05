@@ -29,12 +29,12 @@ const TablePagination: React.FC<TablePaginationProps> = ({ setPage, page, totalD
             }}
             {...item}
             sx={{
-              backgroundColor: item.selected ? 'var(--tw-bg-orange) !important' : '#fff',
+              backgroundColor: item.selected ? '#176dbf !important' : '#fff',
               color: item.selected ? '#fff' : '#333333',
               fontFamily: 'var(--font-AeoniK-Regular)',
               fontSize: '12px',
               '&:hover': {
-                backgroundColor: 'var(--tw-bg-orange)',
+                backgroundColor: '#176dbn',
                 color: '#fff',
               },
               borderRadius: '6px',

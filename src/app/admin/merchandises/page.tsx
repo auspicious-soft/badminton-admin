@@ -1,11 +1,10 @@
 import React from 'react';
-import AllMatches from '../components/Matches/AllMatches';
-import MerchandiseComponent from '../components/merchandises/MerchandiseComponent';
+import MerchandisePage from '../components/merchandises/AllMerchandises';
 
 const Page = () => {
     return (
         <div>
-          <MerchandiseComponent />
+          <MerchandisePage />
 
         </div>
     );

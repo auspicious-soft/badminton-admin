@@ -141,7 +141,7 @@ export default function UsesComponent() {
          <path d="M0 20 Q0 0 20 0 H451 Q471 0 471 20 V155.046 C471 155.046 372.679 132.651 235.5 155.046 C98.3213 177.442 0 155.046 0 155.046 Z" fill="#176dbf" />
         </svg>
         <div className="absolute top-0 left-0 w-full h-full flex gap-[15px] items-center p-2 text-white">
-         <Image src={UserProfileImage} alt="User Avatar" className="rounded-full w-30 h-30 sm:w-30 sm:h-30 lg:w-16 lg:h-16" />
+         <Image src={UserProfileImage} alt="User Avatar" className="rounded-full  border-2 border-white w-30 h-30 sm:w-30 sm:h-30 lg:w-16 lg:h-16" />
          <div>
           <div className="text-white text:2xl md:text-3xl font-bold leading-10 tracking-wide">{userDetails.name}</div>
          </div>
