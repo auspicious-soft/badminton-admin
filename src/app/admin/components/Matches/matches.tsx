@@ -30,12 +30,12 @@ export default function MatchesComponent({ name }: { name: string }) {
 
   return (
     <div className=" h-full flex flex-col lg:flex-row w-full  bg-[#fbfaff] rounded-[20px]  gap-6">
-      <div className="w-full  lg:w-2/3 bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto">
+      <div className="w-full  lg:w-2/3 bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto overflo-custom">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-[#10375c] text-xl font-semibold">{name}</h2>
           <SearchBar setQuery={setsearchParams} query={searchParams} />
         </div>
-        <div className="overflow-auto">
+        <div className="overflow-auto overflo-custom">
           <div className="w-full rounded-[10px]  bg-[#f2f2f4]  flex text-sm font-semibold text-[#7e7e8a]">
             <div className="w-1/4 h-3.5 text-[#7e7e8a] text-xs font-medium ">Team 1</div>
             <div className="w-1/4 h-3.5 text-[#7e7e8a] text-xs font-medium ">Team 2</div>

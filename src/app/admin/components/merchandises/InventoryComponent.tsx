@@ -66,7 +66,7 @@ export default function InventoryComponent() {
             <h2 className="text-[#10375c] text-xl font-semibold">Inventory</h2>
             <SearchBar setQuery={setSearchParams} query={searchParams} />
           </div>
-          <div className="overflow-x-auto max-w-full">
+          <div className="overflow-x-auto overflo-custom max-w-full">
             <div className="w-full min-w-[600px] rounded-[10px] bg-[#f2f2f4] flex text-sm font-semibold text-[#7e7e8a]">
               <div className="w-[25%] h-3.5 text-[#7e7e8a] text-xs font-medium">Name Of Product</div>
               <div className="w-[15%] h-3.5 text-[#7e7e8a] text-center text-xs font-medium">Quantity</div>

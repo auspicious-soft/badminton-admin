@@ -76,7 +76,7 @@ const Page = () => {
        </div>
       </div>
 
-      <div className="overflow-auto">
+      <div className="overflow-auto overflo-custom">
           <div className="mt-[20px] ml-[30px] w-full rounded-[10px] bg-[#f2f2f4] flex text-sm font-semibold text-[#7e7e8a]">
             <div className="w-1/4 h-3.5 text-[#7e7e8a] text-xs font-medium">Name of Tournament</div>
             <div className="w-1/4 h-3.5 text-[#7e7e8a] text-xs font-medium">Game</div>

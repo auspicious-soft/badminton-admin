@@ -26,7 +26,7 @@ export default async function RootLayout({
   const session = await auth();
   return (
     <html lang="en">
-      <body className={`${raleway.variable}`}>
+      <body className={`${raleway.variable} overflow-auto overflo-custom`}>
         <SessionProvider session={session}>
           <Providers>
           <Toaster richColors />

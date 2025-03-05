@@ -540,11 +540,11 @@ export const ViewIcon = () => (
     />
   </svg>
 );
-export const EditIcon = () => (
+export const EditIcon = ({ stroke = "#64EF5D" }: { stroke?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 12 12" fill="none">
     <path
       d="M1.19455 9.249C1.21832 9.03507 1.23021 8.92813 1.26257 8.82817C1.29129 8.73944 1.33186 8.65506 1.38319 8.5772C1.44103 8.48945 1.51714 8.4134 1.66934 8.26118L8.5019 1.42861C9.07339 0.857131 9.9999 0.857131 10.5714 1.42861C11.1429 2.00008 11.1429 2.92662 10.5714 3.4981L3.73882 10.3307C3.58662 10.4829 3.51052 10.5589 3.42279 10.6168C3.34496 10.6682 3.26055 10.7087 3.17185 10.7374C3.07186 10.7698 2.9649 10.7817 2.75098 10.8055L1 11L1.19455 9.249Z"
-      stroke="#64EF5D"
+      stroke={stroke}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -583,11 +583,11 @@ export const CrossIcon = () => (
     />
   </svg>
 );
-export const CrossIcon1 = () => (
+export const CrossIcon1 = ({ stroke = "white" }: { stroke?: string }) => (
   <div data-svg-wrapper>
   <svg width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="23" height="23" rx="11.5" fill="#10375C"/>
-  <path d="M15.3337 7.6665L7.66699 15.3332M7.66699 7.6665L15.3337 15.3332" stroke="white" strokeWidth="1.53333" strokeLinecap="round" strokeLinejoin="round"/>
+  <path d="M15.3337 7.6665L7.66699 15.3332M7.66699 7.6665L15.3337 15.3332" stroke={stroke} strokeWidth="1.53333" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
   </div>
 );

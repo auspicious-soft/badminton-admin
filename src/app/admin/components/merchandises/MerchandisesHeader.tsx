@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { UpArrowIcon, DownArrowIcon, PlusIcon } from "@/utils/svgicons";
+import { useRouter } from "next/navigation";
 
 const tabs = ["Orders", "Products", "Inventory"];
 const games = ["Padel", "Pickleball"];
@@ -18,7 +19,10 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
   const [gameDropdown, setGameDropdown] = useState(false);
   const [cityDropdown, setCityDropdown] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
-
+  const router = useRouter();
+  const handleAddProduct = () => {
+    router.push('/admin/merchandises/add');
+  }
   return (
     <div className="space-y-[10px] relative">
       <p className="text-[#10375c] text-3xl font-semibold">Merchandise</p>
@@ -102,7 +106,7 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
         </div>
 }
         {selectedTab==="Orders" && <button className="flex h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Record A New Sale</button>}
-        {selectedTab==="Inventory" &&<button className="flex h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Add New Product</button>}
+        {selectedTab==="Inventory" &&<button onClick={()=>{handleAddProduct()}} className="flex h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Add New Product</button>}
       </div>
     </div>
   );
