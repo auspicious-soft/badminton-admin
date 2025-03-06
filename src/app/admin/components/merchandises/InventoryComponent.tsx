@@ -78,7 +78,7 @@ export default function InventoryComponent() {
             <div className="w-full h-[0px] border border-[#d0d0d0] border-dotted mt-[8px]"></div>
             <div className="w-full min-w-[600px]">
               {filteredUsers.map((user, index) => (
-                <div key={user.id} className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedUser?.id === user.id ? "bg-[#176dbf] text-white" : index % 2 === 0 ? "bg-white" : "bg-gray-200"}`} onClick={() => setSelectedUser(user)}>
+                <div key={user.id} className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedUser?.id === user.id ? "bg-[#176dbf] text-white" : index % 2 === 0 ? "bg-[#f2f2f4]":"bg-white"}`} onClick={() => setSelectedUser(user)}>
                   <div className={`w-[25%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedUser?.id === user.id ? "text-white" : "text-[#1b2229]"}`}>
                     <Image src={UserProfileImage} alt="Avatar" className="rounded-full" width={25} height={25} />
                     {user.name}

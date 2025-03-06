@@ -8,6 +8,7 @@ import UserProfile3 from "@/assets/images/userProfile3.png";
 import UserProfile4 from "@/assets/images/userProfile4.png";
 import { EyeIcon, ClockIcon, CalenderIcon } from "@/utils/svgicons";
 import SearchBar from "../SearchBar";
+import TablePagination from "../TablePagination";
 
 const matches = [
   { id: 1, team1: "Alex Parker", team2: "Alex Parker", game: "Padel", date: "22-01-2024" },
@@ -26,51 +27,63 @@ const matches = [
 
 export default function MatchesComponent({ name }: { name: string }) {
   const [selectedMatch, setSelectedMatch] = useState({ id: 1, team1: "Alex Parker", team2: "Alex Parker", game: "Padel", date: "22-01-2024" });
-  const [searchParams, setsearchParams] = useState("");
+  const [searchParams, setSearchParams] = useState("");
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    // setQuery(`page=${newPage}&limit=${itemsPerPage}`);
+  };
   return (
     <div className=" h-full flex flex-col lg:flex-row w-full  bg-[#fbfaff] rounded-[20px]  gap-6">
-      <div className="w-full  lg:w-2/3 bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto overflo-custom">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-[#10375c] text-xl font-semibold">{name}</h2>
-          <SearchBar setQuery={setsearchParams} query={searchParams} />
-        </div>
-        <div className="overflow-auto overflo-custom">
-          <div className="w-full rounded-[10px]  bg-[#f2f2f4]  flex text-sm font-semibold text-[#7e7e8a]">
-            <div className="w-1/4 h-3.5 text-[#7e7e8a] text-xs font-medium ">Team 1</div>
-            <div className="w-1/4 h-3.5 text-[#7e7e8a] text-xs font-medium ">Team 2</div>
-            <div className="w-1/4 h-3.5 text-[#7e7e8a] text-xs font-medium text-center">Game</div>
-            <div className="w-1/6 h-3.5 text-[#7e7e8a] text-xs font-medium ">Date</div>
-            <div className="w-1/6 h-3.5 text-[#7e7e8a] text-xs font-medium  text-center">Action</div>
+  
+        <div className="w-full lg:w-2/3 bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto overflo-custom">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-[#10375c] text-xl font-semibold">{name}</h2>
+            <SearchBar setQuery={setSearchParams} query={searchParams} />
           </div>
-          <div className="w-full h-[0px] border border-[#d0d0d0] border-dotted mt-[8px]"></div>
-          <div>
-            {matches.map((match, index) => (
-              <div
-                key={match.id}
-                className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3  rounded-[10px] ${
-                  selectedMatch?.id === match.id ? "bg-[#176dbf] text-white" : index % 2 === 0 ? "bg-white" : "bg-gray-200"
-                }`}
-                onClick={() => setSelectedMatch(match)}
-              >
-                <div className={`w-1/4 flex items-center gap-2 text-[#1b2229] text-xs font-medium ${selectedMatch?.id === match.id ? "text-white" : "text-[#1b2229]"} `}>
-                  <Image src={UserProfile} alt="Avatar" className="rounded-full" width={25} height={25} />
-                  {match.team1}
+          <div className="overflow-x-auto overflo-custom max-w-full">
+            <div className="w-full min-w-[600px] rounded-[10px] bg-[#f2f2f4] flex text-sm font-semibold text-[#7e7e8a]">
+              <div className="w-[30%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Team 1</div>
+              <div className="w-[30%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Team 2</div>
+              <div className="w-[15%] h-3.5 text-[#7e7e8a] text-xs font-medium">Game</div>
+              <div className="w-[18%] h-3.5 text-[#7e7e8a] text-xs text-center font-medium">Date</div>
+              <div className="w-[10%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium ">Action</div>
+            </div>
+            <div className="w-full h-[0px] border border-[#d0d0d0] border-dotted mt-[8px]"></div>
+            <div className="w-full min-w-[600px]">
+              {matches.map((match, index) => (
+                <div key={match.id} className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedMatch?.id === match.id ? "bg-[#176dbf] text-white" : index % 2 === 0 ?  "bg-[#f2f2f4]":"bg-white"}`} onClick={() => setSelectedMatch(match)}>
+                  <div className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedMatch?.id === match.id ? "text-white" : "text-[#1b2229]"}`}>
+                    <Image src={UserProfile} alt="Avatar" className="rounded-full" width={25} height={25} />
+                    {match.team1}
+                  </div>
+                  <div className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedMatch?.id === match.id ? "text-white" : "text-[#1b2229]"}`}>
+                    <Image src={UserProfile} alt="Avatar" className="rounded-full" width={25} height={25} />
+                    {match.team1}
+                  </div>                  
+                  <div className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${selectedMatch?.id === match.id ? "text-white" : "text-[#1b2229]"}`}>{match.game}</div>
+                  <div className={`w-[18%] text-[#1b2229] text-center break-words text-xs font-medium ${selectedMatch?.id === match.id ? "text-white" : "text-[#1b2229]"}`}>{match.date}</div>
+                  <div className="w-[10%] text-[#1b2229] text-xs font-medium flex justify-center">
+                    <EyeIcon stroke={selectedMatch?.id === match.id ? "#FFFF" : "#fd5602"} />
+                  </div>
                 </div>
-                <div className={`w-1/4 flex items-center gap-2 text-[#1b2229] text-xs font-medium ${selectedMatch?.id === match.id ? "text-white" : "text-[#1b2229]"} `}>
-                  <Image src={UserProfile2} alt="Avatar" className="rounded-full" width={25} height={25} />
-                  {match.team2}
-                </div>
-                <div className={`w-1/4 text-[#1b2229] text-xs font-medium text-center ${selectedMatch?.id === match.id ? "text-white" : "text-[#1b2229]"} `}>{match.game}</div>
-                <div className={`w-1/6  text-xs font-medium ${selectedMatch?.id === match.id ? "text-white" : "text-[#1b2229]"} `}>{match.date}</div>
-                <div className="w-1/6 text-[#1b2229] text-xs font-medium flex justify-center">
-                  <EyeIcon stroke={selectedMatch?.id === match.id ? "#FFFF" : "#fd5602"} />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="mt-4 flex justify-end gap-2">
+              <TablePagination
+                setPage={handlePageChange}
+                page={page}
+                totalData={matches.length}
+                itemsPerPage={itemsPerPage}
+              />
+            </div>
           </div>
         </div>
-      </div>
+       
       <div className="w-full lg:w-1/3 bg-[#f2f2f4] shadow-md rounded-[20px] px-[15px] pt-[14px] pb-[19px]">
         {selectedMatch ? (
           <div className="bg-[#f2f2f4] rounded-[20px]">
