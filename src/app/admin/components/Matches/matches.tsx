@@ -84,7 +84,7 @@ export default function MatchesComponent({ name }: { name: string }) {
           </div>
         </div>
        
-      <div className="w-full lg:w-1/3 bg-[#f2f2f4] shadow-md rounded-[20px] px-[15px] pt-[14px] pb-[19px]">
+      <div className="w-full lg:w-1/3 h-fit bg-[#f2f2f4] shadow-md rounded-[20px] px-[15px] pt-[14px] pb-[19px]">
         {selectedMatch ? (
           <div className="bg-[#f2f2f4] rounded-[20px]">
             <Image src={MatchImage} alt="Match" className="w-full h-40 rounded-md object-cover" />
@@ -143,7 +143,7 @@ export default function MatchesComponent({ name }: { name: string }) {
                   </div>
               {/* </div> */}
             </div>
-            <button className="w-full  bg-[#176dbf] text-white p-3 rounded-md mt-[20%]">Edit Game</button>
+            <button className="w-full  bg-[#10375C] text-white p-3 rounded-[28px] mt-[20%]">Edit Game</button>
           </div>
         ) : (
           <p className="text-center text-gray-500">Select a match to see details</p>
