@@ -1,10 +1,12 @@
 import UserProfileImage from "@/assets/images/Product1.png";
 import Image from "next/image";
-
+import { useRouter } from "next/navigation";
 
 const ProductCard = ({ product }) => {
+  const router = useRouter();
   return (
-    <div className="w-full overflow-hidden   transition-shadow duration-300  ">
+    <div onClick={()=>router.push(`/admin/merchandises/${product.id}`)} className="w-full overflow-hidden transition-shadow duration-300  ">
+      
       <Image
         className="w-full h-auto max-h-[300px] sm:max-h-[300px] object-contain rounded-[10px]"
         src={UserProfileImage}

@@ -4,8 +4,19 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Image from 'next/image';
-import { CrossIcon, EditIcon } from '@/utils/svgicons';
+import { CrossIcon, DeleteIcon1, EditIcon } from '@/utils/svgicons';
 import NoImage from "@/assets/images/nofile.png";
+import Rating from '@mui/material/Rating';
+
+// Updated Reviews array (removed duplicates and ensured unique IDs)
+const Reviews = [
+    { id: 1, userName: "John Doe", rating: 5, review: "consequat. ex vero qui dolor nulla adipiscing exerci sed sit ut eu ullamcorper amet, praesent odio facilisi. quis iusto nulla aliquip iriure nibh nisl consequat, dolor enim eum et erat elit, tation aliquam accumsan euismod lobortis dignissim volutpat. ad dolore feugiat feugait dolore Duis vulputate dolore zzril autem wisi vel" },
+    { id: 2, userName: "Alex Parker", rating: 4, review: "giat feugait dolore Duis vulputate dolore zzril autem wisi vel" },
+    { id: 3, userName: "Marley Martinez", rating: 4.5, review: "quis iusto nulla aliquip iriure nibh nisl consequat, dolor enim eum et erat elit, tation aliquam accumsan euismod lobortis dignissim volutpat. ad dolore feugiat feugait dolore Duis vulputate dolore zzril autem wisi vel" },
+    { id: 1, userName: "John Doe", rating: 5, review: "consequat. ex vero qui dolor nulla adipiscing exerci sed sit ut eu ullamcorper amet, praesent odio facilisi. quis iusto nulla aliquip iriure nibh nisl consequat, dolor enim eum et erat elit, tation aliquam accumsan euismod lobortis dignissim volutpat. ad dolore feugiat feugait dolore Duis vulputate dolore zzril autem wisi vel" },
+    { id: 2, userName: "Alex Parker", rating: 4, review: "giat feugait dolore Duis vulputate dolore zzril autem wisi vel" },
+    { id: 3, userName: "Marley Martinez", rating: 4.5, review: "quis iusto nulla aliquip iriure nibh nisl consequat, dolor enim eum et erat elit, tation aliquam accumsan euismod lobortis dignissim volutpat. ad dolore feugiat feugait dolore Duis vulputate dolore zzril autem wisi vel" },
+];
 
 // Validation schema using Yup
 const schema = yup.object().shape({
@@ -29,7 +40,7 @@ const schema = yup.object().shape({
         }),
 });
 
-const AddProductForm = () => {
+const ProductDetailForm = () => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: yupResolver(schema),
     });
@@ -70,12 +81,11 @@ const AddProductForm = () => {
     };
 
     return (
-        <div className="mb-[30px]">
-            <h2 className="text-[#10375c] text-3xl font-semibold mb-6">Add Product</h2>
+        <div className="mb-[50px] h-[100vh] ">
+            <h2 className="text-[#10375c] text-3xl font-semibold mb-6">Tennis Social Club T-Shirt</h2>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col md:flex-row gap-[15px]">
-                <div className="w-full md:w-[45%] space-y-4 bg-[#f2f2f4] p-[15px] rounded-[20px]">
-
+            <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col md:flex-row gap-[15px] h-fit">
+                <div className="w-full md:w-[35%] space-y-4 bg-[#f2f2f4] p-[15px] rounded-[20px] h-fit">
                     <div className="relative bg-gray-100 rounded-lg flex flex-col items-center justify-center">
                         {imagePreviews.length > 0 ? (
                             <div className="w-full">
@@ -93,8 +103,8 @@ const AddProductForm = () => {
                                         onClick={() => removeImage(0)}
                                         className="absolute top-1 right-1 bg-white text-black text-center rounded-full p-[6px] px-[7px] flex items-center justify-center"
                                     >
-                                                    <CrossIcon />
-                                                    </button>
+                                        <CrossIcon />
+                                    </button>
                                 </div>
 
                                 {/* Display remaining images in a grid (e.g., 3 columns) */}
@@ -122,11 +132,11 @@ const AddProductForm = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="flex flex-col h-[250px] w-full items-center justify-center bg-[#e7e7e7]  rounded-[10px]">
+                            <div className="flex flex-col h-[250px] w-full items-center justify-center bg-[#e7e7e7] rounded-[10px]">
                                 <Image
                                     src={NoImage}
                                     alt='No image selected'
-                                    className=" h-24 w-24 object-cover  rounded-[10px]"
+                                    className="h-24 w-24 object-cover rounded-[10px]"
                                     width={100}
                                     height={100}
                                 />
@@ -149,7 +159,6 @@ const AddProductForm = () => {
                         </label>
                     </div>
 
-                    {/* Rest of the form fields remain the same */}
                     <div className="flex flex-col gap-[15px]">
                         <div className="flex flex-col gap-[10px]">
                             <label className="block text-[#1b2229] text-xs font-medium">
@@ -186,6 +195,7 @@ const AddProductForm = () => {
                                 placeholder="₹0"
                             />
                         </div>
+
                         <div className="flex flex-col gap-[10px]">
                             <label className="block text-[#1b2229] text-xs font-medium">
                                 Number of Items
@@ -197,45 +207,67 @@ const AddProductForm = () => {
                                 placeholder="000"
                             />
                         </div>
+
+                        <button
+                            type="submit"
+                            className=" py-4 bg-[#10375c] rounded-[28px] text-white text-sm font-medium mt-[5px]"
+                        >
+                            Save
+                        </button>
                     </div>
                 </div>
 
                 {/* Right column - Product details */}
-                <div className="w-full h-fit p-[15px] bg-[#f2f2f4] rounded-[20px] flex-col justify-start items-start gap-[30px]">
-                    <h3 className="text-[#10375c] text-2xl font-semibold mb-[20px]">Product details</h3>
+                <div className="w-full md:w-[65%] flex flex-col gap-[15px]">
+                    <div className="w-full h-fit p-[15px] bg-[#f2f2f4] rounded-[20px] flex-col justify-start items-start gap-[30px]">
+                        <h3 className="text-[#10375c] text-2xl font-semibold mb-[20px]">Product details</h3>
 
-                    <div className="flex flex-col mb-[15px]">
-                        <label className="text-[#1b2229] text-xs font-medium mb-[10px]">
-                            Description
-                        </label>
-                        <textarea
-                            {...register('description')}
-                            className="w-full px-[15px] pt-2.5 pb-[50px] bg-white rounded-[10px] text-black/60 text-xs font-medium"
-                            placeholder="Description here"
-                        ></textarea>
+                        <div className="flex flex-col mb-[15px]">
+                            <label className="text-[#1b2229] text-xs font-medium mb-[10px]">
+                                Description
+                            </label>
+                            <textarea
+                                {...register('description')}
+                                className="w-full px-[15px] pt-2.5 pb-[50px] bg-white rounded-[10px] text-black/60 text-xs font-medium"
+                                placeholder="Description here"
+                            ></textarea>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="text-[#1b2229] text-xs font-medium mb-[10px]">
+                                Specifications
+                            </label>
+                            <textarea
+                                {...register('specifications')}
+                                className="w-full px-[15px] pt-2.5 pb-[50px] bg-white rounded-[10px] text-black/60 text-xs font-medium"
+                                placeholder="Specifications here"
+                            ></textarea>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col">
-                        <label className="text-[#1b2229] text-xs font-medium mb-[10px]">
-                            Specifications
-                        </label>
-                        <textarea
-                            {...register('specifications')}
-                            className="w-full px-[15px] pt-2.5 pb-[50px] bg-white rounded-[10px] text-black/60 text-xs font-medium"
-                            placeholder="Specifications here"
-                        ></textarea>
+                    <div className=" w-full flex flex-col gap-[15px] mb-4">
+                        <div className="w-full  p-[15px] bg-[#f2f2f4] rounded-[20px] flex flex-col overflow-y-auto overflo-custom ">
+                            <div className="w-full text-[#10375c] text-2xl font-semibold mb-[20px]">Reviews</div>
+                            {Reviews.map((review, index) => (
+                                <div key={index} className="mb-[30px]">
+                                    <div className="flex w-full mb-[10px]">
+                                        <div className="w-full flex flex-col gap-[10px]">
+                                            <div className="text-[#1b2229] text-sm font-medium">{review.userName}</div>
+                                            <Rating name="read-only" value={review.rating} readOnly />
+                                        </div>
+                                        <div className="">
+                                            <DeleteIcon1 />
+                                        </div>
+                                    </div>
+                                    <div className="w-full text-black/60 text-sm font-medium leading-tight">{review.review}</div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-
-                    <button
-                        type="submit"
-                        className="w-full h-12 py-4 bg-[#10375c] rounded-[28px] text-white text-sm font-medium mt-[30px]"
-                    >
-                        Add Product
-                    </button>
                 </div>
             </form>
         </div>
     );
 };
 
-export default AddProductForm;            
+export default ProductDetailForm;
