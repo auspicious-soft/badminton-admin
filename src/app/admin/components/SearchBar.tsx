@@ -4,13 +4,13 @@ import React, { useEffect, useState } from 'react';
 interface SearchBarProps {
     setQuery: React.Dispatch<React.SetStateAction<string>>
     query?: string
+    widthSearch?:boolean
 }
 
-/*************  ✨ Codeium Command 🌟  *************/
 const SearchBar = (props: SearchBarProps) => {
   
     const [inputValue, setInputValue] = useState('');
-    const { setQuery,query } = props;
+    const { setQuery,query ,widthSearch} = props;
     useEffect(() => {
         const handler = setTimeout(() => {
             setQuery(`${inputValue ? 'description=' :''}${inputValue.trim()}`);
@@ -25,7 +25,7 @@ const SearchBar = (props: SearchBarProps) => {
         setQuery(event.target.value);
     };
     return (
-        <div className='w-[248px] z-10'>
+        <div className={`${widthSearch ? "w-full" : "w-[248px]"} z-10`}>
             <label htmlFor="" className='relative flex w-full '>
             <input type="search" value={query} onChange={handleInputChange}
              name="" id="" placeholder="Search" className='!h-[40px] placeholder:text-[#6E6E6E] w-full px-5 pl-[40px] focus-visible:outline-none bg-white rounded-[39px] py-2  text-[#6E6E6E] '/>
@@ -34,6 +34,5 @@ const SearchBar = (props: SearchBarProps) => {
         </div>
     );
 }
-/******  2d2bac53-eb17-401f-a2c1-153e60960ba7  *******/
 
 export default SearchBar;
