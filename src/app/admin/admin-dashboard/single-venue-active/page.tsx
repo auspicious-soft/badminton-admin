@@ -82,11 +82,11 @@ const Page = () => {
  ];
 
  return (
-  <>
+  <div className="w-full">
    <div className="text-[#10375c] text-3xl font-semibold">Barnton Park LTC</div>
 
-   <div className="flex gap-[15px] mt-[15px] md:flex-row flex-col ">
-    <div className=" flex gap-[15px] mt-[15px]">
+   <div className="w-full flex gap-[15px] mt-[15px] md:flex-row flex-col ">
+    <div className="w-full md:w-[45%] h-fit flex gap-[15px] mt-[15px]">
      {/* Left Side */}
      <div className="w-full  bg-[#f2f2f4] rounded-[20px] px-[15px] py-[14px]">
       <Image className="rounded-[10px] w-full h-auto object-cover" alt="padel game image" src={MatchImage} width={500} height={300} />
@@ -177,7 +177,7 @@ const Page = () => {
      </div>
     </div>
 
-    <div>
+    <div className="w-full">
      {/* Right Side */}
 
      {/* Right top Side */}
@@ -303,7 +303,7 @@ const Page = () => {
      </div>
     </div>
    </div>
-  </>
+  </div>
  );
 };
 

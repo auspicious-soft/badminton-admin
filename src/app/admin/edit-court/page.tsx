@@ -1,146 +1,174 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { BottomArrow, Edit, Pluss } from "@/utils/svgicons";
-import MatchImage from "@/assets/images/padelImage.png";
-import padelImage from "@/assets/images/padelImage.png";
-import AlexParker from "@/assets/images/AlexParker.png";
-import JordanLee from "@/assets/images/JordanLee.png";
-import TracyMartin from "@/assets/images/TracyMartin.png";
+import { Modal, Box } from "@mui/material";
 import Select, { MultiValue } from "react-select";
-import { EyeIcon, Add } from "@/utils/svgicons";
+import MatchImage from "@/assets/images/padelImage.png";
 
 interface NotificationData {
- title: string;
- text: string;
- recipients: string[];
+  title: string;
+  text: string;
+  recipients: string[];
 }
 
 interface OptionType {
- value: string;
- label: string;
+  value: string;
+  label: string;
 }
 
 const options: OptionType[] = [
- { value: "Active", label: "Active" },
- { value: "Inactive", label: "Inactive" },
+  { value: "Active", label: "Active" },
+  { value: "Inactive", label: "Inactive" },
 ];
 
 const Page = () => {
- const [formData, setFormData] = useState<NotificationData>({
-  title: "",
-  text: "",
-  recipients: [],
- });
+  const [formData, setFormData] = useState<NotificationData>({
+    title: "",
+    text: "",
+    recipients: [],
+  });
 
+  const [open, setOpen] = useState(false);
 
- const [searchParams, setSearchParams] = useState("");
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
- const handleRecipientsChange = (selectedOptions: MultiValue<OptionType>) => {
-  const recipients = selectedOptions.map((option) => option.value);
-  setFormData((prev) => ({
-   ...prev,
-   recipients: recipients,
-  }));
- };
+  const handleRecipientsChange = (selectedOptions: MultiValue<OptionType>) => {
+    const recipients = selectedOptions.map((option) => option.value);
+    setFormData((prev) => ({
+      ...prev,
+      recipients: recipients,
+    }));
+  };
 
+  return (
+    <>
+      {/* Button to Open Modal */}
+      <button
+        className="bg-[#10375c] text-white py-2 px-4 rounded-lg"
+        onClick={handleOpen}
+      >
+        Open Court Modal
+      </button>
 
- 
+      {/* Modal Component */}
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "90%",
+            maxWidth: "500px",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 3,
+            borderRadius: "12px",
+            outline: "none",
+            maxHeight: "90vh",
+            overflowY: "auto",
+          }}
+        >
+          {/* Modal Content */}
+          <div className="flex flex-col gap-4">
+            {/* Image Section */}
+            <div className="w-full">
+              <Image
+                className="rounded-lg w-full h-auto object-cover"
+                alt="padel game image"
+                src={MatchImage}
+                width={500}
+                height={300}
+              />
+            </div>
 
- return (
-  <>
+            {/* Form Section */}
+            <div>
+              <label className="text-[#1b2229] text-sm font-medium mb-2 block">
+                Name of the Court
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter court name"
+              />
+            </div>
 
-   <div className="flex gap-[15px] mt-[15px] md:flex-row flex-col ">
-    <div className=" flex gap-[15px] mt-[15px]">
-     {/* Left Side */}
-     <div className="w-full  bg-[#f2f2f4] rounded-[30px] px-[15px] py-[14px]">
-      <Image className="rounded-[10px] w-full h-auto object-cover" alt="padel game image" src={MatchImage} width={500} height={300} />
+            <div>
+              <label className="text-[#1b2229] text-sm font-medium mb-2 block">
+                Status
+              </label>
+              <Select
+                isMulti
+                options={options}
+                value={options.filter((option) =>
+                  formData.recipients.includes(option.value)
+                )}
+                onChange={handleRecipientsChange}
+                className="w-full text-black/60 text-sm font-medium"
+                classNamePrefix="react-select"
+                placeholder="Select Game..."
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    borderRadius: "8px",
+                    border: "1px solid #e6e6e6",
+                    boxShadow: "none",
+                    minHeight: "45px",
+                    backgroundColor: "white",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                  }),
+                  option: (base, { isFocused }) => ({
+                    ...base,
+                    backgroundColor: isFocused ? "#e6f7ff" : "white",
+                    color: "#1c2329",
+                  }),
+                  multiValue: (base) => ({
+                    ...base,
+                    backgroundColor: "#1c2329",
+                    borderRadius: "5px",
+                    padding: "2px 6px",
+                  }),
+                  multiValueLabel: (base) => ({
+                    ...base,
+                    color: "white",
+                  }),
+                  multiValueRemove: (base) => ({
+                    ...base,
+                    color: "white",
+                    "&:hover": {
+                      backgroundColor: "#1c2329",
+                      color: "white",
+                    },
+                  }),
+                }}
+              />
+            </div>
 
-
-      <div className="h-[69.41px] mt-[10px]">
-       <div className="text-[#1b2229]  mb-[10px] text-xs font-medium">Name of the court</div>
-       <div className="h-[45.41px] px-[15px] py-2.5 bg-white rounded-[39px]">
-        <input type="text" className="text-black/60 text-xs font-medium mt-[5px]" />
-       </div>
-      </div>
-
-      <div className="h-[69.41px]">
-       <div className="text-[#1b2229] mt-[15px] mb-[10px] text-xs font-medium">Status </div>
-       <Select
-        isMulti
-        options={options}
-        value={options.filter((option) => formData.recipients.includes(option.value))}
-        onChange={handleRecipientsChange}
-        className="w-full text-black/60 text-xs font-medium"
-        classNamePrefix="react-select"
-        placeholder="Select Game..."
-        styles={{
-         control: (base) => ({
-          ...base,
-          borderRadius: "44px",
-          border: "1px solid #e6e6e6",
-          boxShadow: "none",
-          height: "45.41px",
-          backgroundColor: "white",
-          "&:hover": {
-           borderColor: "#e6e6e6",
-          },
-          padding: "2px",
-         }),
-         menu: (base) => ({
-          ...base,
-          borderRadius: "8px",
-          width: "40%",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-         }),
-         option: (base, { isFocused }) => ({
-          ...base,
-          backgroundColor: isFocused ? "#e6f7ff" : "white",
-          color: "#1c2329",
-          "&:active": {
-           backgroundColor: "#e6f7ff",
-          },
-         }),
-         multiValue: (base) => ({
-          ...base,
-          backgroundColor: "#1c2329",
-          borderRadius: "5px",
-         }),
-         multiValueLabel: (base) => ({
-          ...base,
-          color: "white",
-          padding: "4px 2px 4px 12px",
-         }),
-         multiValueRemove: (base) => ({
-          ...base,
-          color: "white",
-          margin: "4px 5px 4px 0px",
-          "&:hover": {
-           backgroundColor: "#1c2329",
-           color: "white",
-          },
-         }),
-        }}
-       />
-      </div>
-
-     
-<div className="flex gap-[10px] mb-[20px]">
-      <button className="w-full h-12 bg-[#fd5602] rounded-[28px] text-white text-sm font-medium mt-[15px]">Delete Court</button>
-      <button className="w-full h-12 bg-[#10375c] rounded-[28px] text-white text-sm font-medium mt-[15px]">Save</button>
-</div>
-     </div>
-    </div>
-
-    <div>
-
-   
-    </div>
-   </div>
-  </>
- );
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button className="w-full h-12 bg-[#fd5602] rounded-lg text-white text-sm font-medium">
+                Delete Court
+              </button>
+              <button className="w-full h-12 bg-[#10375c] rounded-lg text-white text-sm font-medium">
+                Save
+              </button>
+            </div>
+          </div>
+        </Box>
+      </Modal>
+    </>
+  );
 };
 
 export default Page;
-
-

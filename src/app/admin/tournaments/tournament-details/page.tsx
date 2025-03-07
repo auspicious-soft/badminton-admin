@@ -30,7 +30,7 @@ const Page = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className=" px-4 py-6">
       <h1 className="text-[#10375c] text-2xl md:text-3xl font-semibold mb-6">Padel Tournament</h1>
       
       <div className="flex flex-col lg:flex-row bg-[#f2f2f4] rounded-[20px] p-4 gap-6">

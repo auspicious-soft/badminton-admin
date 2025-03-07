@@ -75,20 +75,18 @@ const Page = () => {
   { id: 12, team1: "Marley Martinez", team2: "Marley Martinez", game: "Pickleball", date: "22-01-2024" },
  ];
 
-
  const employees = [
   { id: 1, team1: "Alex Parker" },
   { id: 2, team1: "Jordan Lee" },
   { id: 3, team1: "Tracy Martin" },
  ];
 
-
  return (
-  <>
+  <div className="w-full">
    <div className="text-[#10375c] text-3xl font-semibold">Barnton Park LTC</div>
 
-   <div className="flex gap-[15px] mt-[15px] md:flex-row flex-col ">
-    <div className=" flex gap-[15px] mt-[15px]">
+   <div className="w-full flex gap-[15px] mt-[15px] md:flex-row flex-col ">
+    <div className="w-full md:w-[45%] h-fit flex gap-[15px] mt-[15px]">
      {/* Left Side */}
      <div className="w-full  bg-[#f2f2f4] rounded-[20px] px-[15px] py-[14px]">
       <Image className="rounded-[10px] w-full h-auto object-cover" alt="padel game image" src={MatchImage} width={500} height={300} />
@@ -179,129 +177,111 @@ const Page = () => {
      </div>
     </div>
 
-    <div>
-
-
+    <div className="w-full">
      {/* Right Side */}
 
      {/* Right top Side */}
-<div className="w-full p-[15px] bg-[#f2f2f4] rounded-[20px] flex flex-col mt-[10px] opacity-50">
-
-    <div className="h-10 justify-between items-center inline-flex mb-[20px]">
-    <div className="text-[#10375c] text-2xl font-semibold ">Courts</div> 
-         <div className="px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-2.5 flex">
-          <Add/>
-          <div className="text-white text-sm font-medium ">Add A New Court</div>
+     <div className="w-full p-[15px] bg-[#f2f2f4] rounded-[20px] flex flex-col mt-[10px] opacity-50">
+      <div className="h-10 justify-between items-center inline-flex mb-[20px]">
+       <div className="text-[#10375c] text-2xl font-semibold ">Courts</div>
+       <div className="px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-2.5 flex">
+        <Add />
+        <div className="text-white text-sm font-medium ">Add A New Court</div>
+       </div>
       </div>
-  </div>
 
-
-
-
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 ">
-    {courts.map((court, index) => (
-      <div key={index} className="p-[10px] bg-white rounded-[10px] flex flex-col justify-center items-center gap-2 overflow-hidden">
-        <div className="w-full flex items-center gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 ">
+       {courts.map((court, index) => (
+        <div key={index} className="p-[10px] bg-white rounded-[10px] flex flex-col justify-center items-center gap-2 overflow-hidden">
+         <div className="w-full flex items-center gap-2.5">
           <Image className="w-[80px] h-[80px] rounded-[5px]" src={padelImage} alt="paddle image" />
           <div className="flex flex-col justify-center items-start gap-2.5">
-            <div className="text-[#1b2229] text-m font-semibold">{court.name}</div>
-            <div className="flex flex-col justify-center items-center gap-2">
-              <div className="w-[46px] h-[22px] relative rounded-[86px] overflow-hidden">
-                <div className="w-[46px] h-[22px] absolute bg-[#f2f2f4] rounded-[11px] border border-[#e6e6e6]" />
-                <div className={`w-[18px] h-[18px] absolute rounded-[9px] shadow-[0px_4px_4px_0px_rgba(23,109,191,0.25)] ${court.status === "Active" ? "bg-[#10375c]" : "bg-[#10375c]"}`} />
-              </div>
-              <div className="text-right text-[#ff0004] text-[10px] font-medium">{court.status}</div>
+           <div className="text-[#1b2229] text-m font-semibold">{court.name}</div>
+           <div className="flex flex-col justify-center items-center gap-2">
+            <div className="w-[46px] h-[22px] relative rounded-[86px] overflow-hidden">
+             <div className="w-[46px] h-[22px] absolute bg-[#f2f2f4] rounded-[11px] border border-[#e6e6e6]" />
+             <div className={`w-[18px] h-[18px] absolute rounded-[9px] shadow-[0px_4px_4px_0px_rgba(23,109,191,0.25)] ${court.status === "Active" ? "bg-[#10375c]" : "bg-[#10375c]"}`} />
             </div>
+            <div className="text-right text-[#ff0004] text-[10px] font-medium">{court.status}</div>
+           </div>
           </div>
-        </div>
-        <div className="w-full px-3 py-2 bg-[#1b2229] rounded-[26px] flex justify-center items-center">
+         </div>
+         <div className="w-full px-3 py-2 bg-[#1b2229] rounded-[26px] flex justify-center items-center">
           <div className="text-white text-[10px] font-normal">Edit</div>
+         </div>
         </div>
+       ))}
       </div>
-    ))}
-  </div>
-</div>
-
-
-
-
-
-
-  {/* Right middle Side */}
-  <div className="mt-[15px] bg-[#f2f2f4] rounded-[20px] p-[14px] max-h-[400px]  h-[277px] overflow-auto">
-
-    <div className="flex justify-between">
-     <div className="text-[#10375c] text-xl font-medium mb-[20px]">Employees Associated</div>
-     <div className="h-7 px-3 py-2 bg-[#1b2229] rounded-[17px] justify-center items-center gap-2.5 inline-flex">
-    <div className="text-white text-[10px] font-normal ">Add Employee</div>
-    </div>
-</div>
-
-
-{employees.map((employee, index) => (
-      <div key={employee.id}>
-<div className="h-6 flex justify-between items-center bg-local">
-    <div className="h-[23px] justify-start items-center gap-[15px] flex">
-        <Image className="w-[23px] h-[23px] rounded-full" src={AlexParker} alt="AlexParker" />
-        <div className="w-[114px] text-[#1b2229] text-xs font-medium ">Alex Parker</div>
-    </div>
-    <div className="px-3.5 py-[5px] bg-[#fd5602]/10 rounded-[28px] justify-center items-center gap-2.5 flex">
-        <div className="text-[#fd5602] text-xs font-medium ">Remove</div>
-    </div>
-</div>
-
-<div className="h-[0px] border border-white my-[10px]"></div>
-
-<div className="h-6 flex justify-between items-center ">
-    <div className="h-[23px] justify-start items-center gap-[15px] flex">
-        <Image className="w-[23px] h-[23px] rounded-full" src={JordanLee} alt="JordanLee" />
-        <div className=" w-[114px] text-[#1b2229] text-xs font-medium ">Jordan Lee</div>
-    </div>
-    <div className="px-3.5 py-[5px] bg-[#fd5602]/10 rounded-[28px] justify-center items-center gap-2.5 flex">
-        <div className="text-[#fd5602] text-xs font-medium ">Remove</div>
-    </div>
-</div>
-
-<div className="h-[0px] border border-white my-[10px]"></div>
-
-<div className="h-6 flex justify-between items-center ">
-    <div className="h-[23px] justify-start items-center gap-[15px] flex">
-        <Image className="w-[23px] h-[23px] rounded-full" src={chanceAndBrandon} alt="chanceAndBrandon" />
-        <div className="w-[114px] text-[#1b2229] text-xs font-medium ">Tracy Martin</div>
-    </div>
-    <div className="px-3.5 py-[5px] bg-[#fd5602]/10 rounded-[28px] justify-center items-center gap-2.5 flex">
-        <div className="text-[#fd5602] text-xs font-medium ">Remove</div>
-    </div>
-</div>
-
-<div className="h-[0px] border border-white my-[10px]"></div>
-
-</div>
- ))}
-
      </div>
 
+     {/* Right middle Side */}
+     <div className="mt-[15px] bg-[#f2f2f4] rounded-[20px] p-[14px] max-h-[400px]  h-[277px] overflow-auto">
+      <div className="flex justify-between">
+       <div className="text-[#10375c] text-xl font-medium mb-[20px]">Employees Associated</div>
+       <div className="h-7 px-3 py-2 bg-[#1b2229] rounded-[17px] justify-center items-center gap-2.5 inline-flex">
+        <div className="text-white text-[10px] font-normal ">Add Employee</div>
+       </div>
+      </div>
 
+      {employees.map((employee, index) => (
+       <div key={employee.id}>
+        <div className="h-6 flex justify-between items-center bg-local">
+         <div className="h-[23px] justify-start items-center gap-[15px] flex">
+          <Image className="w-[23px] h-[23px] rounded-full" src={AlexParker} alt="AlexParker" />
+          <div className="w-[114px] text-[#1b2229] text-xs font-medium ">Alex Parker</div>
+         </div>
+         <div className="px-3.5 py-[5px] bg-[#fd5602]/10 rounded-[28px] justify-center items-center gap-2.5 flex">
+          <div className="text-[#fd5602] text-xs font-medium ">Remove</div>
+         </div>
+        </div>
+
+        <div className="h-[0px] border border-white my-[10px]"></div>
+
+        <div className="h-6 flex justify-between items-center ">
+         <div className="h-[23px] justify-start items-center gap-[15px] flex">
+          <Image className="w-[23px] h-[23px] rounded-full" src={JordanLee} alt="JordanLee" />
+          <div className=" w-[114px] text-[#1b2229] text-xs font-medium ">Jordan Lee</div>
+         </div>
+         <div className="px-3.5 py-[5px] bg-[#fd5602]/10 rounded-[28px] justify-center items-center gap-2.5 flex">
+          <div className="text-[#fd5602] text-xs font-medium ">Remove</div>
+         </div>
+        </div>
+
+        <div className="h-[0px] border border-white my-[10px]"></div>
+
+        <div className="h-6 flex justify-between items-center ">
+         <div className="h-[23px] justify-start items-center gap-[15px] flex">
+          <Image className="w-[23px] h-[23px] rounded-full" src={chanceAndBrandon} alt="chanceAndBrandon" />
+          <div className="w-[114px] text-[#1b2229] text-xs font-medium ">Tracy Martin</div>
+         </div>
+         <div className="px-3.5 py-[5px] bg-[#fd5602]/10 rounded-[28px] justify-center items-center gap-2.5 flex">
+          <div className="text-[#fd5602] text-xs font-medium ">Remove</div>
+         </div>
+        </div>
+
+        <div className="h-[0px] border border-white my-[10px]"></div>
+       </div>
+      ))}
+     </div>
 
      {/* Right bottom Side */}
      <div className="mt-[15px] bg-[#f2f2f4] rounded-[20px] p-[14px] max-h-[400px] overflow-auto">
+    
 
 
-<div className="flex justify-between mb-[20px] mt-[21px]">
+        <div className="flex justify-between mb-[20px] mt-[21px]">
       <div className="text-[#10375c] text-xl font-medium ">Matches</div>
        <SearchBar setQuery={setSearchParams} query={searchParams} />
      </div>
 
-
-<div className=" h-3.5 justify-between items-center flex text-[#7e7e8a] mb-[8px] text-xs font-medium">
-    <div>Name of Team 1</div>
-    <div>Name of Team 2</div>
-    <div>Game</div>
-    <div>Date</div>
-    <div>Action</div>
-</div>
-<div className="mb-[8px] h-[0px] border border-[#d0d0d0]"></div>
-
+      <div className=" h-3.5 justify-between items-center flex text-[#7e7e8a] mb-[8px] text-xs font-medium">
+       <div>Name of Team 1</div>
+       <div>Name of Team 2</div>
+       <div>Game</div>
+       <div>Date</div>
+       <div>Action</div>
+      </div>
+      <div className="mb-[8px] h-[0px] border border-[#d0d0d0]"></div>
 
       {matches.map((match, index) => (
        <div key={match.id} className={`w-full   min-w-[600px] cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedMatch?.id === match.id ? "bg-[#176dbf] text-white" : index % 2 === 0 ? "bg-white" : "bg-gray-200"}`} onClick={() => setSelectedMatch(match)}>
@@ -321,17 +301,10 @@ const Page = () => {
        </div>
       ))}
      </div>
-     
-
-   
-
-
-
     </div>
    </div>
-  </>
+  </div>
  );
 };
 
 export default Page;
-
