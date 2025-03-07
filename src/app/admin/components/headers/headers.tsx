@@ -87,7 +87,7 @@ export default function Headers() {
                 <button className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors">
                   <Bell className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
-                <button className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                <button  className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors ">
                   <User className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
