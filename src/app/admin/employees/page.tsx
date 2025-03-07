@@ -1,10 +1,11 @@
 import React from 'react';
-import AllMatches from '../components/Matches/AllMatches';
+import AllEmployeeComponent from '../components/employees/AllEmployees';
 
 const Page = () => {
     return (
         <div>
-           <AllMatches/>
+           <AllEmployeeComponent/>
+
         </div>
     );
 }
