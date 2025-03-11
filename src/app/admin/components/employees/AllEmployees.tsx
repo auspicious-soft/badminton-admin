@@ -90,7 +90,7 @@ const AllEmployeeComponent = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-[#10375c] text-2xl md:text-3xl font-semibold mb-4">All Employees</h1>
+      <h1 className="text-[#10375c]  mb-4">All Employees</h1>
 
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">

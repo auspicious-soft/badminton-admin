@@ -1,7 +1,7 @@
 "use client";
-import { WhiteDownArrow, BottomArrow, Edit, Add, EyeIcon } from "@/utils/svgicons";
+import { WhiteDownArrow, BottomArrow, Edit, Add, EyeIcon, Eye } from "@/utils/svgicons";
 import React, { useState } from "react";
-import SearchBar from "../SearchBar";
+import SearchBar from "../components/SearchBar";
 import Image from "next/image";
 import Select, { MultiValue } from "react-select";
 import AlexParker from "@/assets/images/AlexParker.png";
@@ -89,127 +89,12 @@ const AllEmployeeComponent = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <h1 className="text-[#10375c] text-2xl md:text-3xl font-semibold mb-4">All Employees</h1>
+    <>
+      <div className="text-[#10375c] text-2xl md:text-3xl font-semibold mb-4">Add New Employee</div>
 
-      {/* Header Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button className="flex h-10 px-5 py-3 bg-[#1b2229] rounded-full justify-center items-center gap-2 text-white text-sm font-medium">
-            Sort <WhiteDownArrow />
-          </button>
-          <button className="flex h-10 w-full sm:w-[150px] px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium">
-            Status <WhiteDownArrow />
-          </button>
-        </div>
-        <button className="flex h-10 w-full sm:w-[210px] px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium">
-          <Add /> Add A New Employee
-        </button>
-      </div>
-
-      {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Side - Employee List */}
-        <div className="w-full lg:w-2/3 bg-[#f2f2f4] rounded-[20px] p-4 md:p-6 h-auto lg:h-[657px] overflow-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-            <h2 className="text-[#10375c] text-lg md:text-xl font-medium">All Employees</h2>
-            <div className="w-full sm:w-auto mt-2 sm:mt-0">
-              <SearchBar setQuery={setSearchParams} query={searchParams} />
-            </div>
-          </div>
-
-          {/* Table Header */}
-          <div className="hidden md:flex justify-between items-center text-[#7e7e8a] text-xs font-medium mb-2">
-            <div className="w-1/4">Name</div>
-            <div className="w-1/4">Status</div>
-            <div className="w-1/4">Email</div>
-            <div className="w-1/4">Phone Number</div>
-            <div className="w-1/6 text-center">Action</div>
-          </div>
-          <div className="hidden md:block border-t border-[#d0d0d0] mb-2"></div>
-
-          {/* Employee List */}
-          {employees.map((employee, index) => (
-            <div
-              key={employee.id}
-              className={`w-full cursor-pointer flex flex-col md:flex-row items-start md:items-center p-3 rounded-[10px] mb-2 ${
-                selectedMatch?.id === employee.id
-                  ? "bg-[#176dbf] text-white"
-                  : index % 2 === 0
-                  ? "bg-white"
-                  : "bg-gray-200"
-              }`}
-              onClick={() => setSelectedMatch(employee)}
-            >
-              <div
-                className={`w-full md:w-1/4 flex items-center gap-2 text-xs font-medium p-2 ${
-                  selectedMatch?.id === employee.id ? "text-white" : "text-[#1b2229]"
-                }`}
-              >
-                <Image src={AlexParker} alt="Avatar" className="rounded-full" width={25} height={25} />
-                <span className="md:hidden font-bold">Name: </span> {employee.name}
-              </div>
-
-              <div className="relative w-full md:w-1/4 p-2">
-                <button
-                  className="flex w-full md:w-[140px] h-[22px] px-3 py-1 bg-[#1b2229] text-white text-xs justify-between items-center rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleDropdown(employee.id);
-                  }}
-                >
-                  {employee.status}
-                  <span className="ml-2">
-                    {!dropdownStates[employee.id] ? <DownArrowIcon /> : <UpArrowIcon />}
-                  </span>
-                </button>
-                {dropdownStates[employee.id] && (
-                  <div className="z-50 flex flex-col gap-2 absolute top-8 md:top-10 left-0 p-4 w-[180px] bg-white rounded-[10px] shadow-lg">
-                    {games.map((status) => (
-                      <label key={status} className="flex gap-2 cursor-pointer text-[#1b2229] text-sm font-medium">
-                        <input
-                          type="radio"
-                          name={`status-${employee.id}`}
-                          value={status}
-                          checked={employee.status === status}
-                          onChange={(e) => {
-                            console.log("Selected Status for", employee.id, ":", e.target.value);
-                            toggleDropdown(employee.id);
-                          }}
-                          className="accent-[#1b2229]"
-                        />
-                        {status}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div
-                className={`w-full md:w-1/4 text-xs font-medium p-2 ${
-                  selectedMatch?.id === employee.id ? "text-white" : "text-[#1b2229]"
-                }`}
-              >
-                <span className="md:hidden font-bold">Email: </span> {employee.email}
-              </div>
-
-              <div
-                className={`w-full md:w-1/4 text-xs font-medium p-2 ${
-                  selectedMatch?.id === employee.id ? "text-white" : "text-[#1b2229]"
-                }`}
-              >
-                <span className="md:hidden font-bold">Phone: </span> {employee.phonenumber}
-              </div>
-
-              <div className="w-full md:w-1/6 text-xs font-medium p-2 flex justify-start md:justify-center">
-                <EyeIcon stroke={selectedMatch?.id === employee.id ? "#FFFF" : "#fd5602"} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Right Side - Employee Details */}
-        <div className="w-full lg:w-1/3 mt-6 lg:mt-0">
+        {/* left Side */}
+        <div className="bg-[#F2F2F4] rounded-[10px] w-full lg:w-[40%] py-4 px-4 lg:py-6 lg:px-6">
           <div className="relative w-full h-[262px]">
             {selectedImage ? (
               <Image src={selectedImage} alt="Selected" className="w-full h-full rounded-[10px] object-cover" />
@@ -223,13 +108,11 @@ const AllEmployeeComponent = () => {
             </label>
           </div>
 
-          <h2 className="text-[#10375c] text-xl md:text-2xl font-semibold mt-6">Name of the Employee</h2>
-
-          <div className="w-full bg-white rounded-[20px] p-4 mt-4">
+          <div className="w-full rounded-[20px] mt-4">
             <div className="mb-4">
-              <label className="text-[#1b2229] text-xs font-medium block mb-2">Phone Number</label>
+              <label className="text-[#1b2229] text-xs font-medium block mb-2">Name of the Employee</label>
               <input
-                type="number"
+                type="text"
                 className="w-full h-12 px-4 py-2 bg-white border border-[#e6e6e6] rounded-full text-black/60 text-xs font-medium"
               />
             </div>
@@ -276,8 +159,33 @@ const AllEmployeeComponent = () => {
             <button className="w-full h-12 bg-[#10375c] rounded-full text-white text-sm font-medium">Save</button>
           </div>
         </div>
+
+        {/* right side */}
+        <div className="bg-[#F2F2F4] rounded-[10px] w-full py-4 px-4 lg:py-6 lg:px-6">
+          <div className="text-[#10375C] mb-4 text-xl font-semibold">Credentials</div>
+          <div className="mb-4">
+            <label className="text-[#1b2229] text-xs font-medium block mb-2">Email Address</label>
+            <input
+              type="email"
+              className="w-full h-12 px-4 py-2 bg-white border border-[#e6e6e6] rounded-full text-black/60 text-xs font-medium"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="text-[#1b2229] text-xs font-medium block mb-2">Password</label>
+            <div className="flex bg-white border border-[#e6e6e6] rounded-full">
+              <input
+                type="password"
+                className="w-full h-12 px-4 py-2 text-black/60 text-xs font-medium rounded-full"
+              />
+              <div className="flex justify-center items-center mr-2">
+                <Eye />
+              </div>
+            </div>
+          </div>
+          <button className="w-full h-12 bg-black rounded-full text-white text-sm font-medium">Save</button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
