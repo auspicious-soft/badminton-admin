@@ -7,6 +7,8 @@ import Select, { MultiValue } from "react-select";
 import AlexParker from "@/assets/images/AlexParker.png";
 import Ball from "@/assets/images/Ball.png";
 import { UpArrowIcon, DownArrowIcon } from "@/utils/svgicons";
+import { useRouter } from "next/navigation";
+
 
 const employees = [
   { id: 1, name: "Alex Parker", status: "Working", email: "janesmith@example.com", phonenumber: "+1 (555) 234-5678" },
@@ -25,6 +27,7 @@ const employees = [
 
 const games = ["Working", "Ex-Employee"];
 
+
 interface NotificationData {
   title: string;
   text: string;
@@ -41,7 +44,7 @@ const options: OptionType[] = [
   { value: "Working", label: "Working" },
 ];
 
-const AllEmployeeComponent = () => {
+const Page = () => {
   const [formData, setFormData] = useState<NotificationData>({
     title: "",
     text: "",
@@ -58,6 +61,7 @@ const AllEmployeeComponent = () => {
     phonenumber: "+1 (555) 234-5678",
   });
 
+  const router = useRouter();
   const [searchParams, setSearchParams] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [dropdownStates, setDropdownStates] = useState<{ [key: number]: boolean }>({});
@@ -90,7 +94,7 @@ const AllEmployeeComponent = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-[#10375c]  mb-4">All Employees</h1>
+      <h1 className="text-[#10375c] mb-4">All Employees</h1>
 
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
@@ -102,7 +106,7 @@ const AllEmployeeComponent = () => {
             Status <WhiteDownArrow />
           </button>
         </div>
-        <button className="flex h-10 w-full sm:w-[210px] px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium">
+        <button onClick={() => router.push("/admin/components/employees/add-new-employe")} className="flex h-10 w-full sm:w-[210px] px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium">
           <Add /> Add A New Employee
         </button>
       </div>
@@ -212,9 +216,21 @@ const AllEmployeeComponent = () => {
         <div className="w-full lg:w-1/3 mt-6 lg:mt-0">
           <div className="relative w-full h-[262px]">
             {selectedImage ? (
-              <Image src={selectedImage} alt="Selected" className="w-full h-full rounded-[10px] object-cover" />
+              <Image
+                src={selectedImage}
+                alt="Selected"
+                width={300} // Added width
+                height={262} // Added height (matches container height)
+                className="w-full h-full rounded-[10px] object-cover"
+              />
             ) : (
-              <Image className="w-full h-full rounded-[10px] object-cover" src={Ball} alt="Ball Image" />
+              <Image
+                className="w-full h-full rounded-[10px] object-cover"
+                src={Ball}
+                alt="Ball Image"
+                width={300} // Added width
+                height={262} // Added height (matches container height)
+              />
             )}
             <label className="absolute bottom-2 right-2 h-12 px-4 py-2 flex bg-white rounded-full items-center gap-2 cursor-pointer">
               <Edit />
@@ -281,4 +297,4 @@ const AllEmployeeComponent = () => {
   );
 };
 
-export default AllEmployeeComponent;
+export default Page;

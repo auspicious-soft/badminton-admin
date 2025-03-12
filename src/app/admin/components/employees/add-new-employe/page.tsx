@@ -1,7 +1,7 @@
 "use client";
 import { WhiteDownArrow, BottomArrow, Edit, Add, EyeIcon, Eye } from "@/utils/svgicons";
 import React, { useState } from "react";
-import SearchBar from "../components/SearchBar";
+import SearchBar from "../../SearchBar";
 import Image from "next/image";
 import Select, { MultiValue } from "react-select";
 import AlexParker from "@/assets/images/AlexParker.png";
@@ -41,7 +41,7 @@ const options: OptionType[] = [
   { value: "Working", label: "Working" },
 ];
 
-const AllEmployeeComponent = () => {
+const Page = () => {
   const [formData, setFormData] = useState<NotificationData>({
     title: "",
     text: "",
@@ -93,13 +93,23 @@ const AllEmployeeComponent = () => {
       <div className="text-[#10375c] text-2xl md:text-3xl font-semibold mb-4">Add New Employee</div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* left Side */}
+        {/* Left Side */}
         <div className="bg-[#F2F2F4] rounded-[10px] w-full lg:w-[40%] py-4 px-4 lg:py-6 lg:px-6">
           <div className="relative w-full h-[262px]">
             {selectedImage ? (
-              <Image src={selectedImage} alt="Selected" className="w-full h-full rounded-[10px] object-cover" />
+              <Image
+                src={selectedImage}
+                alt="Selected"
+                fill
+                className="rounded-[10px] object-cover"
+              />
             ) : (
-              <Image className="w-full h-full rounded-[10px] object-cover" src={Ball} alt="Ball Image" />
+              <Image
+                src={Ball}
+                alt="Ball Image"
+                fill
+                className="rounded-[10px] object-cover"
+              />
             )}
             <label className="absolute bottom-2 right-2 h-12 px-4 py-2 flex bg-white rounded-full items-center gap-2 cursor-pointer">
               <Edit />
@@ -160,7 +170,7 @@ const AllEmployeeComponent = () => {
           </div>
         </div>
 
-        {/* right side */}
+        {/* Right Side */}
         <div className="bg-[#F2F2F4] rounded-[10px] w-full py-4 px-4 lg:py-6 lg:px-6">
           <div className="text-[#10375C] mb-4 text-xl font-semibold">Credentials</div>
           <div className="mb-4">
@@ -189,4 +199,5 @@ const AllEmployeeComponent = () => {
   );
 };
 
-export default AllEmployeeComponent;
+export default Page;
+

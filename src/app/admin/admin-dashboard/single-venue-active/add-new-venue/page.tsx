@@ -10,7 +10,7 @@ import chanceAndBrandon from "@/assets/images/chanceAndBrandon.png";
 import TracyMartin from "@/assets/images/TracyMartin.png";
 import Select, { MultiValue } from "react-select";
 import { EyeIcon, Add } from "@/utils/svgicons";
-import SearchBar from "../../components/SearchBar";
+// import SearchBar from "../../components/SearchBar";
 import { useRouter } from "next/navigation";
 
 interface NotificationData {
@@ -56,9 +56,6 @@ const Page = () => {
 
  const courts = [
   { id: 1, name: "Court No 1", status: "Inactive" },
-  { id: 2, name: "Court No 2", status: "Active" },
-  { id: 3, name: "Court No 3", status: "Inactive" },
-  { id: 4, name: "Court No 4", status: "Active" },
  ];
 
  const matches = [
@@ -185,6 +182,7 @@ const Page = () => {
      </div>
     </div>
 
+
     <div className="w-full">
      {/* Right Side */}
 
@@ -222,8 +220,9 @@ const Page = () => {
       </div>
      </div>
 
+
      {/* Right middle Side */}
-     <div className="mt-[15px] bg-[#f2f2f4] rounded-[20px] p-[14px] max-h-[400px]  h-[277px] overflow-auto">
+     {/* <div className="mt-[15px] bg-[#f2f2f4] rounded-[20px] p-[14px] max-h-[400px]  h-[277px] overflow-auto">
       <div className="flex justify-between">
        <div className="text-[#10375c] text-xl font-medium mb-[20px]">Employees Associated</div>
        <div className="h-7 px-3 py-2 bg-[#1b2229] rounded-[17px] justify-center items-center gap-2.5 inline-flex">
@@ -270,7 +269,14 @@ const Page = () => {
         <div className="h-[0px] border border-white my-[10px]"></div>
        </div>
       ))}
-     </div>
+     </div> */}
+     <div className=" inline-flex justify-between items-center">
+    <div className="justify-start text-[#10375c] text-xl font-medium font-['Raleway']">Employees Associated</div>
+    <div className="px-3 py-2 bg-[#1b2229] rounded-[17px] flex justify-center items-center gap-2.5">
+        <div className="justify-start text-white text-[10px] font-normal font-['Raleway']">Add Employee</div>
+    </div>
+</div>
+
 
      {/* Right bottom Side */}
      <div className="mt-[15px] bg-[#f2f2f4] rounded-[20px] p-[14px] max-h-[400px] overflow-auto">
@@ -279,7 +285,7 @@ const Page = () => {
 
         <div className="flex justify-between mb-[20px] mt-[21px]">
       <div className="text-[#10375c] text-xl font-medium ">Matches</div>
-       <SearchBar setQuery={setSearchParams} query={searchParams} />
+       {/* <SearchBar setQuery={setSearchParams} query={searchParams} /> */}
      </div>
 
       <div className=" h-3.5 justify-between items-center flex text-[#7e7e8a] mb-[8px] text-xs font-medium">
@@ -309,6 +315,8 @@ const Page = () => {
        </div>
       ))}
      </div>
+
+
     </div>
    </div>
   </div>
@@ -316,3 +324,4 @@ const Page = () => {
 };
 
 export default Page;
+
