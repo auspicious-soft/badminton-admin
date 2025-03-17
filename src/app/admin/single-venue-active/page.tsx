@@ -10,14 +10,14 @@ import chanceAndBrandon from "@/assets/images/chanceAndBrandon.png";
 import TracyMartin from "@/assets/images/TracyMartin.png";
 import Select, { MultiValue } from "react-select";
 import { EyeIcon, Add } from "@/utils/svgicons";
-import SearchBar from "../../components/SearchBar";
-
+// import SearchBar from "../../components/SearchBar";
+import { useRouter } from "next/navigation";
 
 interface NotificationData {
  title: string;
  text: string;
  recipients: string[];
-}
+}     
 
 interface OptionType {
  value: string;
@@ -44,6 +44,7 @@ const Page = () => {
   date: "22-01-2024",
  });
  const [searchParams, setSearchParams] = useState("");
+  const router = useRouter();
 
  const handleRecipientsChange = (selectedOptions: MultiValue<OptionType>) => {
   const recipients = selectedOptions.map((option) => option.value);
@@ -83,7 +84,14 @@ const Page = () => {
 
  return (
   <div className="w-full">
+    <div className="flex justify-between">
    <div className="text-[#10375c] text-3xl font-semibold">Barnton Park LTC</div>
+   <div className="px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-2.5 flex">
+    <Add />
+    <button onClick={() => router.push( "/admin/single-venue-active/add-new-venue" )} className="text-white text-sm font-medium ">Add A New Venue</button>
+    </div>
+    </div>
+
 
    <div className="w-full flex gap-[15px] mt-[15px] md:flex-row flex-col ">
     <div className="w-full md:w-[45%] h-fit flex gap-[15px] mt-[15px]">
@@ -181,12 +189,12 @@ const Page = () => {
      {/* Right Side */}
 
      {/* Right top Side */}
-     <div className="w-full p-[15px] bg-[#f2f2f4] rounded-[20px] flex flex-col mt-[10px] opacity-50">
+     <div className="w-full p-[15px] bg-[#f2f2f4] rounded-[20px] flex flex-col mt-[10px]">
       <div className="h-10 justify-between items-center inline-flex mb-[20px]">
        <div className="text-[#10375c] text-2xl font-semibold ">Courts</div>
        <div className="px-5 py-3 bg-[#1b2229] rounded-[28px] justify-center items-center gap-2.5 flex">
         <Add />
-        <div className="text-white text-sm font-medium ">Add A New Court</div>
+        <button className="text-white text-sm font-medium ">Add A New Court</button>
        </div>
       </div>
 
@@ -271,7 +279,7 @@ const Page = () => {
 
         <div className="flex justify-between mb-[20px] mt-[21px]">
       <div className="text-[#10375c] text-xl font-medium ">Matches</div>
-       <SearchBar setQuery={setSearchParams} query={searchParams} />
+       {/* <SearchBar setQuery={setSearchParams} query={searchParams} /> */}
      </div>
 
       <div className=" h-3.5 justify-between items-center flex text-[#7e7e8a] mb-[8px] text-xs font-medium">
@@ -301,6 +309,8 @@ const Page = () => {
        </div>
       ))}
      </div>
+
+
     </div>
    </div>
   </div>

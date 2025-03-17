@@ -26,6 +26,8 @@ const employees = [
 ];
 
 const games = ["Working", "Ex-Employee"];
+const cities = ["New York", "Los Angeles", "Chicago", "Houston"];
+
 
 
 interface NotificationData {
@@ -102,9 +104,48 @@ const Page = () => {
           <button className="flex h-10 px-5 py-3 bg-[#1b2229] rounded-full justify-center items-center gap-2 text-white text-sm font-medium">
             Sort <WhiteDownArrow />
           </button>
-          <button className="flex h-10 w-full sm:w-[150px] px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium">
-            Status <WhiteDownArrow />
-          </button>
+
+
+<div className="mb-4">
+  <div className="relative">
+    <button
+    className="w-full h-10 px-5 py-3 border border-[#e6e6e6] rounded-full bg-[#1b2229] text-white flex justify-between items-center text-xs font-medium"
+    onClick={() => setGameDropdown(!gameDropdown)}
+    >
+    {selectedGame || "Select Status"}
+    <span>{!gameDropdown ? <WhiteDownArrow /> : <UpArrowIcon />}</span>
+    </button>
+    {gameDropdown && (
+    <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 w-full bg-white rounded-[10px] shadow-lg">
+    {games.map((status) => (
+    <label key={status} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
+    <input
+    type="radio"
+    name="Select Status"
+    value={status}
+    checked={selectedGame === status}
+    onChange={(e) => {
+    setSelectedGame(e.target.value);
+    console.log("Selected Status:", e.target.value);
+    setGameDropdown(false);
+  }}
+    className="accent-[#1b2229]" />
+    {status}
+    </label>
+    ))}
+    </div>
+    )}
+    </div>
+    </div>
+           
+
+
+
+
+
+
+
+
         </div>
         <button onClick={() => router.push("/admin/components/employees/add-new-employe")} className="flex h-10 w-full sm:w-[210px] px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium">
           <Add /> Add A New Employee
@@ -256,6 +297,7 @@ const Page = () => {
                 className="w-full h-12 px-4 py-2 bg-white border border-[#e6e6e6] rounded-full text-black/60 text-xs font-medium"
               />
             </div>
+
             <div className="mb-4">
               <label className="text-[#1b2229] text-xs font-medium block mb-2">Status</label>
               <div className="relative">
@@ -289,8 +331,9 @@ const Page = () => {
                 )}
               </div>
             </div>
-            <button className="w-full h-12 bg-[#10375c] rounded-full text-white text-sm font-medium">Save</button>
-          </div>
+
+  <button className="w-full h-12 bg-[#10375c] rounded-full text-white text-sm font-medium">Save</button>
+    </div>
         </div>
       </div>
     </div>

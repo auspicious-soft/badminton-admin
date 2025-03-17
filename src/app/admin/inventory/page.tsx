@@ -114,38 +114,56 @@ const Page = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <div className="justify-start text-[#10375c] text-3xl font-semibold">Inventory</div>
         <div className="mt-4 md:mt-0 px-5 py-3 bg-[#1b2229] rounded-[28px] flex justify-center items-center gap-[5px]">
-          <div onClick={() => setOpenNewItem(true)} className="justify-start text-white text-sm font-medium">
+          <div onClick={() => setOpenNewItem(true)} className="justify-start cursor-pointer text-white text-sm font-medium">
             Add A New Item
           </div>
           <WhiteDownArrow />
         </div>
       </div>
 
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-        {inventoryItems.map((item, index) => (
-          <div key={item.id} className='px-[20px] py-[20px] bg-white rounded-[20px] shadow-md'>
-            <div className="text-[#10375c] text-2xl font-semibold mb-[10px]">{item.name}</div>
-            <div className='flex flex-col sm:flex-row gap-[20px] sm:gap-[64px]'>
-              <div className="flex flex-col items-center">
-                <div className="text-[#10375c] text-[40px] font-semibold mb-[7px]">{item.stockInUse}</div>
-                <div className="text-[#1b2229] text-xs font-medium mb-[15px]">Stock In Use</div>
-                <div onClick={() => openEditDialog(index)} className="px-[50px] py-[11px] bg-[#10375c] rounded-[28px] inline-flex justify-center items-center gap-2.5">
-                  <button className="text-white text-[10px] font-medium">Edit Stock</button>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="text-[#10375c] text-[40px] font-semibold mb-[7px]">{item.freshStock}</div>
-                <div className="text-[#1b2229] text-xs font-medium mb-[15px]">Fresh Stock</div>
-                <div onClick={() => openAddDialog(index)} className="px-[50px] py-[11px] bg-[#10375c] rounded-[28px] inline-flex justify-center items-center gap-2.5">
-                  <button className="text-white text-[10px] font-medium">Add To Stock</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+  {inventoryItems.map((item, index) => (
+    <div 
+      key={item.id} 
+      className="p-5 bg-white rounded-2xl shadow-md"
+    >
+      <div className="text-[#10375c] text-xl md:text-2xl font-semibold mb-2.5">
+        {item.name}
       </div>
+      <div className="flex flex-col sm:flex-row gap-5 sm:gap-8 md:gap-16">
+        <div className="flex flex-col items-center">
+          <div className="text-[#10375c] text-3xl md:text-[40px] font-semibold mb-1.5">
+            {item.stockInUse}
+          </div>
+          <div className="text-[#1b2229] text-xs font-medium mb-3">
+            Stock In Use
+          </div>
+          <button 
+            onClick={() => openEditDialog(index)}
+            className="px-6 sm:px-8 md:px-12 py-2.5 bg-[#10375c] rounded-full text-white text-[10px] font-medium hover:bg-opacity-90 transition-colors"
+          >
+            Edit Stock
+          </button>
+        </div>
+
+        <div className="flex flex-col items-center">
+          <div className="text-[#10375c] text-3xl md:text-[40px] font-semibold mb-1.5">
+            {item.freshStock}
+          </div>
+          <div className="text-[#1b2229] text-xs font-medium mb-3">
+            Fresh Stock
+          </div>
+          <button 
+            onClick={() => openAddDialog(index)}
+            className="px-6 sm:px-8 md:px-12 py-2.5 bg-[#10375c] rounded-full text-white text-[10px] font-medium hover:bg-opacity-90 transition-colors"
+          >
+            Add To Stock
+          </button>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
 
 
