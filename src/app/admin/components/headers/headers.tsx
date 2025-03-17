@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, User, Menu, X } from "lucide-react";
 import { AppLogoIcon } from "../../../../utils/svgicons";
+import { useRouter } from "next/navigation";
 
 // Define navigation links with associated routes
 const navigationLinks = [
@@ -25,7 +26,6 @@ const navigationLinks = [
 // Common function to determine if a tab is active
 const isTabActive = (pathname, routes) => {
   return routes.some((route) => {
-    // Replace dynamic segments like [id] with a regex or simple startsWith for subroutes
     if (route.includes("[id]")) {
       const baseRoute = route.replace("[id]", "");
       return pathname.startsWith(baseRoute);
@@ -36,7 +36,9 @@ const isTabActive = (pathname, routes) => {
 
 export default function Headers() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter()
   const pathname = usePathname();
+  const isProfileActive = pathname === "/admin/profile"; // Check if current route is profile
 
   return (
     <div className="sticky top-0 w-full py-4 px-4 md:px-6 z-50 bg-[#fbfaff] pb-1">
@@ -87,7 +89,14 @@ export default function Headers() {
                 <button className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors">
                   <Bell className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
-                <button  className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors ">
+                <button 
+                  onClick={() => { router.push('/admin/profile'); }}
+                  className={`p-2 md:p-3 rounded-full bg-[#FFF] transition-colors ${
+                    isProfileActive 
+                      ? "bg-gray-900 text-white hover:bg-gray-800" 
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                  }`}
+                >
                   <User className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
