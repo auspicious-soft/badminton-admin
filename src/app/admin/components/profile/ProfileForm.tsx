@@ -94,8 +94,8 @@ const ProfileForm = () => {
             <div className="flex justify-between">
                 <h2 className="text-[#10375c] text-3xl font-semibold mb-6">Profile</h2>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col md:flex-row gap-[15px] h-fit">
-                <div className="w-full md:w-[50%] lg:w-[40%] space-y-4 bg-[#f2f2f4] p-[15px] rounded-[20px] h-fit">
+            <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col md:flex-row gap-[15px] h-fit ">
+                <div className="w-full md:w-[50%] lg:w-[40%] space-y-4 bg-[#f2f2f4] p-[15px] rounded-[20px] h-fit mb-[30px]">
                     <div className="relative bg-gray-100 rounded-lg flex flex-col items-center justify-center">
                         {imagePreview ? (
                             <div className="w-full">

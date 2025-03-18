@@ -136,7 +136,6 @@ export default function LoginPage() {
         <div className="m-[20px] hidden w-full rounded-[20px] md:flex md:w-[50%] bg-[#e9f5fe] items-center justify-center">
           <Image src={Login} alt="Illustration" className=" w-[80%]" />
         </div>
-
         {/* Right Side - Login Form */}
         <div className="w-full md:w-[60%] p-8 flex flex-col justify-center">
           <div className="text-center mb-6 space-y-[50px]">
@@ -157,7 +156,6 @@ export default function LoginPage() {
                 placeholder="Enter your email"
               />
             </div>
-
             <div className="space-y-[10px]">
               <label className="text-[#1b2229] text-base font-medium">Your Password</label>
               <input
