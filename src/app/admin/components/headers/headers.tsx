@@ -12,7 +12,7 @@ const navigationLinks = [
  { href: "/admin/tournaments", label: "Tournaments", routes: ["/admin/tournaments"] },
  { href: "/admin/users", label: "Users", routes: ["/admin/users"] },
  { href: "/admin/notifications", label: "Notifications", routes: ["/admin/notifications"] },
- { href: "/admin/courts", label: "Courts", routes: ["/admin/courts"] },
+ { href: "/admin/venue", label: "Venue", routes: ["/admin/venue"] },
  { href: "/admin/merchandises", label: "Merchandise", routes: ["/admin/merchandises", "/admin/merchandises/[id]", "/admin/merchandises/add"] },
  { href: "/admin/inventory", label: "Inventory", routes: ["/admin/inventory"] },
  { href: "/admin/employees", label: "Employees", routes: ["/admin/employees"] },

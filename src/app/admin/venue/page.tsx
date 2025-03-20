@@ -9,6 +9,7 @@ import thirdvenue from "@/assets/images/thirdvenue.png";
 import fourthvenue from "@/assets/images/fourthvenue.png";
 import fifthvenue from "@/assets/images/fifthvenue.png";
 import ReactPaginate from "react-paginate";
+import { useRouter } from "next/navigation";
 
 const venues = [
   { image: firstvenue, name: "Greenwood Tennis Center", location: "Bangalore" },
@@ -36,6 +37,7 @@ const itemsPerPage = 10; // Show 10 venues per page
 const Page = () => {
   const [searchParams, setSearchParams] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
+  const router= useRouter();
 
   // Filter venues based on search
   const filteredVenues = venues.filter((venue) =>
@@ -61,13 +63,13 @@ const Page = () => {
           </div>
           <div className="px-5 py-3 bg-[#1b2229] rounded-[28px] flex justify-center items-center gap-[5px] cursor-pointer">
             <Add />
-            <div className="text-white text-sm font-medium">Add A New Venue</div>
+            <div onClick={ () => router.push("/admin/venue/add-new-venue")} className="text-white text-sm font-medium">Add A New Venue</div>
           </div>
         </div>
       </div>
 
       {/* Venue List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
+      <div onClick={ () => router.push("/admin/venue/single-venue-active")} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
         {currentVenues.map((venue, index) => (
           <div key={index} className="flex flex-col items-start">
             <Image src={venue.image} alt={venue.name} width={250} height={200} className="w-full h-52 rounded-[10px]" />
