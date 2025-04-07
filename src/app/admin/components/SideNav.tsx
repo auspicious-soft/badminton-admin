@@ -29,6 +29,9 @@ const SideNav = () => {
   //    await signOut({ redirect: false })
   //   router.push('/login');
   // }
+
+
+  
   return (
     <div className="relative h-full">
       <button onClick={toggleSidebar} className="hide-content absolute top-[30px] -right-2.5 z-10 ">

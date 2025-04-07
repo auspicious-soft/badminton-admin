@@ -24,12 +24,7 @@ const options: OptionType[] = [
  { value: "Paddle", label: "Paddle" },
 ];
 
-// const states = [
-//  "Andhra Pradesh",
-//  "Arunachal Pradesh",
-//  "Assam",
-//  // ... other states
-// ];
+
 const states = [
   "Andhra Pradesh",
   "Arunachal Pradesh",
@@ -300,3 +295,11 @@ const Page = () => {
 };
 
 export default Page;
+
+
+
+
+
+
+
+
