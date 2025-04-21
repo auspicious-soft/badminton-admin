@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { getDashboardStats } from '@/services/admin-services';
+// import { getDashboardStats } from '@/services/admin-services';
 import React from 'react';
 import Dashboard from '../components/Dashboard';
 

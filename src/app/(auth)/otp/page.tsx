@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useRef, useTransition } from "react";
 import OtpImage from "@/assets/images/LoginImage.png";
@@ -13,6 +14,9 @@ export default function OtpPage() {
  const inputRefs = useRef<HTMLInputElement[]>([]);
  const router = useRouter();
  const [isPending, startTransition] = useTransition();
+
+ // Check if OTP is completely filled
+ const isOtpComplete = otp.every(digit => digit !== "");
 
  // Handle OTP input change
  const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +49,7 @@ export default function OtpPage() {
   startTransition(async () => {
    try {
     const response = await sendOtpService({ otp: completeOtp });
+    console.log('response: ', response);
     if (response.status === 200) {
      toast.success("OTP verified successfully");
      router.push(`/change-password?otp=${completeOtp}`);
@@ -53,7 +58,8 @@ export default function OtpPage() {
     }
    } catch (err: any) {
     if (err.status === 404 || err.status === 400) {
-     alert("Invalid OTP");
+     toast.error("Invalid OTP");
+     setOtp(["", "", "", "", "", ""]);
     } else {
      toast.error("Something went wrong");
     }
@@ -94,8 +100,18 @@ export default function OtpPage() {
        ))}
       </div>
 
-      <button type="submit" className="text-white text-base font-medium h-[50px] w-full bg-[#176dbf] rounded-[49px] hover:bg-blue-600 transition">
-       Log In
+      <button
+        type="submit"
+        className="text-white text-base font-medium h-[50px] w-full bg-[#176dbf] rounded-[49px] hover:bg-blue-600 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isPending || !isOtpComplete}
+      >
+        {isPending ? (
+          <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        ) : null}
+        {isPending ? 'Submitting...' : 'Submit'}
       </button>
 
       <div className="text-center mt-4">

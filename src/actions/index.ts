@@ -9,17 +9,18 @@ import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, ObjectCannedA
 import { getImageClientS3URL } from "@/config/axios";
 
 export const loginAction = async (payload: any) => {
+  console.log('payload: ', payload);
   try {
     const res: any = await loginService(payload);
     const user = res?.data?.data?.user;
-    const userName = user.name ? user.name.eng : user.fullName;
+    console.log('user: ', user);
     if (res && res?.data?.success) {
       await signIn("credentials", {
-        username: payload.username,
-        fullName: userName,
+        fullName:  res?.data?.data?.user?.fullName,
+        email: res?.data?.data?.user?.email,
         _id: res?.data?.data?.user?._id,
         role: res?.data?.data?.user?.role,
-        profilePic: res?.data?.data?.user?.image,
+        // profilePic: res?.data?.data?.user?.image,
         redirect: false,
       });
     }

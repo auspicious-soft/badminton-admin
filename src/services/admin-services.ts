@@ -2,15 +2,36 @@ import { axiosInstance, getAxiosInstance } from "@/config/axios";
 
 export const loginService = async (payload: any) => await axiosInstance.post(`/login`, { email: payload.email, password: payload.password });
 export const forgotPasswordService = async (payload: any) => await axiosInstance.post(`/forgot-password`, payload)
-export const sendOtpService = async (payload: any) => await axiosInstance.post(`/verify-otp`, payload)
+export const sendOtpService = async (payload: any) => await axiosInstance.post(`/verify-otp-reset-pass`, payload)
 export const resetUserPassword = async (payload: any) => await axiosInstance.patch(`/new-password-otp-verified`, payload)
 
 
-
-export const getDashboardStats = async (route: string) => {
+//----------Employee Page--------------------------
+export const createEmployee = async (route: string,payload:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route, payload)
+}
+export const getAllEmployees = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
+export const updateEmployee = async (route: string, payload: any) => { 
+    const axiosInstance= await getAxiosInstance()
+    return axiosInstance.put(route, payload)
+}
+//----------Venue Page--------------------------
+// export const createEmployee = async (route: string,payload:any) => {
+//     const axiosInstance = await getAxiosInstance()
+//     return axiosInstance.post(route, payload)
+// }
+export const getAllVenues = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+// export const updateEmployee = async (route: string, payload: any) => { 
+//     const axiosInstance= await getAxiosInstance()
+//     return axiosInstance.put(route, payload)
+// }
 //----------User Page--------------------------
 export const getAllUsers = async (route: string) => {
     const axiosInstance = await getAxiosInstance()

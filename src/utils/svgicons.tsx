@@ -844,7 +844,10 @@ export const Edit = () => (
   </svg>
   </div>
 );
+export const Edit1 = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1C2329"  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
 
+);
 export const BottomArrow = () => (
   <div data-svg-wrapper>
 <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -896,7 +899,14 @@ export const Eye = () => (
   <path d="M8 10.1177C9.1046 10.1177 10 9.22228 10 8.11768C10 7.01308 9.1046 6.11768 8 6.11768C6.8954 6.11768 6 7.01308 6 8.11768C6 9.22228 6.8954 10.1177 8 10.1177Z" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round"/>
 </svg> 
 );
-
+export const EyeOff = () => (
+<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 17" fill="none" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round" ><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
+);
+export const Loading = () => (
+<svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>);
 
 
 

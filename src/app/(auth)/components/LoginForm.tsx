@@ -68,8 +68,8 @@ const LoginForm = () => {
               placeholder="Your Password"
             />
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+          <div className="flex items-center justify-end">
+            {/* <div className="flex items-center">
               <input
                 type="checkbox"
                 checked={keepLoggedIn}
@@ -77,7 +77,7 @@ const LoginForm = () => {
                 className="h-4 w-4 text-blue-600 rounded border-gray-300"
               />
               <label className="ml-2 text-sm text-gray-600">Keep me logged in</label>
-            </div>
+            </div> */}
             <a href="/forgot-password" className="text-blue-600 text-sm hover:text-blue-800">
               Forgot Password?
             </a>

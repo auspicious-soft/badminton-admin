@@ -1,5 +1,5 @@
 import React from 'react';
-import AllEmployeeComponent from '../components/employees/page';
+import AllEmployeeComponent from '../components/employees/all-employee';
 
 const Page = () => {
     return (

@@ -5,15 +5,27 @@ import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { loginAction } from "@/actions";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function LoginPage() {
  const [email, setEmail] = useState("");
  const [password, setPassword] = useState("");
  const [isPending, startTransition] = React.useTransition();
  const router = useRouter();
+ const { data: session } = useSession();
 
+  useEffect(() => {
+    if (session) {
+      if ((session as any)?.user?.role === "employee") {
+
+        router.push("/");
+      } else {
+        router.push("/admin/dashboard");
+      }
+    }
+  }, [session, router]);
  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
   event.preventDefault();
 
@@ -30,10 +42,10 @@ export default function LoginPage() {
    return;
   }
 
-
   startTransition(async () => {
     try {
       const response = await loginAction({ email, password });
+      console.log('response: ', response);
   
       if (response?.success) {
         toast.success("Logged in successfully");
@@ -57,8 +69,6 @@ export default function LoginPage() {
       toast.error("Something went wrong! Please try again.");
     }
   });
-  
-
  };
 
  return (
@@ -75,23 +85,41 @@ export default function LoginPage() {
      <form onSubmit={handleSubmit} className="w-full space-y-[20px] max-w-sm mx-auto">
       <div className="space-y-[10px]">
        <label className="text-[#1b2229] text-base font-medium">Email Address</label>
-       <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" placeholder="Enter your email" />
+       <input 
+        type="email" 
+        value={email} 
+        onChange={(e) => setEmail(e.target.value)} 
+        className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" 
+        placeholder="Enter your email" 
+       />
       </div>
       <div className="space-y-[10px]">
        <label className="text-[#1b2229] text-base font-medium">Your Password</label>
-       <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" placeholder="Enter your password" />
+       <input 
+        type="password" 
+        value={password} 
+        onChange={(e) => setPassword(e.target.value)} 
+        className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" 
+        placeholder="Enter your password" 
+       />
       </div>
-      <div className="flex justify-between items-center mb-4">
-       <label className="flex items-center text-[#1b2229] text-base font-medium">
-        <input type="checkbox" className="w-[15px] h-[15px] bg-[#f4f5f7] rounded shadow-[inset_0px_4px_4px_0px_rgba(0,0,0,0.10)] text-[#1b2229] text-base font-medium" />
-        <span className="ml-[10px] text-[#1b2229] text-base font-medium">Keep me logged in</span>
-       </label>
-       <Link href="/forgot-password" className="text-right text-[#176dbf] text-base font-medium hover:underline">
+      <div className="flex justify-end items-right mb-4">
+       <Link href="/forgot-password" className="items-right text-right text-[#176dbf] text-base font-medium hover:underline">
         Forgot Password?
        </Link>
       </div>
-      <button type="submit" className="text-white text-base font-medium h-[50px] w-full bg-[#176dbf] rounded-[49px] hover:bg-blue-600 transition">
-       Log In
+      <button 
+        type="submit" 
+        className="text-white text-base font-medium h-[50px] w-full bg-[#176dbf] rounded-[49px] hover:bg-blue-600 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isPending}
+      >
+        {isPending ? (
+          <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        ) : null}
+        {isPending ? 'Logging in...' : 'Log In'}
       </button>
      </form>
     </div>
@@ -99,5 +127,3 @@ export default function LoginPage() {
   </div>
  );
 }
-
-

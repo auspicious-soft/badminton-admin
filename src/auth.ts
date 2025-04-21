@@ -5,13 +5,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        username: { label: "Email", type: "email" },
+        email: { label: "Email", type: "email" }, // Change username to email
         password: { label: "Password", type: "password" },
       },
-      authorize: async (credentials:any) => { 
-        if (credentials.username) {
+      authorize: async (credentials: any) => {
+        console.log("credentials: ", credentials);
+        if (credentials.email) { // Check for email instead of username
           return {
-            username: credentials.username,
+            email: credentials.email,
             fullName: credentials.fullName,
             id: credentials._id,
             role: credentials.role,
@@ -25,16 +26,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     jwt({ token, user }) {
-      if (user) { 
+      if (user) {
         token.id = user.id;
-        token.email = (user as any).username;
+        token.email = user.email;
         token.fullName = (user as any).fullName;
         token.picture = (user as any).profilePic;
         token.role = (user as any).role;
       }
       return token;
     },
-    session({ session, token }) { 
+    session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         (session as any).user.fullName = token.fullName;
