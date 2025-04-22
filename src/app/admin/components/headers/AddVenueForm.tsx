@@ -322,8 +322,8 @@ const AddVenueForm = () => {
      </div>
     </div>
    </form>
-   <CourtManagement open={modalOpen} onClose={() => setModalOpen(false)} />
-   <AddEmployeeModal open={employeeModalOpen} setOpen={setEmployeeModalOpen} />
+   {/* <CourtManagement open={modalOpen} onClose={() => setModalOpen(false)} />
+   <AddEmployeeModal open={employeeModalOpen} setOpen={setEmployeeModalOpen} /> */}
   </div>
  );
 };

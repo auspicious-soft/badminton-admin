@@ -20,10 +20,10 @@ export const updateEmployee = async (route: string, payload: any) => {
     return axiosInstance.put(route, payload)
 }
 //----------Venue Page--------------------------
-// export const createEmployee = async (route: string,payload:any) => {
-//     const axiosInstance = await getAxiosInstance()
-//     return axiosInstance.post(route, payload)
-// }
+export const createVenue = async (route: string,payload:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route, payload)
+}
 export const getAllVenues = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
