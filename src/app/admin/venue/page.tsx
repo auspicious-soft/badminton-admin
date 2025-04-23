@@ -31,7 +31,7 @@ const Page = () => {
   const [searchParams, setSearchParams] = useState("");
   const [page, setPage] = useState(1);
   const router = useRouter();
-  const { data, isLoading, mutate } = useSWR<VenuesResponse>(
+  const { data, isLoading, mutate } = useSWR(
     `/admin/get-venues?search=${searchParams}&page=${page}&limit=${itemsPerPage}`,
     getAllVenues
   );
@@ -74,7 +74,7 @@ const Page = () => {
           <p className="text-center text-[#10375C] py-4">No data found.</p>
         ) : (
           venues.map((venue, index) => (
-            <div key={index} className="flex flex-col items-start" onClick={() => router.push("/admin/venue/single-venue-active")}>
+            <div key={index} className="flex flex-col items-start" onClick={() => router.push(`/admin/venue/${venue._id}`)}>
               <Image
                 src={firstvenue} // Fallback to firstvenue if image is missing or invalid
                 alt={venue.name}

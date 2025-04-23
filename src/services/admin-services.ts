@@ -28,10 +28,14 @@ export const getAllVenues = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
-// export const updateEmployee = async (route: string, payload: any) => { 
-//     const axiosInstance= await getAxiosInstance()
-//     return axiosInstance.put(route, payload)
-// }
+export const getVenue = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+export const updateVenue = async (route: string, payload: any) => { 
+    const axiosInstance= await getAxiosInstance()
+    return axiosInstance.put(route, payload)
+}
 //----------User Page--------------------------
 export const getAllUsers = async (route: string) => {
     const axiosInstance = await getAxiosInstance()

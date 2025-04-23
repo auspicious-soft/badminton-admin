@@ -22,8 +22,6 @@
     "@tiptap/react": "^2.11.2",
     "@tiptap/starter-kit": "^2.11.2",
     "axios": "^1.7.9",
-    "leaflet": "^1.9.4",
-    "leaflet-control-geocoder": "^3.1.0",
     "lucide-react": "^0.471.1",
     "next": "^15.1.6",
     "next-auth": "^5.0.0-beta.25",
