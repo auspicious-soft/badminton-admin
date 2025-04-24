@@ -7,6 +7,15 @@ export const resetUserPassword = async (payload: any) => await axiosInstance.pat
 
 
 //----------Employee Page--------------------------
+export const getAdminDetails = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+export const updateAdminDetails = async (route: string, payload: any) => { 
+    const axiosInstance= await getAxiosInstance()
+    return axiosInstance.put(route, payload)
+}
+//----------Employee Page--------------------------
 export const createEmployee = async (route: string,payload:any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route, payload)

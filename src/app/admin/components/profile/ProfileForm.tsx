@@ -1,14 +1,18 @@
-
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { CrossIcon, EditIcon } from '@/utils/svgicons';
 import NoImage from "@/assets/images/nofile.png";
 import Image from 'next/image';
+import useSWR from 'swr';
+import AlexParker from "@/assets/images/AlexParker.png";
+import { toast } from "sonner";
 
-// Validation schema using Yup
+import { getAdminDetails, updateAdminDetails } from '@/services/admin-services';
+
+// Validation schema
 const schema = yup.object().shape({
     name: yup.string().required('Name is required'),
     phoneNumber: yup
@@ -22,28 +26,81 @@ const schema = yup.object().shape({
     changePassword: yup
         .string()
         .min(6, 'Password must be at least 6 characters')
-        .required('Password is required'),
+        .nullable(),
     confirmPassword: yup
         .string()
-        .oneOf([yup.ref('changePassword')], 'Passwords must match')
-        .required('Confirm password is required'),
-    images: yup
-        .mixed()
-        .required('An image is required')
-        // .test('fileSize', 'File size is too large', (value:any) => {
-        //     return value && value.size <= 8000000; // 2MB
-        // })
-        // .test('fileType', 'Unsupported file format', (value:any) => {
-        //     return value && ['image/jpeg', 'image/png', 'image/gif'].includes(value.type);
-        // }),
+        .oneOf([yup.ref('changePassword'), null], 'Passwords must match')
+        .nullable(),
+    images: yup.mixed().nullable(),
 });
 
 const ProfileForm = () => {
     const [imagePreview, setImagePreview] = useState(null);
-    const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { data, mutate, isLoading } = useSWR("admin/get-admin-details", getAdminDetails);
+    const profileDetails = useMemo(() => data?.data?.data || {}, [data]);
+
+    const { register, handleSubmit, formState: { errors, isDirty }, reset, watch } = useForm({
         resolver: yupResolver(schema),
+        defaultValues: {
+            name: '',
+            phoneNumber: '',
+            email: '',
+            changePassword: null,
+            confirmPassword: null,
+            images: null,
+        },
     });
-    console.log('errors: ', errors);
+
+    // Set default values when profileDetails loads, but only if necessary
+    useEffect(() => {
+        if (profileDetails && Object.keys(profileDetails).length > 0) {
+            const newValues = {
+                name: profileDetails.fullName || '',
+                phoneNumber: profileDetails.phoneNumber || '',
+                email: profileDetails.email || '',
+                changePassword: null,
+                confirmPassword: null,
+                images: null,
+            };
+
+            // Get current form values
+            const currentValues = watch();
+
+            // Only reset if values have changed
+            if (
+                currentValues.name !== newValues.name ||
+                currentValues.phoneNumber !== newValues.phoneNumber ||
+                currentValues.email !== newValues.email
+            ) {
+                reset(newValues, { keepDirty: false });
+            }
+
+            // Set image preview only if it hasn't been set or if profilePic changed
+            if (
+                profileDetails.profilePic &&
+                (!imagePreview || imagePreview.url !== profileDetails.profilePic)
+            ) {
+                setImagePreview({ url: profileDetails.profilePic });
+            }
+        }
+    }, [profileDetails, reset]); // Removed watch from dependencies
+
+    // Watch form values to detect changes
+    const formValues = watch();
+
+    // Check if form has changes compared to initial data
+    const hasChanges = useMemo(() => {
+        return (
+            isDirty ||
+            formValues.name !== (profileDetails.fullName || '') ||
+            formValues.phoneNumber !== (profileDetails.phoneNumber || '') ||
+            formValues.email !== (profileDetails.email || '') ||
+            (formValues.changePassword && formValues.changePassword.length > 0) ||
+            imagePreview?.file !== undefined
+        );
+    }, [formValues, profileDetails, isDirty, imagePreview]);
+
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -73,34 +130,71 @@ const ProfileForm = () => {
         };
     }, [imagePreview]);
 
-    const onSubmit = (data) => {
-        const formData = {
-            name: data.name,
-            phoneNumber: data.phoneNumber,
-            email: data.email,
-            changePassword: data.changePassword,
-            confirmPassword: data.confirmPassword,
-            image: imagePreview ? imagePreview.file : null,
-        };
-        console.log('Profile Form Data:', formData);
-        
-        // Reset form
-        reset();
-        setImagePreview(null);
+    const onSubmit = async (data) => {
+        setIsSubmitting(true);
+        try {
+            const formData = new FormData();
+            formData.append('fullName', data.name);
+            formData.append('phoneNumber', data.phoneNumber);
+            formData.append('email', data.email);
+            if (data.changePassword) {
+                formData.append('password', data.changePassword);
+            }
+            if (imagePreview?.file) {
+                formData.append('profilePic', imagePreview.file);
+            }
+
+            // Call API to update profile
+            const response=await updateAdminDetails("admin/update-admin-details",formData);
+            if (response?.status === 200 || response?.status === 201) {
+                await mutate();
+                toast.success("Profile upded successfully");
+                
+              } else {
+                toast.error("Failed to update profile details");
+              }
+          
+
+            // Reset form to new values
+            reset({
+                name: data.name,
+                phoneNumber: data.phoneNumber,
+                email: data.email,
+                changePassword: null,
+                confirmPassword: null,
+                images: null,
+            }, { keepDirty: false });
+
+            // Update image preview
+            if (imagePreview?.file) {
+                setImagePreview({ url: URL.createObjectURL(imagePreview.file) });
+            } else if (profileDetails.profilePic) {
+                setImagePreview({ url: profileDetails.profilePic });
+            }
+
+        } catch (error) {
+            console.error('Error updating profile:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="mb-[50px] h-[100vh]">
             <div className="flex justify-between">
                 <h2 className="text-[#10375c] text-3xl font-semibold mb-6">Profile</h2>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col md:flex-row gap-[15px] h-fit ">
+            <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col md:flex-row gap-[15px] h-fit">
                 <div className="w-full md:w-[50%] lg:w-[40%] space-y-4 bg-[#f2f2f4] p-[15px] rounded-[20px] h-fit mb-[30px]">
                     <div className="relative bg-gray-100 rounded-lg flex flex-col items-center justify-center">
                         {imagePreview ? (
                             <div className="w-full">
                                 <Image
-                                    src={imagePreview.url}
+                                    src={AlexParker || imagePreview.url}
                                     alt="Preview"
                                     className="w-full h-48 object-cover rounded-lg"
                                     width={400}
@@ -131,7 +225,7 @@ const ProfileForm = () => {
                         >
                             <EditIcon stroke="black" />
                             Upload Image
-                            <input
+                            <input 
                                 type="file"
                                 id="imageUpload"
                                 accept="image/*"
@@ -200,9 +294,24 @@ const ProfileForm = () => {
                         
                         <button
                             type="submit"
-                            className="py-4 bg-[#10375c] rounded-[28px] text-white text-sm font-medium mt-[5px]"
+                            disabled={!hasChanges || isSubmitting}
+                            className={`py-4 rounded-[28px] text-white text-sm font-medium mt-[5px] ${
+                                hasChanges && !isSubmitting
+                                    ? 'bg-[#10375c] hover:bg-[#0f2e4a]'
+                                    : 'bg-gray-400 cursor-not-allowed'
+                            }`}
                         >
-                            Save
+                            {isSubmitting ? (
+                                <span className="flex items-center justify-center">
+                                    <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Saving...
+                                </span>
+                            ) : (
+                                'Save'
+                            )}
                         </button>
                     </div>
                 </div>
