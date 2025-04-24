@@ -10,7 +10,7 @@ import AddEmployeeModal from "../../components/headers/AddEmployeesModal";
 import { states } from "@/utils";
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
-import { createVenue, getVenue, updateVenue } from "@/services/admin-services";
+import { getVenue, updateVenue } from "@/services/admin-services";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
@@ -19,11 +19,11 @@ import SearchBar from "../../components/SearchBar";
 import JordanLee from "@/assets/images/JordanLee.png";
 
 // Custom Modal Component
-const Modal: React.FC<{
-  open: boolean;
-  onClose?: () => void;
-  children: React.ReactNode;
-}> = ({ open, onClose, children }) => {
+const Modal: React.FC<{ open: boolean; onClose?: () => void; children: React.ReactNode }> = ({
+  open,
+  onClose,
+  children,
+}) => {
   if (!open) return null;
 
   return (
@@ -71,7 +71,7 @@ const gamesAvailableOptions = [
 ];
 
 // Custom component for Google Maps
-const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
+const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) => {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
@@ -79,7 +79,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
   });
 
   const [map, setMap] = useState(null);
-  const [marker, setMarker] = useState(null);
+  const [marker, setMarker] = useState(location);
   const [mapType, setMapType] = useState("satellite");
   const autocompleteRef = useRef(null);
 
@@ -88,9 +88,35 @@ const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
     height: "calc(100% - 100px)",
   };
 
+  // Geocode the initial address when the map loads
+  useEffect(() => {
+    if (isLoaded && initialAddress && !location) {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: initialAddress }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          const { lat, lng } = results[0].geometry.location;
+          const newLocation = { lat: lat(), lng: lng() };
+          setLocation(newLocation);
+          setMarker(newLocation);
+          if (map) {
+            map.panTo(newLocation);
+            map.setZoom(15); // Zoom to street level
+          }
+        } else {
+          console.error("Geocoding failed:", status);
+          toast.error("Geocoding failed. Please check the address.");
+        }
+      });
+    }
+  }, [isLoaded, initialAddress, location, setLocation, map]);
+
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
     mapInstance.setMapTypeId(mapType);
+    if (location) {
+      mapInstance.panTo(location);
+      mapInstance.setZoom(15); // Ensure zoom on load if location exists
+    }
   };
 
   const onMapClick = (event) => {
@@ -98,6 +124,10 @@ const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
     const lng = event.latLng.lng();
     setLocation({ lat, lng });
     setMarker({ lat, lng });
+    if (map) {
+      map.panTo({ lat, lng });
+      map.setZoom(15); // Zoom to street level on click
+    }
   };
 
   const onPlaceChanged = () => {
@@ -108,7 +138,10 @@ const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
         const lng = place.geometry.location.lng();
         setLocation({ lat, lng });
         setMarker({ lat, lng });
-        map?.panTo({ lat, lng });
+        if (map) {
+          map.panTo({ lat, lng });
+          map.setZoom(15); // Zoom to street level on place selection
+        }
       }
     }
   };
@@ -125,6 +158,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
           <input
             type="text"
             placeholder="Search location..."
+            defaultValue={initialAddress || ""}
             className="w-full p-2 border border-gray-300 rounded mb-2 text-sm"
           />
         </Autocomplete>
@@ -132,7 +166,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={location || { lat: 0, lng: 0 }}
-        zoom={location ? 10 : 2}
+        zoom={location ? 15 : 2} // Default to zoom 15 if location exists
         mapTypeId={mapType}
         onLoad={onMapLoad}
         onClick={onMapClick}
@@ -145,24 +179,24 @@ const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
 
 const Page = () => {
   const { id } = useParams();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [stateDropdown, setStateDropdown] = useState(false);
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedFacilities, setSelectedFacilities] = useState<number[]>([]);
+  const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
-  const [courts, setCourts] = useState<Court[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [courts, setCourts] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
-  const [gamesAvailable, setGamesAvailable] = useState<string[]>([]);
+  const [gamesAvailable, setGamesAvailable] = useState([]);
   const [mapOpen, setMapOpen] = useState(false);
   const [searchParams, setSearchParams] = useState("");
   const [location, setLocation] = useState(null);
-  const [selectedMatch, setSelectedMatch] = useState<any>({
+  const [selectedMatch, setSelectedMatch] = useState({
     id: 1,
     team1: "Alex Parker",
     team2: "Alex Parker",
@@ -178,6 +212,9 @@ const Page = () => {
   );
   const venueData = data?.data?.data || [];
 
+  // Combine address, city, and state for geocoding
+  const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
+
   // Map venueData to component state when data is available
   useEffect(() => {
     if (venueData && Object.keys(venueData).length > 0) {
@@ -188,7 +225,7 @@ const Page = () => {
       setSelectedStatus(venueData.isActive ? "Active" : "In-Active");
 
       // Map courts
-      const mappedCourts: Court[] = venueData.courts?.map((court: any) => ({
+      const mappedCourts = venueData.courts?.map((court) => ({
         id: court._id,
         name: court.name,
         status: court.isActive ? "Active" : "Inactive",
@@ -198,22 +235,20 @@ const Page = () => {
       setCourts(mappedCourts);
 
       // Map employees
-      const mappedEmployees: Employee[] = venueData.employees?.map(
-        (emp: any) => ({
-          id: emp.employeeId,
-          name: emp.employeeData?.fullName || "Unknown",
-          image: UserProfile2.src,
-          isActive: emp.isActive,
-        })
-      ) || [];
+      const mappedEmployees = venueData.employees?.map((emp) => ({
+        id: emp.employeeId,
+        name: emp.employeeData?.fullName || "Unknown",
+        image: UserProfile2.src,
+        isActive: emp.isActive,
+      })) || [];
       setEmployees(mappedEmployees);
 
       // Map facilities
       const activeFacilities = venueData.facilities
-        ?.map((facility: any, index: number) =>
+        ?.map((facility, index) =>
           facility.isActive ? option[index]?.id : null
         )
-        .filter((id: number | null) => id !== null) || [];
+        .filter((id) => id !== null) || [];
       setSelectedFacilities(activeFacilities);
 
       // Map games available
@@ -232,7 +267,7 @@ const Page = () => {
     }
   }, [venueData]);
 
-  const matches: any[] = [
+  const matches = [
     {
       id: 1,
       team1: "Alex Parker",
@@ -330,7 +365,7 @@ const Page = () => {
     location
   );
 
-  const handleToggleCourtStatus = (courtId: string) => {
+  const handleToggleCourtStatus = (courtId) => {
     setCourts((prev) =>
       prev.map((court) =>
         court.id === courtId
@@ -340,13 +375,11 @@ const Page = () => {
     );
   };
 
-  const handleAddCourt = (newCourt: Court) => {
+  const handleAddCourt = (newCourt) => {
     setCourts((prev) => [...prev, newCourt]);
   };
 
-  const handleAddEmployees = (
-    newEmployees: { employeeId: string; fullName: string; isActive: boolean }[]
-  ) => {
+  const handleAddEmployees = (newEmployees) => {
     const mappedEmployees = newEmployees.map((emp) => ({
       id: emp.employeeId,
       name: emp.fullName,
@@ -356,11 +389,11 @@ const Page = () => {
     setEmployees((prev) => [...prev, ...mappedEmployees]);
   };
 
-  const handleRemoveEmployee = (employeeId: string) => {
+  const handleRemoveEmployee = (employeeId) => {
     setEmployees((prev) => prev.filter((employee) => employee.id !== employeeId));
   };
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (event) => {
     const file = event.target.files?.[0];
     if (file) {
       if (selectedImage) URL.revokeObjectURL(selectedImage);
@@ -378,7 +411,7 @@ const Page = () => {
 
   const handleSave = async () => {
     const payload = {
-      _id:id,
+      _id: id,
       name,
       address,
       city,
@@ -408,8 +441,8 @@ const Page = () => {
 
     startTransition(async () => {
       try {
-        const endpoint =  `/admin/update-venue`;
-        const response = await updateVenue(endpoint, payload); // Note: You may need an `updateVenue` function for editing
+        const endpoint = `/admin/update-venue`;
+        const response = await updateVenue(endpoint, payload);
         if (response?.status === 200 || response?.status === 201) {
           toast.success(id ? "Venue updated successfully" : "Venue created successfully");
           if (selectedImage) {
@@ -437,7 +470,7 @@ const Page = () => {
   }
 
   return (
-    <main className="container mx-auto p-4 max-w-7xl">
+    <main className=" p-4 ">
       <h1 className="text-2xl md:text-3xl font-semibold text-[#10375c] mb-6">
         {id ? "Edit Venue" : "Add New Venue"}
       </h1>
@@ -524,7 +557,7 @@ const Page = () => {
                   <span>{stateDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
                 </button>
                 {stateDropdown && (
-                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lgstrated p-4 max-h-60 overflow-y-auto overflow-custom z-50">
+                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto overflow-custom z-50">
                     {states.map((state) => (
                       <label
                         key={state}
@@ -595,7 +628,7 @@ const Page = () => {
                       ...base,
                       borderRadius: "8px",
                       width: "40%",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      boxShadow: "0 2px 4px rgba(0, 0,0, 0.1)",
                     }),
                     option: (base, { isFocused }) => ({
                       ...base,
@@ -957,9 +990,9 @@ const Page = () => {
       />
       {mapOpen && (
         <Modal open={mapOpen}>
-          <div className="bg-white rounded-lg p-2 w-full h-[90%]">
-            <div className="w-full flex justify-between">
-              <h2 className="text-lg font-semibold mb-2">Select Location</h2>
+          <div className="bg-white rounded-lg p-2 w-full h-[100%] flex flex-col justify-between">
+            <div className="w-full flex justify-between mb-4">
+              <h2 className="text-lg font-semibold">Select Location</h2>
               <button onClick={() => setMapOpen(false)}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -981,6 +1014,7 @@ const Page = () => {
               location={location}
               setLocation={setLocation}
               apiKey={apiKey}
+              initialAddress={fullAddress || ""}
             />
             <button
               onClick={() => setMapOpen(false)}

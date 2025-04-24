@@ -8,7 +8,7 @@ import CourtManagement from "../../components/headers/AddVenueModal";
 import AddEmployeeModal from "../../components/headers/AddEmployeesModal";
 import { states } from "@/utils";
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from "@react-google-maps/api";
-import Select from "react-select"; // Import react-select
+import Select from "react-select";
 import { createVenue } from "@/services/admin-services";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -57,29 +57,47 @@ const statuses = ["Active", "In-Active"];
 const gamesAvailableOptions = [
   { value: "Pickleball", label: "Pickleball" },
   { value: "Padel", label: "Padel" },
-]; // Options for react-select, matching the required format
+];
 
 // Custom component for Google Maps
-const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
+const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) => {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
-    libraries: ["places"], // Required for Autocomplete
+    libraries: ["places"],
   });
 
   const [map, setMap] = useState(null);
-  const [marker, setMarker] = useState(null);
-  const [mapType, setMapType] = useState("satellite"); // Default to "Satellite" as per image
+  const [marker, setMarker] = useState(location);
+  const [mapType, setMapType] = useState("satellite");
   const autocompleteRef = useRef(null);
 
   const containerStyle = {
     width: "100%",
-    height: "calc(100% - 100px)", // Adjusted for search bar, buttons, and padding
+    height: "calc(100% - 100px)",
   };
+
+  // Geocode the initial address when the map loads
+  useEffect(() => {
+    if (isLoaded && initialAddress && !location) {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: initialAddress }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          const { lat, lng } = results[0].geometry.location;
+          const newLocation = { lat: lat(), lng: lng() };
+          setLocation(newLocation);
+          setMarker(newLocation);
+          map?.panTo(newLocation);
+        } else {
+          console.error("Geocoding failed:", status);
+        }
+      });
+    }
+  }, [isLoaded, initialAddress, location, setLocation, map]);
 
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
-    mapInstance.setMapTypeId(mapType); // Set initial map type
+    mapInstance.setMapTypeId(mapType);
   };
 
   const onMapClick = (event) => {
@@ -114,15 +132,15 @@ const GoogleMapComponent = ({ location, setLocation, apiKey }) => {
           <input
             type="text"
             placeholder="Search location..."
-            className="w-full p-2  border border-gray-300 rounded mb-2 text-sm"
+            className="w-full p-2 border border-gray-300 rounded mb-2 text-sm"
+            defaultValue={initialAddress}
           />
         </Autocomplete>
-
       </div>
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={location || { lat: 0, lng: 0 }} // Default to (0, 0) if no location
-        zoom={location ? 10 : 2} // Zoom out if no location
+        center={location || { lat: 0, lng: 0 }}
+        zoom={location ? 10 : 2}
         mapTypeId={mapType}
         onLoad={onMapLoad}
         onClick={onMapClick}
@@ -149,7 +167,7 @@ const Page = () => {
   const [city, setCity] = useState("");
   const [gamesAvailable, setGamesAvailable] = useState<string[]>([]);
   const [mapOpen, setMapOpen] = useState(false);
-  const [location, setLocation] = useState(null); // Initial value set to null
+  const [location, setLocation] = useState(null);
   const apiKey = "AIzaSyCDZoRf-BZL2yR_ZyXpzht_a63hMgLCTis"; // Replace with your actual API key
   const router = useRouter();
 
@@ -161,8 +179,11 @@ const Page = () => {
     selectedState &&
     courts.length > 0 &&
     employees.length > 0 &&
-    location // Ensure location is selected
+    location
   );
+
+  // Combine address, city, and state for geocoding
+  const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
 
   const handleToggleCourtStatus = (courtId: string) => {
     setCourts((prev) =>
@@ -231,7 +252,7 @@ const Page = () => {
       })),
       location: {
         type: "Point",
-        coordinates: [location.lng, location.lat], // [longitude, latitude] as per GeoJSON
+        coordinates: [location.lng, location.lat],
       },
     };
     console.log("payload", payload);
@@ -317,151 +338,142 @@ const Page = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* State Dropdown */}
-
-            <div className="relative">
-              <label className="text-xs font-medium text-[#1b2229] block mb-2">State</label>
-              <button
-                className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
-                onClick={() => setStateDropdown(!stateDropdown)}
-                aria-expanded={stateDropdown}
-                aria-label="Select State"
-              >
-                {selectedState || "Select State"}
-                <span>{stateDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
-              </button>
-              {stateDropdown && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto overflow-custom z-50">
-                  {states.map((state) => (
-                    <label key={state} className="flex gap-2 cursor-pointer text-xs py-1">
-                      <input
-                        type="radio"
-                        name="state"
-                        value={state}
-                        checked={selectedState === state}
-                        onChange={(e) => {
-                          setSelectedState(e.target.value);
-                          setStateDropdown(false);
-                        }}
-                        className="accent-[#1b2229]"
-                      />
-                      {state}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-             {/* Location Button */}
-             <div>
-              <label className="text-xs font-medium text-[#1b2229] block mb-2">Location</label>
-              <button
-                onClick={() => setMapOpen(true)}
-                className="w-full p-3 bg-white rounded-full text-xs border border-gray-300 flex items-center justify-between"
-              >
-                <span>{location ? `Lat: ${location.lat.toFixed(4)}, Lng: ${location.lng.toFixed(4)}` : "Select a location"}</span>
-                {/* <span>Select on Map</span> */}
-              </button>
-            </div>
+              <div className="relative">
+                <label className="text-xs font-medium text-[#1b2229] block mb-2">State</label>
+                <button
+                  className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
+                  onClick={() => setStateDropdown(!stateDropdown)}
+                  aria-expanded={stateDropdown}
+                  aria-label="Select State"
+                >
+                  {selectedState || "Select State"}
+                  <span>{stateDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
+                </button>
+                {stateDropdown && (
+                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto overflow-custom z-50">
+                    {states.map((state) => (
+                      <label key={state} className="flex gap-2 cursor-pointer text-xs py-1">
+                        <input
+                          type="radio"
+                          name="state"
+                          value={state}
+                          checked={selectedState === state}
+                          onChange={(e) => {
+                            setSelectedState(e.target.value);
+                            setStateDropdown(false);
+                          }}
+                          className="accent-[#1b2229]"
+                        />
+                        {state}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-xs font-medium text-[#1b2229] block mb-2">Location</label>
+                <button
+                  onClick={() => setMapOpen(true)}
+                  className="w-full p-3 bg-white rounded-full text-xs border border-gray-300 flex items-center justify-between"
+                >
+                  <span>{location ? `Lat: ${location.lat.toFixed(4)}, Lng: ${location.lng.toFixed(4)}` : "Select a location"}</span>
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Games Available Select */}
-            <div className="h-[69.41px]">
-              <div className="text-[#1B2229] mb-[8px] text-xs font-medium">Games Available</div>
-              <Select
-                isMulti
-                options={gamesAvailableOptions}
-                value={gamesAvailableOptions.filter((option) => gamesAvailable.includes(option.value))}
-                onChange={handleGameChange}
-                className="w-full text-black/60 text-xs font-medium"
-                classNamePrefix="react-select"
-                placeholder="Select Game..."
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    borderRadius: "44px",
-                    border: "1px solid #e6e6e6",
-                    boxShadow: "none",
-                    height: "45.41px",
-                    backgroundColor: "white",
-                    "&:hover": {
-                      borderColor: "#e6e6e6",
-                    },
-                    // padding: "2px",
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    borderRadius: "8px",
-                    width: "40%",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                  }),
-                  option: (base, { isFocused }) => ({
-                    ...base,
-                    backgroundColor: isFocused ? "#e6f7ff" : "white",
-                    color: "#1c2329",
-                    "&:active": {
-                      backgroundColor: "#e6f7ff",
-                    },
-                  }),
-                  multiValue: (base) => ({
-                    ...base,
-                    backgroundColor: "#1c2329",
-                    borderRadius: "5px",
-                  }),
-                  multiValueLabel: (base) => ({
-                    ...base,
-                    color: "white",
-                    padding: "4px 2px 4px 12px",
-                  }),
-                  multiValueRemove: (base) => ({
-                    ...base,
-                    color: "white",
-                    margin: "4px 5px 4px 0px",
-                    "&:hover": {
+              <div className="h-[69.41px]">
+                <div className="text-[#1B2229] mb-[8px] text-xs font-medium">Games Available</div>
+                <Select
+                  isMulti
+                  options={gamesAvailableOptions}
+                  value={gamesAvailableOptions.filter((option) => gamesAvailable.includes(option.value))}
+                  onChange={handleGameChange}
+                  className="w-full text-black/60 text-xs font-medium"
+                  classNamePrefix="react-select"
+                  placeholder="Select Game..."
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      borderRadius: "44px",
+                      border: "1px solid #e6e6e6",
+                      boxShadow: "none",
+                      height: "45.41px",
+                      backgroundColor: "white",
+                      "&:hover": {
+                        borderColor: "#e6e6e6",
+                      },
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      borderRadius: "8px",
+                      width: "40%",
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    }),
+                    option: (base, { isFocused }) => ({
+                      ...base,
+                      backgroundColor: isFocused ? "#e6f7ff" : "white",
+                      color: "#1c2329",
+                      "&:active": {
+                        backgroundColor: "#e6f7ff",
+                      },
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
                       backgroundColor: "#1c2329",
+                      borderRadius: "5px",
+                    }),
+                    multiValueLabel: (base) => ({
+                      ...base,
                       color: "white",
-                    },
-                  }),
-                }}
-              />
-            </div>
+                      padding: "4px 2px 4px 12px",
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: "white",
+                      margin: "4px 5px 4px 0px",
+                      "&:hover": {
+                        backgroundColor: "#1c2329",
+                        color: "white",
+                      },
+                    }),
+                  }}
+                />
+              </div>
 
-            {/* Status Dropdown */}
-            <div className="relative">
-              <label className="text-xs font-medium text-[#1b2229] block mb-2">Status</label>
-              <button
-                className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
-                onClick={() => setStatusDropdown(!statusDropdown)}
-                aria-expanded={statusDropdown}
-                aria-label="Select Status"
-              >
-                {selectedStatus || "Select Status"}
-                <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
-              </button>
-              {statusDropdown && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
-                  {statuses.map((status) => (
-                    <label key={status} className="flex gap-2 cursor-pointer text-xs py-1">
-                      <input
-                        type="radio"
-                        name="status"
-                        value={status}
-                        checked={selectedStatus === status}
-                        onChange={(e) => {
-                          setSelectedStatus(e.target.value);
-                          setStatusDropdown(false);
-                        }}
-                        className="accent-[#1b2229]"
-                      />
-                      {status}
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div className="relative">
+                <label className="text-xs font-medium text-[#1b2229] block mb-2">Status</label>
+                <button
+                  className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
+                  onClick={() => setStatusDropdown(!statusDropdown)}
+                  aria-expanded={statusDropdown}
+                  aria-label="Select Status"
+                >
+                  {selectedStatus || "Select Status"}
+                  <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
+                </button>
+                {statusDropdown && (
+                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
+                    {statuses.map((status) => (
+                      <label key={status} className="flex gap-2 cursor-pointer text-xs py-1">
+                        <input
+                          type="radio"
+                          name="status"
+                          value={status}
+                          checked={selectedStatus === status}
+                          onChange={(e) => {
+                            setSelectedStatus(e.target.value);
+                            setStatusDropdown(false);
+                          }}
+                          className="accent-[#1b2229]"
+                        />
+                        {status}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            </div>
-
-           
 
             <button
               onClick={handleSave}
@@ -477,7 +489,6 @@ const Page = () => {
 
         {/* Right Side */}
         <div className="w-full lg:w-3/5 space-y-6">
-          {/* Courts */}
           <div className="bg-[#f2f2f4] rounded-2xl p-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
               <h3 className="text-2xl font-semibold text-[#10375c] mb-4 sm:mb-0">Courts</h3>
@@ -538,7 +549,6 @@ const Page = () => {
             </div>
           </div>
 
-          {/* Facilities and Employees */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-[#f2f2f4] rounded-2xl p-4">
               <h2 className="text-xl font-medium text-[#172554] mb-4">Select Facilities</h2>
@@ -621,15 +631,33 @@ const Page = () => {
         onAddEmployees={handleAddEmployees}
       />
       {mapOpen && (
-        <Modal open={mapOpen}  >
+        <Modal open={mapOpen}>
           <div className="bg-white rounded-lg p-2 w-full h-[90%]">
             <div className="w-full flex justify-between">
-            <h2 className="text-lg font-semibold  mb-2">Select Location</h2>
-            <button onClick={() => setMapOpen(false)}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
+              <h2 className="text-lg font-semibold mb-2">Select Location</h2>
+              <button onClick={() => setMapOpen(false)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
             </div>
-            <GoogleMapComponent location={location} setLocation={setLocation} apiKey={apiKey} />
+            <GoogleMapComponent
+              location={location}
+              setLocation={setLocation}
+              apiKey={apiKey}
+              initialAddress={fullAddress}
+            />
             <button
               onClick={() => setMapOpen(false)}
               className="mt-4 w-full p-3 bg-[#1a73e8] text-white rounded-full text-sm font-medium hover:bg-[#1557b0]"
