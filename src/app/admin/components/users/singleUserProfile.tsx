@@ -2,115 +2,114 @@
 import { useState } from "react";
 import Image from "next/image";
 import Human from "@/assets/images/Human.png";
-import { EyeIcon, DownArrowIcon, UpArrowIcon } from "@/utils/svgicons";
+import { DownArrowIcon, UpArrowIcon } from "@/utils/svgicons";
 import UserProfileImage from "@/assets/images/userProfile4.png";
-import { useRouter } from "next/navigation";
-
-
-// Sample detailed user data (updated to match the image)
-const userDetails = {
-    id: 4,
-    name: "Isabella Anderson",
-    email: "isabella.lee@example.com",
-    phone: "+1 555-210-4569",
-    city: "Chandigarh",
-    loyaltyPoints: 6800,
-    level: 6000, // Updated to match the image
-    lastMonthLevel: 6549,
-    levelThisMonth: -4,
-    improvement12Months: -0.4,
-    confidence: 27,
-    activePadelMatches: 120,
-    activePickleballMatches: 220,
-    activeVouchers: 12,
-};
-
-// Sample match data for Isabella Anderson
-const matches = [
-    {
-        date: "Nov 10, 2024, 10:00 AM",
-        opponent1: "Wen Lee",
-        opponent2: "Emerson White",
-        opponent3: "Taylor",
-        opponent4: "Bailey Allen",
-        type: "Open Match",
-        location: "Kemmerer Trafficway, West",
-        amountPaid: "₹1000 for N/A",
-        equipmentRented: "Equipment Rented (if any)",
-        score: null, // No score for upcoming matches
-        winner: null, // No winner for upcoming matches
-        isUpcoming: true,
-    },
-    {
-        date: "Nov 10, 2024, 08:00 AM",
-        opponent1: "Wen Lee",
-        opponent2: "Emerson White",
-        opponent3: "Taylor",
-        opponent4: "Bailey Allen",
-        type: "Competitive",
-        location: "Kemmerer Trafficway, Zenatown",
-        amountPaid: "₹1000 for All",
-        equipmentRented: "2 rackets",
-        score: "4-5",
-        winner: "Taylor & Bailey",
-        rentedEquipmentPrice: "₹1500",
-        isUpcoming: false,
-    },
-    {
-        date: "Nov 10, 2024, 08:00 AM",
-        opponent1: "Wen Lee",
-        opponent2: "Emerson White",
-        opponent3: "Taylor",
-        opponent4: "Bailey Allen",
-        type: "Competitive",
-        location: "Kemmerer Trafficway, Zenatown",
-        amountPaid: "₹1000 for All",
-        equipmentRented: "2 rackets",
-        score: "4-5",
-        winner: "Taylor & Bailey",
-        isUpcoming: false,
-        rentedEquipmentPrice: "₹1500",
-    },
-    {
-        date: "Nov 10, 2024, 08:00 AM",
-        opponent1: "Wen Lee",
-        opponent2: "Emerson White",
-        opponent3: "Taylor",
-        opponent4: "Bailey Allen",
-        type: "Open Match",
-        location: "Kemmerer Trafficway, West",
-        amountPaid: "₹1000 for All",
-        equipmentRented: "Equipment Rented (if any)",
-        score: null,
-        winner: null,
-        isUpcoming: true,
-    },
-];
+import { useParams } from "next/navigation";
+import useSWR from "swr";
+import { getUserDetails } from "@/services/admin-services";
 
 const games = ["Padel", "Pickleball"];
 
-export default function UserProfileComponent() {
-    const router = useRouter();
-    const [selectedUser, setSelectedUser] = useState(userDetails); // Default to Isabella Anderson
-    const [searchParams, setSearchParams] = useState("");
+export default function SingleUserProfile() {
+    const { id } = useParams();
     const [selectedGame, setSelectedGame] = useState("");
     const [gameDropdown, setGameDropdown] = useState(false);
+    const { data, isLoading, error } = useSWR(`/admin/get-users/${id}`, getUserDetails);
 
+    const userDetails = data?.data?.data;
 
-    const [selectedMatch, setSelectedMatch] = useState(null);
+    // Helper function to format match data with robust error handling
+    const formatMatch = (match) => {
+        if (!match) {
+            return {
+                date: "N/A",
+                location: "Unknown",
+                amountPaid: "₹0",
+                gameType: "Padel",
+                type: "Open Match",
+                equipmentRented: "None",
+                rentedEquipmentPrice: "N/A",
+                opponents: [],
+                score: { team1: "N/A", team2: "N/A" },
+                winner: "N/A",
+            };
+        }
+
+        const opponents = [
+            ...(match?.team1?.map((player) => ({
+                name: player?.userData?.fullName || "Unknown",
+            })) || []),
+            ...(match?.team2?.map((player) => ({
+                name: player?.userData?.fullName || "Unknown",
+            })) || []),
+        ].slice(0, 4);
+
+        const equipmentRented = [
+            match?.team1?.[0]?.racketA ? `${match.team1[0].racketA} Racket A` : null,
+            match?.team1?.[0]?.racketB ? `${match.team1[0].racketB} Racket B` : null,
+            match?.team1?.[0]?.racketC ? `${match.team1[0].racketC} Racket C` : null,
+            match?.team1?.[0]?.balls ? `${match.team1[0].balls} Balls` : null,
+        ]
+            .filter(Boolean)
+            .join(", ") || "None";
+
+        const equipmentCount = [
+            match?.team1?.[0]?.racketA || 0,
+            match?.team1?.[0]?.racketB || 0,
+            match?.team1?.[0]?.racketC || 0,
+            match?.team1?.[0]?.balls || 0,
+        ].reduce((sum, count) => sum + count, 0);
+
+        return {
+            date: match?.bookingDate
+                ? new Date(match.bookingDate).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                  })
+                : "N/A",
+            location: `${match?.venue?.name || "Unknown"}, ${match?.venue?.city || "Unknown"}`,
+            amountPaid: `₹${match?.bookingAmount || 0}`,
+            gameType: match?.court?.games || "Padel",
+            type: match?.isCompetitive ? "Competitive" : "Open Match",
+            equipmentRented,
+            rentedEquipmentPrice: equipmentRented === "None" ? "N/A" : `₹${equipmentCount * 100}`,
+            opponents,
+            score: match?.score || { team1: "N/A", team2: "N/A" },
+            winner: match?.winner || "N/A",
+        };
+    };
+
+    // Helper to safely parse confidence
+    const parseConfidence = (confidence) => {
+        if (!confidence || typeof confidence !== "string") return 0;
+        const value = parseInt(confidence.replace("%", ""), 10);
+        return isNaN(value) ? 0 : value;
+    };
+
     return (
         <>
-            <div className="flex w-full justify-between mb-[15px] ">
+            <div className="flex w-full justify-between mb-[15px]">
                 <div className="text-[#10375c] text-3xl font-semibold">Users</div>
-                <div className="relative ">
-                    <button className="flex px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
+                <div className="relative">
+                    <button
+                        className="flex px-5 py-3 bg-[#1b2229] text-white rounded-[28px]"
+                        onClick={() => setGameDropdown(!gameDropdown)}
+                    >
                         {selectedGame || "Sort"}
-                        <span className="ml-2 mt-1">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
+                        <span className="ml-2 mt-1">
+                            {!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}
+                        </span>
                     </button>
                     {gameDropdown && (
-                        <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-[-50px] p-[20px]  h-[81px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+                        <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-[-50px] p-[20px] h-[81px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
                             {games.map((game) => (
-                                <label key={game} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
+                                <label
+                                    key={game}
+                                    className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium"
+                                >
                                     <input
                                         type="radio"
                                         name="game"
@@ -130,22 +129,45 @@ export default function UserProfileComponent() {
                 </div>
             </div>
             <div className="flex flex-col lg:flex-row w-full rounded-[20px] gap-6 mb-[15px]">
-                {/* Left Panel: User Details (from the image) */}
-                <div className="flex flex-col gap-[20px] w-full lg:w-1/3 rounded-[20px]  ">
-                    {selectedUser ? (
-                        <div className="w-full bg-[#f2f2f4] rounded-[20px] ">
+                {/* Left Panel: User Details */}
+                <div className="flex flex-col gap-[20px] w-full lg:w-1/3 rounded-[20px]">
+                    {isLoading ? (
+                        <p className="text-center text-gray-500">Loading...</p>
+                    ) : error ? (
+                        <p className="text-center text-red-500">Error loading user data</p>
+                    ) : userDetails ? (
+                        <div className="w-full bg-[#f2f2f4] rounded-[20px]">
                             {/* Blue Header with Wave */}
                             <div className="relative w-full">
-                                <svg width="100%" height="100%" viewBox="0 0 471 165" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M0 20 Q0 0 20 0 H451 Q471 0 471 20 V155.046 C471 155.046 372.679 132.651 235.5 155.046 C98.3213 177.442 0 155.046 0 155.046 Z" fill="#176dbf" />
+                                <svg
+                                    width="100%"
+                                    height="100%"
+                                    viewBox="0 0 471 165"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M0 20 Q0 0 20 0 H451 Q471 0 471 20 V155.046 C471 155.046 372.679 132.651 235.5 155.046 C98.3213 177.442 0 155.046 0 155.046 Z"
+                                        fill="#176dbf"
+                                    />
                                 </svg>
                                 <div className="absolute top-0 left-0 w-full h-full flex gap-[15px] items-center p-2 text-white">
-                                    <Image src={UserProfileImage} alt="User Avatar" className="rounded-full  border-2 border-white w-30 h-30 sm:w-30 sm:h-30 lg:w-16 lg:h-16" />
+                                    <Image
+                                        src={ UserProfileImage}
+                                        alt="User Avatar"
+                                        className="rounded-full border-2 border-white w-16 h-16"
+                                        width={64}
+                                        height={64}
+                                    />
                                     <div>
-                                        <div className="text-white text-2xl md:text-3xl font-bold leading-10 tracking-wide">{selectedUser.name}</div>
+                                        <div className="text-white text-2xl md:text-3xl font-bold leading-10 tracking-wide">
+                                            {userDetails.firstName || "Unknown"} {userDetails.lastName || ""}
+                                        </div>
                                     </div>
                                     <div className="h-10 px-5 py-3 bg-[#10375c] rounded-[28px] gap-[5px] inline-flex mb-[30px]">
-                                        <div className="text-white text-sm font-medium">₹{selectedUser.level}</div>
+                                        <div className="text-white text-sm font-medium">
+                                            ₹{userDetails.stats?.level || 0}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -165,248 +187,393 @@ export default function UserProfileComponent() {
                             <div className="flex flex-col w-full mt-[27px] gap-[30px] relative z-20">
                                 {/* Personal Details */}
                                 <div className="w-[55%] ml-[30px] flex-col justify-start items-start gap-3 inline-flex">
-                                    <div className="self-stretch text-[#1c2329] text-sm font-semibold leading-[16.80px]">Personal Details</div>
+                                    <div className="self-stretch text-[#1c2329] text-sm font-semibold leading-[16.80px]">
+                                        Personal Details
+                                    </div>
                                     <div className="self-stretch justify-between items-center inline-flex">
                                         <div className="flex-col justify-start items-start gap-2.5 inline-flex">
-                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Phone Number</div>
-                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Email Address</div>
-                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">City</div>
+                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Phone Number
+                                            </div>
+                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Email Address
+                                            </div>
+                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Country
+                                            </div>
                                         </div>
                                         <div className="flex-col justify-start items-end gap-2.5 inline-flex">
-                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.phone}</div>
-                                            <div className="text-right text-[#1b2229] text-xs font-bold leading-[15px]">{selectedUser.email}</div>
-                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.city}</div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {(userDetails.countryCode || "") + (userDetails.phoneNumber || "")}
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold leading-[15px]">
+                                                {userDetails.email || "N/A"}
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {userDetails.country || "N/A"}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Statistics */}
                                 <div className="w-[45%] ml-[30px] flex-col justify-start items-start gap-3 inline-flex mb-[30px]">
-                                    <div className="self-stretch text-[#1c2329] text-sm font-semibold leading-[16.80px]">Statistics</div>
+                                    <div className="self-stretch text-[#1c2329] text-sm font-semibold leading-[16.80px]">
+                                        Statistics
+                                    </div>
                                     <div className="self-stretch justify-between items-center inline-flex">
                                         <div className="flex-col justify-start items-start gap-2.5 inline-flex">
-                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Loyalty Points</div>
-                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Level</div>
-                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Last Month Level</div>
-                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Level This Month</div>
-                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Improvement</div>
-                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Confidence</div>
-                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Active Padel Matches</div>
-                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Active Pickleball Matches</div>
-                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Active Vouchers</div>
+                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Loyalty Points
+                                            </div>
+                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Level
+                                            </div>
+                                            <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Last Month Level
+                                            </div>
+                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Level This Month
+                                            </div>
+                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Improvement
+                                            </div>
+                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Confidence
+                                            </div>
+                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Active Padel Matches
+                                            </div>
+                                            <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                                Active Pickleball Matches
+                                            </div>
                                         </div>
                                         <div className="flex-col justify-start items-end gap-2.5 inline-flex">
-                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.loyaltyPoints}</div>
-                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.level}</div>
-                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.lastMonthLevel}</div>
-                                            <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.levelThisMonth}</div>
-                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.improvement12Months}%</div>
-                                            <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.confidence}%</div>
-                                            <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.activePadelMatches}</div>
-                                            <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.activePickleballMatches}</div>
-                                            <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">{selectedUser.activeVouchers}</div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {userDetails.stats?.loyaltyPoints ?? 0}
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {userDetails.stats?.level ?? 0}
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {userDetails.stats?.lastMonthLevel ?? 0}
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {((userDetails.stats?.level ?? 0) - (userDetails.stats?.lastMonthLevel ?? 0))}
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {userDetails.stats?.improvement ?? 0}%
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {parseConfidence(userDetails.stats?.confidence)}
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {userDetails.stats?.padlelMatches ?? 0}
+                                            </div>
+                                            <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                                {userDetails.stats?.pickleballMatches ?? 0}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     ) : (
-                        <p className="text-center text-gray-500">Select a user to see details</p>
+                        <p className="text-center text-gray-500">No user data available</p>
                     )}
-                    <div className="w-full px-[20px] py-[18px] bg-[#f2f2f4] rounded-[20px]  ">
+                    <div className="w-full px-[20px] py-[18px] bg-[#f2f2f4] rounded-[20px]">
                         <div className="w-full flex justify-between">
-                                <div className="flex flex-col gap-[10px]">
-                                    <div className=" text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Total Matches</div>
-                                    <div className=" text-center text-[#1b2229] text-xs font-bold capitalize leading-[15px]">240</div>
+                            <div className="flex flex-col gap-[10px]">
+                                <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                    Total Matches
                                 </div>
-                                <div className="flex flex-col gap-[10px]">
-                                    <div className=" text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">Paddle Matches</div>
-                                    <div className="text-center text-[#1b2229] text-xs font-bold capitalize leading-[15px] ">120</div>
+                                <div className="text-center text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                    {userDetails?.stats?.totalMatches ?? 0}
                                 </div>
-                                <div className="flex flex-col gap-[10px]">
-                                    <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px] ">Pickleball Matches</div>
-                                    <div className="text-center text-[#1b2229] text-xs font-bold capitalize leading-[15px] ">120</div>
+                            </div>
+                            <div className="flex flex-col gap-[10px]">
+                                <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                    Padel Matches
                                 </div>
+                                <div className="text-center text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                    {userDetails?.stats?.padlelMatches ?? 0}
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-[10px]">
+                                <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                                    Pickleball Matches
+                                </div>
+                                <div className="text-center text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                                    {userDetails?.stats?.pickleballMatches ?? 0}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                         <div className=" px-5 py-4 bg-[#f2f2f4] rounded-[20px] justify-between items-center inline-flex">
-                          <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">Active Vouchers</div>
-                          <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">12</div>
-                        </div>
                 </div>
 
-                {/* Right Panel: User List (with matches from the image) */}
-                <div className="h-[80vh] md:h-[calc(100vh)] w-full lg:w-2/3 bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-y-auto overflo-custom ">
+                {/* Right Panel: Matches */}
+                <div className="h-[80vh] md:h-[calc(100vh)] w-full lg:w-2/3 bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-y-auto overflow-auto">
                     {/* Upcoming Matches Section */}
                     <div className="mt-6">
                         <h3 className="text-[#10375c] text-xl font-semibold mb-4">Upcoming Matches</h3>
-                        {matches
-                            .filter((match) => match.isUpcoming)
-                            .map((match, index) => (
-                                <div key={index} className="flex flex-col gap-[10px] w-full mb-[20px]">
-                                    {/* <div className="w-full h-[0px] border border-dotted border-[#d0d0d0] my-[10px]"></div> */}
-
-                                    <div className="flex items-center w-full gap-[10px] flex-col md:flex-row ">
-                                        <div className="h-full p-[30px] bg-white rounded-[10px]  w-full lg:w-max ">
-                                            <div className="h-[17px] w-full justify-between items-center inline-flex mb-[20px]">
-                                                <div className="text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">Paddle Match</div>
-                                                <div className="text-right text-[#1b2229] text-sm font-semibold leading-[16.80px]">{match.date}</div>
+                        {isLoading ? (
+                            <p className="text-gray-500">Loading matches...</p>
+                        ) : error ? (
+                            <p className="text-red-500">Error loading matches</p>
+                        ) : userDetails?.upcomingMatches?.length > 0 ? (
+                            userDetails.upcomingMatches.map((match, index) => {
+                                const formattedMatch = formatMatch(match);
+                                const opponents = formattedMatch.opponents || [];
+                                return (
+                                    <div key={index} className="flex flex-col gap-[10px] w-full mb-[20px]">
+                                        <div className="flex items-center w-full gap-[10px] flex-col md:flex-row">
+                                            <div className="h-full p-[30px] bg-white rounded-[10px] w-full lg:w-max">
+                                                <div className="h-[17px] w-full justify-between items-center inline-flex mb-[20px]">
+                                                    <div className="text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">
+                                                        {formattedMatch.gameType} Match
+                                                    </div>
+                                                    <div className="text-right text-[#1b2229] text-sm font-semibold leading-[16.80px]">
+                                                        {formattedMatch.date}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-[20px] w-full">
+                                                    {opponents.map((opponent, i) => (
+                                                        <div key={i} className="w-1/2 flex flex-col gap-1">
+                                                            <Image
+                                                                src={UserProfileImage}
+                                                                alt={`${opponent.name} Avatar`}
+                                                                className="w-[60px] h-[60px] rounded-full"
+                                                                width={60}
+                                                                height={60}
+                                                            />
+                                                            <div className="text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">
+                                                                {opponent.name}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {Array.from({ length: 4 - opponents.length }).map((_, i) => (
+                                                        <div key={`placeholder-${i}`} className="w-1/2 flex flex-col gap-1">
+                                                            <Image
+                                                                src={UserProfileImage}
+                                                                alt="Placeholder Avatar"
+                                                                className="w-[60px] h-[60px] rounded-full opacity-50"
+                                                                width={60}
+                                                                height={60}
+                                                            />
+                                                            <div className="text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">
+                                                                N/A
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-[20px] w-full">
-                                                <div className="w-1/2 flex flex-col gap-1">
-                                                    <Image src={UserProfileImage} alt={`${match.opponent1} Avatar`} className="w-[60px] h-[60px] rounded-full" width={60} height={60} />
-                                                    <div className=" text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">{match.opponent1}</div>
-                                                </div>
-                                                <div className="w-1/2 flex flex-col gap-1">
-                                                    <Image src={UserProfileImage} alt={`${match.opponent2} Avatar`} className="w-[60px] h-[60px] rounded-full" width={60} height={60} />
-                                                    <div className=" text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">{match.opponent2}</div>
-
-                                                </div>
-                                                <span className="text-[#7e7e8a] text-xs">vs</span>
-                                                <div className="w-1/2 flex flex-col gap-1">
-                                                    <Image src={UserProfileImage} alt={`${match.opponent3} Avatar`} className="w-[60px] h-[60px] rounded-full" width={60} height={60} />
-                                                    <div className=" text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">{match.opponent3}</div>
-
-                                                </div>
-                                                <div className="w-1/2 flex flex-col gap-1">
-                                                    <Image src={UserProfileImage} alt={`${match.opponent4} Avatar`} className="w-[60px] h-[60px] rounded-full" width={60} height={60} />
-                                                    <div className=" text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">{match.opponent4}</div>
-
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className=" w-full md:w-1/2 p-[25px] bg-[#176dbf] rounded-[10px] justify-center items-center gap-5 flex">
-                                            <div className="w-full flex-col justify-center items-center gap-[15px] inline-flex">
-
-                                                <div className="w-full  items-center flex justify-between">
-                                                    <div className=" text-white text-xs font-medium leading-[14.40px]">Amount Paid</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">{match.amountPaid}</div>
-                                                </div>
-                                                <div className=" w-full  flex justify-between items-center ">
-                                                    <div className="text-white text-xs font-medium leading-[14.40px]">Location</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">{match.location}</div>
-                                                </div>
-                                                <div className="flex justify-between items-center w-full ">
-                                                    <div className="text-white text-xs font-medium leading-[14.40px]">Game Type</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">Padel</div>
-                                                </div>
-                                                <div className="flex justify-between items-center w-full ">
-                                                    <div className="text-white text-xs font-medium leading-[14.40px]">Match Type</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">{match.type}</div>
-                                                </div>
-                                                <div className="flex justify-between items-center w-full ">
-                                                    <div className=" text-white text-xs font-medium leading-[14.40px]">Equipment Rented(if any)</div>
-                                                    <div className=" text-right text-white text-xs font-medium leading-[14.40px]">{match.equipmentRented}</div>
+                                            <div className="w-full md:w-1/2 p-[25px] bg-[#176dbf] rounded-[10px] justify-center items-center gap-5 flex">
+                                                <div className="w-full flex-col justify-center items-center gap-[15px] inline-flex">
+                                                    <div className="w-full items-center flex justify-between">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Amount Paid
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.amountPaid}
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full flex justify-between items-center">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Location
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.location}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Game Type
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.gameType}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Match Type
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.type}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Equipment Rented (if any)
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-medium leading-[14.40px]">
+                                                            {formattedMatch.equipmentRented}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })
+                        ) : (
+                            <p className="text-gray-500">No upcoming matches</p>
+                        )}
 
                         {/* Previous Matches Section */}
                         <h3 className="text-[#10375c] text-xl font-semibold mb-4">Previous Matches</h3>
-                        {matches
-                            .filter((match) => !match.isUpcoming)
-                            .map((match, index) => (
-                                <div key={index} className="flex flex-col w-full">
-
-                                    <div className="flex items-center w-full gap-[10px] flex-col md:flex-row ">
-                                        <div className="h-full p-[30px] bg-white rounded-[10px]  w-full lg:w-max ">
-                                            <div className="h-[17px] w-full justify-between items-center inline-flex mb-[20px]">
-                                                <div className="text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">Paddle Match</div>
-                                                <div className="text-right text-[#1b2229] text-sm font-semibold leading-[16.80px]">{match.date}</div>
-                                            </div>
-                                            <div className="flex items-center gap-[20px] w-full">
-                                                <div className="w-1/2 flex flex-col gap-1">
-                                                    <Image src={UserProfileImage} alt={`${match.opponent1} Avatar`} className="w-[60px] h-[60px] rounded-full" width={60} height={60} />
-                                                    <div className=" text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">{match.opponent1}</div>
+                        {isLoading ? (
+                            <p className="text-gray-500">Loading matches...</p>
+                        ) : error ? (
+                            <p className="text-red-500">Error loading matches</p>
+                        ) : userDetails?.completedMatches?.length > 0 ? (
+                            userDetails.completedMatches.map((match, index) => {
+                                const formattedMatch = formatMatch(match);
+                                const opponents = formattedMatch.opponents || [];
+                                return (
+                                    <div key={index} className="flex flex-col w-full">
+                                        <div className="flex items-center w-full gap-[10px] flex-col md:flex-row">
+                                            <div className="h-full p-[30px] bg-white rounded-[10px] w-full lg:w-max">
+                                                <div className="h-[17px] w-full justify-between items-center inline-flex mb-[20px]">
+                                                    <div className="text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">
+                                                        {formattedMatch.gameType} Match
+                                                    </div>
+                                                    <div className="text-right text-[#1b2229] text-sm font-semibold leading-[16.80px]">
+                                                        {formattedMatch.date}
+                                                    </div>
                                                 </div>
-                                                <div className="w-1/2 flex flex-col gap-1">
-                                                    <Image src={UserProfileImage} alt={`${match.opponent2} Avatar`} className="w-[60px] h-[60px] rounded-full" width={60} height={60} />
-                                                    <div className=" text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">{match.opponent2}</div>
-
+                                                <div className="flex items-center gap-[20px] w-full">
+                                                    {opponents.map((opponent, i) => (
+                                                        <div key={i} className="w-1/2 flex flex-col gap-1">
+                                                            <Image
+                                                                src={UserProfileImage}
+                                                                alt={`${opponent.name} Avatar`}
+                                                                className="w-[60px] h-[60px] rounded-full"
+                                                                width={60}
+                                                                height={60}
+                                                            />
+                                                            <div className="text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">
+                                                                {opponent.name}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {Array.from({ length: 4 - opponents.length }).map((_, i) => (
+                                                        <div key={`placeholder-${i}`} className="w-1/2 flex flex-col gap-1">
+                                                            <Image
+                                                                src={UserProfileImage}
+                                                                alt="Placeholder Avatar"
+                                                                className="w-[60px] h-[60px] rounded-full opacity-50"
+                                                                width={60}
+                                                                height={60}
+                                                            />
+                                                            <div className="text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">
+                                                                TBD
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                                <span className="text-[#7e7e8a] text-xs">vs</span>
-                                                <div className="w-1/2 flex flex-col gap-1">
-                                                    <Image src={UserProfileImage} alt={`${match.opponent3} Avatar`} className="w-[60px] h-[60px] rounded-full" width={60} height={60} />
-                                                    <div className=" text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">{match.opponent3}</div>
-
-                                                </div>
-                                                <div className="w-1/2 flex flex-col gap-1">
-                                                    <Image src={UserProfileImage} alt={`${match.opponent4} Avatar`} className="w-[60px] h-[60px] rounded-full" width={60} height={60} />
-                                                    <div className=" text-center text-[#1b2229] word-break text-xs font-medium leading-[12px]">{match.opponent4}</div>
-                                                </div>
-                                            </div>
-                                            <div className=" w-full flex-col justify-start items-center gap-2 inline-flex mt-[15px]">
-                                                <div className="self-stretch text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">Score</div>
-                                                <div className="self-stretch justify-between items-center inline-flex">
-                                                    <div className="w-1/2 justify-start items-center flex">
-                                                        <div className="self-stretch flex-col justify-center items-start gap-2.5 inline-flex">
-                                                            <div className="text-center text-[#1b2229] text-xs font-medium  leading-[12px]">Wren & Emerson </div>
-                                                            <div className="w-full h-[0px] border border-[#d6d6d6]"></div>
-                                                            <div className="text-center text-[#1b2229] text-xs font-medium  leading-[14.40px]">Taylor  & Bailey</div>
+                                                <div className="w-full flex-col justify-start items-center gap-2 inline-flex mt-[15px]">
+                                                    <div className="self-stretch text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">
+                                                        Score
+                                                    </div>
+                                                    <div className="self-stretch justify-between items-center inline-flex">
+                                                        <div className="w-1/2 justify-start items-center flex">
+                                                            <div className="self-stretch flex-col justify-center items-start gap-2.5 inline-flex">
+                                                                <div className="text-center text-[#1b2229] text-xs font-medium leading-[12px]">
+                                                                    Team 1
+                                                                </div>
+                                                                <div className="w-full h-[0px] border border-[#d6d6d6]"></div>
+                                                                <div className="text-center text-[#1b2229] text-xs font-medium leading-[14.40px]">
+                                                                    Team 2
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-center text-[#1b2229] text-xs font-medium">Game</div>
+                                                        <div className="flex-col justify-center items-end gap-2.5 inline-flex">
+                                                            <div className="justify-start items-start gap-2.5 inline-flex">
+                                                                <div className="text-center text-[#1b2229] text-xs font-medium leading-[14.40px]">
+                                                                    {formattedMatch.score.team1}
+                                                                </div>
+                                                            </div>
+                                                            <div className="h-[0px] border border-[#d6d6d6]"></div>
+                                                            <div className="justify-start items-start gap-2.5 inline-flex">
+                                                                <div className="text-center text-[#1b2229] text-xs font-medium leading-[14.40px]">
+                                                                    {formattedMatch.score.team2}
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div className="text-center text-[#1b2229] text-xs font-medium ">Game</div>
-                                                    <div className="flex-col justify-center items-end gap-2.5 inline-flex">
-                                                        <div className="justify-start items-start gap-2.5 inline-flex">
-                                                            <div className="text-center text-[#1b2229] text-xs font-medium  leading-[14.40px]">4</div>
-                                                            <div className="text-center text-[#1b2229] text-xs font-medium  leading-[14.40px]">5</div>
-                                                            <div className="text-center text-[#1b2229] text-xs font-medium  leading-[14.40px]">5</div>
+                                                </div>
+                                            </div>
+                                            <div className="w-full md:w-1/2 p-[25px] bg-[#176dbf] rounded-[10px] justify-center items-center gap-5 flex">
+                                                <div className="w-full flex-col justify-center items-center gap-[15px] inline-flex">
+                                                    <div className="w-full items-center flex justify-between">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Winner Of the Match
                                                         </div>
-                                                        <div className=" h-[0px] border border-[#d6d6d6]"></div>
-                                                        <div className="justify-start items-start gap-2.5 inline-flex">
-                                                            <div className="text-center text-[#1b2229] text-xs font-medium  leading-[14.40px]">4</div>
-                                                            <div className="text-center text-[#1b2229] text-xs font-medium  leading-[14.40px]">5</div>
-                                                            <div className="text-center text-[#1b2229] text-xs font-medium  leading-[14.40px]">5</div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.winner}
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full items-center flex justify-between">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Amount Paid
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.amountPaid}
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full flex justify-between items-center">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Location
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.location}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Game Type
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.gameType}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Match Type
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-semibold leading-[14.40px]">
+                                                            {formattedMatch.type}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Equipment Rented (if any)
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-medium leading-[14.40px]">
+                                                            {formattedMatch.equipmentRented}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <div className="text-white text-xs font-medium leading-[14.40px]">
+                                                            Price of Equipment Rented
+                                                        </div>
+                                                        <div className="text-right text-white text-xs font-medium leading-[14.40px]">
+                                                            {formattedMatch.rentedEquipmentPrice}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div className=" w-full md:w-1/2 p-[25px] bg-[#176dbf] rounded-[10px] justify-center items-center gap-5 flex">
-                                            <div className="w-full flex-col justify-center items-center gap-[15px] inline-flex">
-                                                <div className="w-full  items-center flex justify-between">
-                                                    <div className=" text-white text-xs font-medium leading-[14.40px]">Winner Of the Match</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">{match.winner}</div>
-                                                </div>
-                                                <div className="w-full  items-center flex justify-between">
-                                                    <div className=" text-white text-xs font-medium leading-[14.40px]">Amount Paid</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">{match.amountPaid}</div>
-                                                </div>
-                                                <div className=" w-full  flex justify-between items-center ">
-                                                    <div className="text-white text-xs font-medium leading-[14.40px]">Location</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">{match.location}</div>
-                                                </div>
-                                                <div className="flex justify-between items-center w-full ">
-                                                    <div className="text-white text-xs font-medium leading-[14.40px]">Game Type</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">Padel</div>
-                                                </div>
-                                                <div className="flex justify-between items-center w-full ">
-                                                    <div className="text-white text-xs font-medium leading-[14.40px]">Match Type</div>
-                                                    <div className=" text-right text-white text-xs font-semibold leading-[14.40px]">{match.type}</div>
-                                                </div>
-                                                <div className="flex justify-between items-center w-full ">
-                                                    <div className=" text-white text-xs font-medium leading-[14.40px]">Equipment Rented(if any)</div>
-                                                    <div className=" text-right text-white text-xs font-medium leading-[14.40px]">{match.equipmentRented}</div>
-                                                </div>
-                                                <div className="flex justify-between items-center w-full ">
-                                                    <div className=" text-white text-xs font-medium leading-[14.40px]">Price of Equipment Rented</div>
-                                                    <div className=" text-right text-white text-xs font-medium leading-[14.40px]">{match.rentedEquipmentPrice}</div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {index === 0 && (
+                                            <div className="w-full h-[0px] border border-dotted border-[#d0d0d0] my-[10px]" />
+                                        )}
                                     </div>
-                                    {index === 0 && (
-                                        <div className="w-full h-[0px] border border-dotted border-[#d0d0d0] my-[10px]" />
-                                    )}
-                                </div>
-
-                            ))}
+                                );
+                            })
+                        ) : (
+                            <p className="text-gray-500">No previous matches</p>
+                        )}
                     </div>
                 </div>
             </div>

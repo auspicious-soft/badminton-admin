@@ -211,6 +211,7 @@ const Page = () => {
     getVenue
   );
   const venueData = data?.data?.data || [];
+  console.log('venueData: ', venueData);
 
   // Combine address, city, and state for geocoding
   const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
@@ -470,7 +471,7 @@ const Page = () => {
   }
 
   return (
-    <main className=" p-4 ">
+    <main >
       <h1 className="text-2xl md:text-3xl font-semibold text-[#10375c] mb-6">
         {id ? "Edit Venue" : "Add New Venue"}
       </h1>
@@ -896,16 +897,16 @@ const Page = () => {
             <div className="h-3.5 justify-between items-center flex text-[#7e7e8a] mb-[8px] text-xs font-medium">
               <div>Name of Team 1</div>
               <div>Name of Team 2</div>
-              <div>Game</div>
-              <div>Date</div>
-              <div>Action</div>
+              <div className="pl-2">Game</div>
+              <div className="pr-2">Date</div>
+              {/* <div>Action</div> */}
             </div>
             <div className="mb-[8px] h-[0px] border border-[#d0d0d0]"></div>
 
-            {matches.map((match, index) => (
+            {venueData.matches.map((match, index) => (
               <div
                 key={match.id}
-                className={`w-full min-w-[600px] cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${
+                className={`w-full min-w-[600px] cursor-pointer flex items-center h-[47px] px-2 py-3 rounded-[10px] ${
                   selectedMatch?.id === match.id
                     ? "bg-[#176dbf] text-white"
                     : index % 2 === 0
@@ -915,7 +916,7 @@ const Page = () => {
                 onClick={() => setSelectedMatch(match)}
               >
                 <div
-                  className={`px-4 py-2 w-1/4 flex items-center gap-2 text-xs font-medium ${
+                  className={`px-1  py-2 w-[40%] flex items-center gap-2 text-xs font-medium ${
                     selectedMatch?.id === match.id
                       ? "text-white"
                       : "text-[#1b2229]"
@@ -932,7 +933,7 @@ const Page = () => {
                 </div>
 
                 <div
-                  className={`px-4 py-2 w-1/4 flex items-center gap-2 text-xs font-medium ${
+                  className={`px-1  py-2 w-[30%] flex items-center gap-2 text-xs font-medium ${
                     selectedMatch?.id === match.id
                       ? "text-white"
                       : "text-[#1b2229]"
@@ -949,30 +950,32 @@ const Page = () => {
                 </div>
 
                 <div
-                  className={`px-4 py-2 w-1/4 text-xs font-medium text-center ${
+                  className={`pr-8 py-2 w-[25%] text-xs  font-medium text-right ${
                     selectedMatch?.id === match.id
                       ? "text-white"
                       : "text-[#1b2229]"
                   }`}
                 >
-                  {match.game}
+                  {/* {match.game} */}
+                  padel
                 </div>
 
                 <div
-                  className={`text-xs font-medium ${
+                  className={`text-xs w-[25%] font-medium text-right ${
                     selectedMatch?.id === match.id
                       ? "text-white"
                       : "text-[#1b2229]"
                   }`}
                 >
-                  {match.date}
+                  {/* {match.bookingDate} */}
+                  {new Date(match.bookingDate).toLocaleDateString()}
                 </div>
 
-                <div className="px-4 py-2 w-1/6 text-xs font-medium flex justify-end">
+                {/* <div className="px-4 py-2 w-1/6 text-xs font-medium flex justify-end">
                   <EyeIcon
                     stroke={selectedMatch?.id === match.id ? "#FFFF" : "#fd5602"}
                   />
-                </div>
+                </div> */}
               </div>
             ))}
           </div>

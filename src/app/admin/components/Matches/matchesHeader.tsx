@@ -9,12 +9,17 @@ const cities = ["New York", "Los Angeles", "Chicago", "Houston"];
 interface MatchesHeaderProps {
   selectedTab: string;
   setSelectedTab: (tab: string) => void;
+  selectedGame:string,
+  setSelectedGame:any,
+  selectedCity:string,
+  setSelectedCity:any,
+  selectedDate:string,
+  setSelectedDate:any
+
 }
 
-const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedTab }) => {
-  const [selectedGame, setSelectedGame] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedTab, setSelectedGame ,selectedGame, selectedCity, setSelectedCity, selectedDate, setSelectedDate}) => {
+
   const [gameDropdown, setGameDropdown] = useState(false);
   const [cityDropdown, setCityDropdown] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +60,6 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
                       checked={selectedGame === game}
                       onChange={(e) => {
                         setSelectedGame(e.target.value);
-                        console.log("Selected Game:", e.target.value);
                         setGameDropdown(false);
                       }}
                       className="bg-[#1b2229]"
@@ -82,7 +86,6 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
               value={selectedDate}
               onChange={(e) => {
                 setSelectedDate(e.target.value);
-                console.log("Selected Date:", e.target.value);
               }}
             />
           </div>
@@ -105,7 +108,6 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
                       checked={selectedCity === city}
                       onChange={(e) => {
                         setSelectedCity(e.target.value);
-                        console.log("Selected City:", e.target.value);
                         setCityDropdown(false);
                       }}
                       className="mr-2"
