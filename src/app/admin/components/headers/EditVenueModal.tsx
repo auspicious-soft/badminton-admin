@@ -1,11 +1,10 @@
-
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MatchImage from "@/assets/images/courtImage.png";
 import Image from "next/image";
 import Modal from "@mui/material/Modal";
-import { v4 as uuidv4 } from "uuid";
-
+import {  updateCourt } from "@/services/admin-services";
+import { toast } from "sonner";
 
 interface Court {
   id: string;
@@ -13,35 +12,92 @@ interface Court {
   status: "Active" | "Inactive";
   image?: string;
   game: string;
+  venueId: any;
 }
 
 interface CourtManagementProps {
   open: boolean;
   onClose: () => void;
   onSave: (court: Court) => void;
+  court?: Court | null;
+  venueId: any;
 }
 
-const gamesAvailableOptions = ["Padel", "Pickleball"]; // Hardcoded; fetch from API if needed
+const gamesAvailableOptions = ["Padel", "Pickleball"];
 
-const CourtManagement = ({ open, onClose, onSave }: CourtManagementProps) => {
+const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagementProps) => {
   const [courtName, setCourtName] = useState("");
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedGame, setSelectedGame] = useState(gamesAvailableOptions[0]); // Default to first game
+  const [selectedGame, setSelectedGame] = useState(gamesAvailableOptions[0]);
+
+  useEffect(() => {
+    if (court) {
+      setCourtName(court.name);
+      setStatus(court.status);
+      setSelectedImage(court.image || null);
+      setSelectedGame(court.game);
+    } else {
+      setCourtName("");
+      setStatus("Active");
+      setSelectedImage(null);
+      setSelectedGame(gamesAvailableOptions[0]);
+    }
+  }, [court]);
 
   const handleDelete = () => {
     onClose();
   };
 
-  const handleSave = () => {
-    const newCourt: Court = {
-      id: uuidv4(),
+  const handleSave = async () => {
+    const courtData: Court = {
+      id: court ? court.id : crypto.randomUUID(),
       name: courtName,
       status,
       image: selectedImage || MatchImage.src,
       game: selectedGame,
+      venueId,
     };
-    onSave(newCourt);
+
+    try {
+      if (court) {
+        // Update existing court
+        const payload = {
+          id: court.id,
+          venueId,
+          name: courtName,
+          isActive: status === "Active",
+          games: selectedGame,
+          image: selectedImage || MatchImage.src,
+        };
+        const response = await updateCourt("/admin/court", payload);
+        if (response?.status === 200 || response?.status === 201) {
+          toast.success("Court updated successfully");
+          onSave(courtData);
+        } else {
+          toast.error("Failed to update court");
+        }
+      } else {
+        // Add new court
+        const payload = {
+          venueId:venueId,
+          name: courtName,
+          isActive: status === "Active",
+          games: selectedGame,
+          image: selectedImage || MatchImage.src,
+        };
+        const response = await updateCourt("/admin/court", payload);
+        if (response?.status === 200 || response?.status === 201) {
+          toast.success("Court added successfully");
+          onSave({ ...courtData, id: response.data.data._id });
+        } else {
+          toast.error("Failed to add court");
+        }
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+
     onClose();
   };
 
@@ -69,8 +125,8 @@ const CourtManagement = ({ open, onClose, onSave }: CourtManagementProps) => {
               src={selectedImage || MatchImage}
               alt="Court Image"
               className="w-full rounded-[10px]"
-              width={442}
-              height={285}
+              width={400}
+              height={200}
             />
             <label className="absolute bottom-2 right-2 bg-white rounded-full px-2 py-1 flex items-center gap-2 cursor-pointer shadow-md">
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
@@ -144,7 +200,7 @@ const CourtManagement = ({ open, onClose, onSave }: CourtManagementProps) => {
                 onClick={handleSave}
                 className="w-full text-white text-sm font-medium h-12 py-2 bg-[#10375c] rounded-[28px]"
               >
-                Save
+                {court ? "Update" : "Save"}
               </button>
             </div>
           </form>

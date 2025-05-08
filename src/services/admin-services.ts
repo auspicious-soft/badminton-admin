@@ -71,6 +71,10 @@ export const updateVenue = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
+export const updateCourt = async (route: string, payload: any) => { 
+    const axiosInstance= await getAxiosInstance()
+    return axiosInstance.post(route, payload)
+}
 //----------User Page--------------------------
 export const getAllUsers = async (route: string) => {
     const axiosInstance = await getAxiosInstance()

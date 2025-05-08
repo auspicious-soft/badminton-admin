@@ -35,6 +35,7 @@ const Page = () => {
     `/admin/get-venues?search=${searchParams}&page=${page}&limit=${itemsPerPage}`,
     getAllVenues
   );
+  console.log('data: ', data);
 
   // Handle dynamic venues data from API
   const venues = data?.data.data || [];
