@@ -307,7 +307,7 @@ const Page = () => {
   }, [selectedImage]);
 
   return (
-    <main className="">
+    <main className="mb-2">
       <h1 className="text-2xl md:text-3xl font-semibold text-[#10375c] mb-6">Add New Venue</h1>
 
       <div className="flex flex-col lg:flex-row gap-6">

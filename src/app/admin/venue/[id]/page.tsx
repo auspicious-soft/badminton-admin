@@ -411,7 +411,7 @@ const Page = () => {
   }
 
   return (
-    <main>
+    <main className="mb-2">
       <h1 className="text-2xl md:text-3xl font-semibold text-[#10375c] mb-6">
         {id ? "Edit Venue" : "Add New Venue"}
       </h1>
