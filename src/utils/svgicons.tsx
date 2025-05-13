@@ -1,3 +1,14 @@
+
+export const DeleteProductIcon = () => (
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+<rect x="0.353027" width="31.2939" height="31.2939" rx="15.647" fill="#FF0C0C"/>
+<path d="M15.998 14.1477L15.998 16.1552L15.998 18.1626" stroke="white" strokeWidth="0.936808" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M13.3234 14.1477L13.3234 16.1552L13.3234 18.1626" stroke="white" strokeWidth="0.936808" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M18.6768 14.1477L18.6768 16.1552L18.6768 18.1626" stroke="white" strokeWidth="0.936808" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M10.0043 10.3262C9.98776 10.2023 10.031 10.0783 10.1329 10.0058C10.5985 9.67422 12.1958 8.79126 16.0004 8.79126C19.805 8.79126 21.4023 9.67422 21.868 10.0058C21.9698 10.0783 22.013 10.2023 21.9965 10.3262L20.8595 18.8538C20.7492 19.6813 20.2591 20.4098 19.5344 20.824L19.3203 20.9463C17.2632 22.1218 14.7377 22.1218 12.6805 20.9463L12.4664 20.824C11.7417 20.4098 11.2516 19.6813 11.1413 18.8538L10.0043 10.3262Z" stroke="white" strokeWidth="0.936808"/>
+<path d="M10.0002 9.65234C11.7145 11.4301 20.2858 11.4301 22 9.65234" stroke="white" strokeWidth="0.933314"/>
+</svg>
+);
 export const DashboardIcon = () => (
   <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path

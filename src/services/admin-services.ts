@@ -20,10 +20,19 @@ export const createMerchandise = async (route: string,payload:any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route, payload)
 }
-// export const updateAdminDetails = async (route: string, payload: any) => { 
-//     const axiosInstance= await getAxiosInstance()
-//     return axiosInstance.put(route, payload)
-// }
+export const getAllMerchandise = async (route: string,payload:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+export const getMerchandise = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+
+export const updateMerchandise = async (route: string, payload: any) => { 
+    const axiosInstance= await getAxiosInstance()
+    return axiosInstance.patch(route, payload)
+}
 //----------Employee Page--------------------------
 export const getAllUser = async (route: string) => {
     const axiosInstance = await getAxiosInstance()

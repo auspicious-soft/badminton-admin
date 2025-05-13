@@ -139,7 +139,7 @@ export default function UsersComponent() {
                         width={25}
                         height={25}
                       />
-                      {user.name || "N/A"}
+                      {user.fullName || "N/A"}
                     </div>
                     <div
                       className={`w-[15%] text-[#1b2229] text-xs text-center font-medium ${
@@ -211,7 +211,7 @@ export default function UsersComponent() {
                     />
                     <div>
                       <div className="text-white text:2xl md:text-3xl font-bold leading-10 tracking-wide">
-                        {selectedUser.name || "N/A"}
+                        {selectedUser.fullName || "N/A"}
                       </div>
                     </div>
                     <div className="h-10 px-5 py-3 bg-[#10375c] rounded-[28px] gap-[5px] inline-flex mb-[30px]">
@@ -246,9 +246,9 @@ export default function UsersComponent() {
                         <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
                           Email Address
                         </div>
-                        <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                        {/* <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
                           City
-                        </div>
+                        </div> */}
                       </div>
                       <div className="flex-col justify-start items-end gap-2.5 inline-flex">
                         <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
@@ -257,9 +257,9 @@ export default function UsersComponent() {
                         <div className="text-right text-[#1b2229] text-xs font-bold leading-[15px]">
                           {selectedUser.email || "N/A"}
                         </div>
-                        <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                        {/* <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
                           {selectedUser.city || "N/A"}
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
