@@ -1,175 +1,380 @@
-'use client';
-import { WhiteDownArrow } from '@/utils/svgicons';
-import React, { useState } from 'react';
+"use client";
+import {
+  DeleteProductIcon,
+  DownArrowIcon,
+  UpArrowIcon,
+  WhiteDownArrow,
+} from "@/utils/svgicons";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+} from "@mui/material";
+import {
+  createInventory,
+  getAllMerchandise,
+  updateInventory,
+} from "@/services/admin-services";
+import useSWR from "swr";
+import { useForm, useFieldArray } from "react-hook-form";
+import { toast } from "sonner";
 import shuttle from "@/assets/images/shuttle.png";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 
 const Page = () => {
   const [openEditStock, setOpenEditStock] = useState(false);
   const [openAddToStock, setOpenAddToStock] = useState(false);
   const [openNewItem, setOpenNewItem] = useState(false);
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+  const [tempQuantity, setTempQuantity] = useState(0);
+  const [selectedVenue, setSelectedVenue] = useState("");
+  const [venueDropdown, setVenueDropdown] = useState(false);
 
-  // Inventory items state
-  const [inventoryItems, setInventoryItems] = useState(
-    Array.from({ length: 10 }, (_, index) => ({
-      id: index,
-      stockInUse: 120,
-      freshStock: 120,
-      name: `Product ${index + 1}`
-    }))
-  );
+  const apiRoute = selectedVenue
+    ? `/admin/inventory?venueId=${selectedVenue}`
+    : "/admin/inventory";
 
-  // State for new item form
-  const [newItem, setNewItem] = useState({
-    name: '',
-    quantity: 0
-  });
+  const { data, isLoading, mutate } = useSWR(apiRoute, getAllMerchandise);
 
-  // Handle stock changes for existing items
-  const handleIncrease = (index, type) => {
-    setInventoryItems(prevItems =>
-      prevItems.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              [type]: item[type] + 1
-            }
-          : item
-      )
+  const inventoryItem = data?.data?.data?.inventory || [];
+  const venues = data?.data?.data?.venues || [];
+  const [inventoryItems, setInventoryItems] = useState([]);
+
+  useEffect(() => {
+    setInventoryItems(
+      inventoryItem.map((item, index) => ({
+        id: item._id,
+        name: item.productName,
+        stockInUse: item.isUse,
+        freshStock: item.inStock,
+      }))
     );
-  };
+  }, [inventoryItem]);
 
-  const handleDecrease = (index, type) => {
-    setInventoryItems(prevItems =>
-      prevItems.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              [type]: Math.max(item[type] - 1, 0)
-            }
-          : item
-      )
-    );
-  };
-
-  // Handle new item quantity changes
-  const handleNewItemIncrease = () => {
-    setNewItem(prev => ({
-      ...prev,
-      quantity: prev.quantity + 1
-    }));
-  };
-
-  const handleNewItemDecrease = () => {
-    setNewItem(prev => ({
-      ...prev,
-      quantity: Math.max(prev.quantity - 1, 0)
-    }));
-  };
-
-  // Handle new item name change
-  const handleNameChange = (e) => {
-    setNewItem(prev => ({
-      ...prev,
-      name: e.target.value
-    }));
-  };
-
-  // Add new item to inventory
-  const handleAddNewItem = () => {
-    if (newItem.name.trim() === '') {
-      alert('Please enter a product name');
-      return;
-    }
-    
-    setInventoryItems(prev => [
-      ...prev,
-      {
-        id: prev.length,
-        name: newItem.name,
-        stockInUse: 0,  // Initial stock in use is 0
-        freshStock: newItem.quantity  // Quantity goes to fresh stock
-      }
-    ]);
-    
-    // Reset form and close dialog
-    setNewItem({ name: '', quantity: 0 });
-    setOpenNewItem(false);
-  };
+  // Find the selected venue's name for display
+  const selectedVenueName = selectedVenue
+    ? venues.find((venue) => venue._id === selectedVenue)?.name || "Venue"
+    : "Venue";
 
   const openEditDialog = (index) => {
     setSelectedItemIndex(index);
+    setTempQuantity(inventoryItems[index].stockInUse);
     setOpenEditStock(true);
   };
 
   const openAddDialog = (index) => {
     setSelectedItemIndex(index);
+    setTempQuantity(inventoryItems[index].freshStock);
     setOpenAddToStock(true);
+  };
+
+  const handleIncrease = () => {
+    setTempQuantity((prev) => prev + 1);
+  };
+
+  const handleDecrease = () => {
+    setTempQuantity((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleUpdateStock = async (index, type) => {
+    const item = inventoryItems[index];
+    const payload = {
+      inventoryId: item.id,
+      type: type === "stockInUse" ? "inUse" : "inStock",
+      quantity: tempQuantity,
+    };
+
+    try {
+      const response = await updateInventory("/admin/inventory", payload);
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Stock updated successfully");
+        setInventoryItems((prevItems) =>
+          prevItems.map((item, i) =>
+            i === index ? { ...item, [type]: tempQuantity } : item
+          )
+        );
+        mutate();
+        if (type === "stockInUse") {
+          setOpenEditStock(false);
+        } else {
+          setOpenAddToStock(false);
+        }
+      } else {
+        toast.error("Failed to update stock");
+      }
+    } catch (error) {
+      console.error("Error updating stock:", error);
+      toast.error("An error occurred while updating the stock");
+    }
+  };
+
+  const defaultFormValues = {
+    productName: "",
+    items: [{ venueId: "", quantity: 0 }],
+  };
+
+  const { register, control, handleSubmit, reset, watch } = useForm({
+    defaultValues: defaultFormValues,
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
+  });
+
+  const onSubmit = async (formData) => {
+    const payload = formData.items.map((item) => ({
+      venueId: item.venueId,
+      productName: formData.productName,
+      inStock: Number(item.quantity),
+    }));
+
+    console.log("Debug:", payload);
+    try {
+      const response = await createInventory("/admin/inventory", payload);
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Inventory created successfully");
+        const newItems = payload.map((item, index) => ({
+          id: `new-${inventoryItems.length + index}`,
+          name: item.productName,
+          stockInUse: 0,
+          freshStock: item.inStock,
+        }));
+        setInventoryItems((prev) => [...prev, ...newItems]);
+        setOpenNewItem(false);
+        reset(defaultFormValues);
+        mutate();
+      } else {
+        toast.error("Failed to add new item");
+      }
+    } catch (error) {
+      console.error("Error adding new item:", error);
+      toast.error("An error occurred while adding the new item");
+    }
+  };
+
+  const handleCloseNewItemDialog = () => {
+    setOpenNewItem(false);
+    reset(defaultFormValues);
   };
 
   return (
     <>
+      <style jsx>{`
+        .venue-dropdown {
+          position: relative;
+          margin-right: 15px;
+        }
+        .venue-button {
+          display: flex;
+          align-items: center;
+          height: 40px;
+          padding: 0 20px;
+          background-color: #1b2229;
+          color: white;
+          border-radius: 28px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+        }
+        .venue-button svg {
+          margin-left: 8px;
+        }
+        .venue-options {
+          position: absolute;
+          top: 48px;
+          left: 0;
+          z-index: 50;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          padding: 20px;
+          width: 168px;
+          background-color: white;
+          border-radius: 10px;
+          box-shadow: 0px 4px 20px rgba(92, 138, 255, 0.1);
+        }
+        .venue-option {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: #1b2229;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+        }
+        .venue-option input[type="radio"] {
+          accent-color: #1b2229;
+          width: 16px;
+          height: 16px;
+          cursor: pointer;
+        }
+        .loading-spinner {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 32px;
+        }
+        .spinner {
+          width: 48px;
+          height: 48px;
+          border: 4px solid #e6e6e6;
+          border-top: 4px solid #10375c;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+        .no-data {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 32px;
+          color: #10375c;
+          font-size: 18px;
+          font-weight: 500;
+        }
+      `}</style>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-        <div className="justify-start text-[#10375c] text-3xl font-semibold">Inventory</div>
-        <div className="mt-4 md:mt-0 px-5 py-3 bg-[#1b2229] rounded-[28px] flex justify-center items-center gap-[5px]">
-          <div onClick={() => setOpenNewItem(true)} className="justify-start cursor-pointer text-white text-sm font-medium">
-            Add A New Item
+        <div className="justify-start text-[#10375c] text-3xl font-semibold">
+          Inventory
+        </div>
+        <div className="flex gap-4 mt-4 md:mt-0">
+          {/* Venue Filter Dropdown */}
+          <div className="venue-dropdown">
+            <button
+              className="venue-button"
+              onClick={() => setVenueDropdown(!venueDropdown)}
+            >
+              {selectedVenueName}
+              <span>
+                {!venueDropdown ? <DownArrowIcon /> : <UpArrowIcon />}
+              </span>
+            </button>
+            {venueDropdown && (
+              <div className="venue-options space-y-2">
+                <label className="venue-option ">
+                  <input
+                    type="radio"
+                    name="venue"
+                    value=""
+                    checked={selectedVenue === ""}
+                    onChange={() => {
+                      setSelectedVenue("");
+                      setVenueDropdown(false);
+                    }}
+                  />
+                  All Venues
+                </label>
+                {venues.map((venue) => (
+                  <label key={venue._id} className="venue-option ">
+                    <input
+                      type="radio"
+                      name="venue"
+                      value={venue._id}
+                      checked={selectedVenue === venue._id}
+                      onChange={() => {
+                        setSelectedVenue(venue._id);
+                        setVenueDropdown(false);
+                      }}
+                    />
+                    {venue.name}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
-          <WhiteDownArrow />
+          <div className="px-5 py-3 bg-[#1b2229] rounded-[28px] flex justify-center items-center gap-[5px]">
+            <div
+              onClick={() => setOpenNewItem(true)}
+              className="justify-start cursor-pointer text-white text-sm font-medium"
+            >
+              Add A New Item
+            </div>
+          </div>
         </div>
       </div>
 
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-  {inventoryItems.map((item, index) => (
-    <div 
-      key={item.id} 
-      className="p-5 bg-white rounded-2xl shadow-md"
-    >
-      <div className="text-[#10375c] text-xl md:text-2xl font-semibold mb-2.5">
-        {item.name}
-      </div>
-      <div className="flex flex-col sm:flex-row gap-5 sm:gap-8 md:gap-16">
-        <div className="flex flex-col items-center">
-          <div className="text-[#10375c] text-3xl md:text-[40px] font-semibold mb-1.5">
-            {item.stockInUse}
-          </div>
-          <div className="text-[#1b2229] text-xs font-medium mb-3">
-            Stock In Use
-          </div>
-          <button 
-            onClick={() => openEditDialog(index)}
-            className="px-6 sm:px-8 md:px-12 py-2.5 bg-[#10375c] rounded-full text-white text-[10px] font-medium hover:bg-opacity-90 transition-colors"
-          >
-            Edit Stock
-          </button>
+      {/* Loading and No Data States */}
+      {isLoading ? (
+        <div className="loading-spinner">
+          <div className="spinner"></div>
         </div>
-
-        <div className="flex flex-col items-center">
-          <div className="text-[#10375c] text-3xl md:text-[40px] font-semibold mb-1.5">
-            {item.freshStock}
-          </div>
-          <div className="text-[#1b2229] text-xs font-medium mb-3">
-            Fresh Stock
-          </div>
-          <button 
-            onClick={() => openAddDialog(index)}
-            className="px-6 sm:px-8 md:px-12 py-2.5 bg-[#10375c] rounded-full text-white text-[10px] font-medium hover:bg-opacity-90 transition-colors"
-          >
-            Add To Stock
-          </button>
+      ) : inventoryItems.length === 0 ? (
+        <div className="no-data">
+          <p>No Data Found</p>
         </div>
-      </div>
-    </div>
-  ))}
-</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          {inventoryItems.map((item, index) => (
+            <div key={item.id} className="p-5 bg-white rounded-2xl shadow-md">
+              <div className="flex justify-between items-center mb-2.5">
+                <div className="text-[#10375c] text-xl md:text-2xl font-semibold">
+                  {item.name}
+                </div>
+                <button className="border border-red-500 text-red-500 text-sm font-medium rounded-full px-4 py-1 hover:bg-red-50 transition-colors">
+                  Remove
+                </button>
+              </div>
 
+              <div className="flex flex-col justify-center sm:flex-row gap-5 sm:gap-8 md:gap-16">
+                <div className="flex flex-col items-center">
+                  <div className="text-[#10375c] text-3xl md:text-[40px] font-semibold mb-1.5">
+                    {item.stockInUse}
+                  </div>
+                  <div className="text-[#1b2229] text-xs font-medium mb-3">
+                    Stock In Use
+                  </div>
+                  <button
+                    onClick={() => openEditDialog(index)}
+                    className="px-6 sm:px-8 md:px-12 py-2.5 bg-[#10375c] rounded-full text-white text-[10px] font-medium hover:bg-opacity-90 transition-colors uppercase"
+                  >
+                    Edit Stock
+                  </button>
+                </div>
 
+                <div className="flex flex-col items-center">
+                  <div className="text-[#10375c] text-3xl md:text-[40px] font-semibold mb-1.5">
+                    {item.freshStock}
+                  </div>
+                  <div className="text-[#1b2229] text-xs font-medium mb-3">
+                    Fresh Stock
+                  </div>
+                  <button
+                    onClick={() => openAddDialog(index)}
+                    className="px-6 sm:px-8 md:px-12 py-2.5 bg-[#10375c] rounded-full text-white text-[10px] font-medium hover:bg-opacity-90 transition-colors uppercase"
+                  >
+                    Add To Stock
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-{/* Edit Stock  */}
-      <Dialog open={openEditStock} onClose={() => setOpenEditStock(false)} fullWidth maxWidth="sm">
-        <div className="px-6 py-6 sm:px-[67px] sm:py-[40px] bg-[#f2f2f4] rounded-2xl">
+      {/* <Dialog
+        open={openEditStock}
+        onClose={() => setOpenEditStock(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          style: { borderRadius: "30px" },
+        }}
+      >
+        <div className="px-2 py-2 bg-[#f2f2f4] rounded-2xl">
           <DialogTitle className="text-center text-[#10375c] text-[22px] sm:text-[28px] font-extrabold mb-[30px] sm:mb-[30px]">
             Edit Stock In Use
           </DialogTitle>
@@ -177,30 +382,38 @@ const Page = () => {
             {selectedItemIndex !== null && (
               <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
                 <div className="flex-1">
-                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">Name of The Item</label>
+                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
+                    Name of The Item
+                  </label>
                   <div className="w-full flex items-center bg-neutral-300 rounded-[39px] px-4 py-2 sm:py-3">
-                    <span className="text-black/60 text-xs sm:text-sm font-medium">{inventoryItems[selectedItemIndex].name}</span>
+                    <span className="text-black/60 text-xs sm:text-sm font-medium">
+                      {inventoryItems[selectedItemIndex].name}
+                    </span>
                   </div>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">Quantity</label>
+                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
+                    Quantity
+                  </label>
                   <div className="flex items-center justify-between bg-white rounded-full px-4 py-2 sm:py-3 shadow">
-                    <Image 
-                      src="/-.svg" 
-                      alt="Minus Icon" 
-                      width={16} 
-                      height={16} 
-                      className="w-4 h-4 cursor-pointer" 
-                      onClick={() => handleDecrease(selectedItemIndex, 'stockInUse')} 
+                    <Image
+                      src="/-.svg"
+                      alt="Minus Icon"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={handleDecrease}
                     />
-                    <span className="text-black/60 text-lg sm:text-xl font-medium">{inventoryItems[selectedItemIndex].stockInUse}</span>
-                    <Image 
-                      src="/+.svg" 
-                      alt="Plus Icon" 
-                      width={16} 
-                      height={16} 
-                      className="w-4 h-4 cursor-pointer" 
-                      onClick={() => handleIncrease(selectedItemIndex, 'stockInUse')} 
+                    <span className="text-black/60 text-lg sm:text-xl font-medium">
+                      {tempQuantity}
+                    </span>
+                    <Image
+                      src="/+.svg"
+                      alt="Plus Icon"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={handleIncrease}
                     />
                   </div>
                 </div>
@@ -211,20 +424,32 @@ const Page = () => {
             <Button
               fullWidth
               variant="contained"
-              onClick={() => setOpenEditStock(false)}
-              style={{ textTransform: "none", backgroundColor: "#10375c", color: "#fff", borderRadius: "28px", paddingTop: "16px", paddingBottom: "16px" }}
-              className='w-full sm:w-auto text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px] px-6 sm:px-[173px] py-3 sm:py-4'
+              onClick={() => handleUpdateStock(selectedItemIndex, "stockInUse")}
+              style={{
+                textTransform: "none",
+                backgroundColor: "#10375c",
+                color: "#fff",
+                borderRadius: "28px",
+                paddingTop: "16px",
+                paddingBottom: "16px",
+              }}
+              className="w-full sm:w-auto text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px] px-6 sm:px-[173px] py-3 sm:py-4"
             >
               Update Details
             </Button>
           </DialogActions>
         </div>
-      </Dialog>
+      </Dialog> */}
 
-
-
-{/* Add To Stock  */}
-      <Dialog open={openAddToStock} onClose={() => setOpenAddToStock(false)} fullWidth maxWidth="sm">
+     {/* <Dialog
+        open={openAddToStock}
+        onClose={() => setOpenAddToStock(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          style: { borderRadius: '30px' }
+        }}
+      >
         <div className="px-6 py-6 sm:px-[67px] sm:py-[40px] bg-[#f2f2f4] rounded-2xl">
           <DialogTitle className="text-center text-[#10375c] text-[22px] sm:text-[28px] font-extrabold mb-[30px] sm:mb-[30px]">
             Add To Stock
@@ -233,30 +458,38 @@ const Page = () => {
             {selectedItemIndex !== null && (
               <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
                 <div className="flex-1">
-                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">Name of The Item</label>
+                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
+                    Name of The Item
+                  </label>
                   <div className="w-full flex items-center bg-neutral-300 rounded-[39px] px-4 py-2 sm:py-3">
-                    <span className="text-black/60 text-xs sm:text-sm font-medium">{inventoryItems[selectedItemIndex].name}</span>
+                    <span className="text-black/60 text-xs sm:text-sm font-medium">
+                      {inventoryItems[selectedItemIndex].name}
+                    </span>
                   </div>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">Quantity</label>
+                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
+                    Quantity
+                  </label>
                   <div className="flex items-center justify-between bg-white rounded-full px-4 py-2 sm:py-3 shadow">
-                    <Image 
-                      src="/-.svg" 
-                      alt="Minus Icon" 
-                      width={16} 
-                      height={16} 
-                      className="w-4 h-4 cursor-pointer" 
-                      onClick={() => handleDecrease(selectedItemIndex, 'freshStock')} 
+                    <Image
+                      src="/-.svg"
+                      alt="Minus Icon"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={handleDecrease}
                     />
-                    <span className="text-black/60 text-lg sm:text-xl font-medium">{inventoryItems[selectedItemIndex].freshStock}</span>
-                    <Image 
-                      src="/+.svg" 
-                      alt="Plus Icon" 
-                      width={16} 
-                      height={16} 
-                      className="w-4 h-4 cursor-pointer" 
-                      onClick={() => handleIncrease(selectedItemIndex, 'freshStock')} 
+                    <span className="text-black/60 text-lg sm:text-xl font-medium">
+                      {tempQuantity}
+                    </span>
+                    <Image
+                      src="/+.svg"
+                      alt="Plus Icon"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={handleIncrease}
                     />
                   </div>
                 </div>
@@ -267,81 +500,369 @@ const Page = () => {
             <Button
               fullWidth
               variant="contained"
-              onClick={() => setOpenAddToStock(false)}
-              style={{ textTransform: "none", backgroundColor: "#10375c", color: "#fff", borderRadius: "28px", paddingTop: "16px", paddingBottom: "16px" }}
-              className='w-full sm:w-auto text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px] px-6 sm:px-[173px] py-3 sm:py-4'
+              onClick={() => handleUpdateStock(selectedItemIndex, "freshStock")}
+              style={{
+                textTransform: "none",
+                backgroundColor: "#10375c",
+                color: "#fff",
+                borderRadius: "28px",
+                paddingTop: "16px",
+                paddingBottom: "16px",
+              }}
+              className="w-full sm:w-auto text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px] px-6 sm:px-[173px] py-3 sm:py-4"
+            >
+              Update Details
+            </Button>
+          </DialogActions>
+        </div>
+      </Dialog> */}
+
+       <Dialog
+        open={openEditStock}
+        // onClose={() => setOpenEditStock(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          style: { borderRadius: "30px" , padding: "20px",backgroundColor: "#f2f2f4" },
+        }}
+      >
+        <div className="bg-[#f2f2f4] rounded-2xl">
+          <DialogTitle className="text-center text-[#10375C] text-3xl font-bold  leading-10 ">
+            Edit Stock In Use
+          </DialogTitle>
+          <DialogContent className="p-0">
+            {selectedItemIndex !== null && (
+              <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 mb-1">
+                <div className="flex-1">
+                  <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-2">
+                    Name of The Item
+                  </label>
+                  <div className="w-full flex items-center bg-neutral-300 rounded-[39px] px-4  ">
+                    <span className="text-black/60 text-xs  px-3.5 py-2.5 sm:text-sm font-medium">
+                      {inventoryItems[selectedItemIndex].name}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-2">
+                    Quantity
+                  </label>
+                  <div className="flex items-center justify-between bg-white rounded-full  px-3.5 py-1.5 shadow">
+                    <Image
+                      src="/-.svg"
+                      alt="Minus Icon"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={handleDecrease}
+                    />
+                    <span className="text-black/60 text-lg sm:text-xl font-medium">
+                      {tempQuantity}
+                    </span>
+                    <Image
+                      src="/+.svg"
+                      alt="Plus Icon"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={handleIncrease}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+          <DialogActions className="p-0 flex justify-between w-full  mb-2">
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setSelectedItemIndex(null);
+                setTempQuantity(0);
+                setOpenEditStock(false);
+              }}
+              style={{
+                textTransform: "none",
+                borderColor: "#10375c",
+                color: "#10375c",
+                borderRadius: "28px",
+                padding: "12px 24px",
+                width: "50%",
+              }}
+              className="text-sm sm:text-base font-medium rounded-[28px]"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => handleUpdateStock(selectedItemIndex, "stockInUse")}
+              style={{
+                textTransform: "none",
+                backgroundColor: "#10375c",
+                color: "#fff",
+                borderRadius: "28px",
+                padding: "12px 24px",
+                width: "100%",
+
+              }}
+              className="text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px]"
             >
               Update Details
             </Button>
           </DialogActions>
         </div>
       </Dialog>
-
-
-
-{/* Add New Item  */}
-      <Dialog open={openNewItem} onClose={() => setOpenNewItem(false)} fullWidth maxWidth="sm">
-        <div className="px-6 py-6 sm:px-[67px] sm:py-[40px] bg-[#f2f2f4] rounded-2xl">
-          <div className='flex justify-center mb-[30px]'>
-            <Image src={shuttle} alt="shuttle image" height={138} width={136}/>
+ <Dialog
+        open={openAddToStock}
+        // onClose={() => setOpenAddToStock(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+           style: { borderRadius: "30px" , padding: "20px",backgroundColor: "#f2f2f4" },
+        }}
+      >
+        <div className=" bg-[#f2f2f4] rounded-2xl">
+          <DialogTitle className="text-center text-[#10375c] text-[22px] sm:text-[28px] font-extrabold">
+            Add To Stock
+          </DialogTitle>
+          <DialogContent className="p-0">
+            {selectedItemIndex !== null && (
+              <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 mb-2 ">
+                <div className="flex-1">
+                  <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-2">
+                    Name of The Item
+                  </label>
+                  <div className="w-full flex items-center bg-neutral-300 rounded-[39px] ">
+                    <span className="text-black/60 text-xs  px-3.5 py-2.5 sm:text-sm font-medium">
+                      {inventoryItems[selectedItemIndex].name}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-1">
+                    Quantity
+                  </label>
+                  <div className="flex items-center justify-between bg-white rounded-full px-4 py-1.5  shadow">
+                    <Image
+                      src="/-.svg"
+                      alt="Minus Icon"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={handleDecrease}
+                    />
+                    <span className="text-black/60 text-lg sm:text-xl font-medium">
+                      {tempQuantity}
+                    </span>
+                    <Image
+                      src="/+.svg"
+                      alt="Plus Icon"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={handleIncrease}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+          <DialogActions className="p-0 flex justify-between gap-2 w-full">
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setSelectedItemIndex(null);
+                setTempQuantity(0);
+                setOpenAddToStock(false);
+              }}
+              style={{
+                textTransform: "none",
+                borderColor: "#10375c",
+                color: "#10375c",
+                borderRadius: "28px",
+                padding: "12px 24px",
+                width: "50%",
+              }}
+              className="text-sm sm:text-base font-medium rounded-[28px]"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => handleUpdateStock(selectedItemIndex, "freshStock")}
+              style={{
+                textTransform: "none",
+                backgroundColor: "#10375c",
+                color: "#fff",
+                borderRadius: "28px",
+                padding: "12px 24px",
+                width: "100%",
+              }}
+              className="text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px]"
+            >
+              Update Details
+            </Button>
+          </DialogActions>
+        </div>
+      </Dialog>
+      <Dialog 
+        open={openNewItem} 
+        fullWidth 
+        maxWidth="sm"
+        PaperProps={{
+          style: { borderRadius: '30px' }
+        }}
+      >        <div className="relative px-2 py-2 sm:px-2 sm:py-2 bg-[#f2f2f4] rounded-2xl">
+          <div className="flex justify-center mb-[30px]">
+            <div className="bg-zinc-100 flex items-center justify-center mt-3">
+              <Image
+                src={shuttle}
+                alt="shuttle image"
+                height={138}
+                width={136}
+              />
+            </div>
           </div>
           <DialogTitle className="text-center text-[#10375c] text-[22px] sm:text-[28px] font-extrabold mb-[30px] sm:mb-[30px]">
             Add New Item
           </DialogTitle>
           <DialogContent className="p-0">
-            <div className="flex flex-col gap-6 mb-6">
-              <div className="flex-1">
-                <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">Name of The Item</label>
-                <input
-                  type="text"
-                  value={newItem.name}
-                  onChange={handleNameChange}
-                  className="w-full bg-white rounded-[39px] px-4 py-2 sm:py-3 text-black/60 text-xs sm:text-sm font-medium border-none outline-none"
-                  placeholder="Enter product name"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">Quantity</label>
-                <div className="flex items-center justify-between bg-white rounded-full px-4 py-2 sm:py-3 shadow">
-                  <Image 
-                    src="/-.svg" 
-                    alt="Minus Icon" 
-                    width={16} 
-                    height={16} 
-                    className="w-4 h-4 cursor-pointer" 
-                    onClick={handleNewItemDecrease} 
-                  />
-                  <span className="text-black/60 text-lg sm:text-xl font-medium">{newItem.quantity}</span>
-                  <Image 
-                    src="/+.svg" 
-                    alt="Plus Icon" 
-                    width={16} 
-                    height={16} 
-                    className="w-4 h-4 cursor-pointer" 
-                    onClick={handleNewItemIncrease} 
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="flex flex-col gap-6 mb-6">
+                <div className="flex-1">
+                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
+                    Name of The Item
+                  </label>
+                  <input
+                    {...register("productName", { required: true })}
+                    className="w-full bg-white rounded-[10px] px-4 py-2 sm:py-3 text-black/60 text-xs sm:text-sm font-medium border-none outline-none"
+                    placeholder="Name of the Item"
                   />
                 </div>
+                <div className="border border-[#e6e6e6] border-[2px] p-[16px] rounded-[10px]">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex gap-4 mb-[10px]">
+                      <div className="flex-1">
+                        <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-2">
+                          Select Venue
+                        </label>
+                        <div className="relative">
+                          <select
+                            {...register(`items.${index}.venueId`, {
+                              required: true,
+                            })}
+                            className="w-full bg-white rounded-[10px] px-4 py-2 sm:py-3 text-black/60 text-xs sm:text-sm font-medium border-none outline-none appearance-none"
+                          >
+                            <option value="" disabled>
+                              Select
+                            </option>
+                            {venues.map((venue) => (
+                              <option key={venue._id} value={venue._id}>
+                                {venue.name}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <svg
+                              className="w-4 h-4 text-gray-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M19 9l-7 7-7-7"
+                              ></path>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-2">
+                          Quantity
+                        </label>
+                        <input
+                          type="number"
+                          {...register(`items.${index}.quantity`, {
+                            required: true,
+                            min: 0,
+                            valueAsNumber: true,
+                          })}
+                          className="w-full bg-white rounded-[10px] px-4 py-2 sm:py-3 text-black/60 text-xs sm:text-sm font-medium border-none outline-none"
+                          placeholder="0"
+                          onChange={(e) => {
+                            const value = Number(e.target.value);
+                            if (value < 0) {
+                              e.target.value = "0";
+                            }
+                          }}
+                        />
+                      </div>
+                      {fields.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          className="text-red-500 text-sm font-medium mt-6"
+                        >
+                          <DeleteProductIcon />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <div className="flex justify-start">
+                    <button
+                      type="button"
+                      onClick={() => append({ venueId: "", quantity: 0 })}
+                      className="text-[#10375C] text-sm font-medium flex items-center gap-1"
+                    >
+                      <span className="text-lg text-[#10375C]">+</span> Add More
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
+              <DialogActions className="p-0 flex justify-between gap-4 w-full">
+                <Button
+                  type="button"
+                  fullWidth
+                  variant="outlined"
+                  onClick={handleCloseNewItemDialog}
+                  style={{
+                    textTransform: "none",
+                    borderColor: "#10375c",
+                    color: "#10375c",
+                    borderRadius: "28px",
+                    padding: "12px 24px",
+                    width: "100%",
+                  }}
+                  className="w-full sm:w-auto text-sm sm:text-base font-medium rounded-[28px]"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  style={{
+                    textTransform: "none",
+                    backgroundColor: "#10375c",
+                    color: "#fff",
+                    borderRadius: "28px",
+                    padding: "12px 24px",
+                    width: "100%",
+                  }}
+                  className="w-full sm:w-auto text-sm sm:text-base font-medium rounded-[28px]"
+                >
+                  Update Details
+                </Button>
+              </DialogActions>
+            </form>
           </DialogContent>
-          <DialogActions className="p-0 flex justify-center">
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleAddNewItem}
-              style={{ textTransform: "none", backgroundColor: "#10375c", color: "#fff", borderRadius: "28px", paddingTop: "16px", paddingBottom: "16px" }}
-              className='w-full sm:w-auto text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px] px-6 sm:px-[173px] py-3 sm:py-4'
-            >
-              Add Item
-            </Button>
-          </DialogActions>
         </div>
       </Dialog>
-
-
     </>
   );
 };
 
 export default Page;
-
