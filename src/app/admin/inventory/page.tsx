@@ -7,6 +7,7 @@ import {
 } from "@/utils/svgicons";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import DeleteConfirmationModal from "../components/common/DeleteConfirmationModal";
 import {
   Dialog,
   DialogTitle,
@@ -18,11 +19,13 @@ import {
   createInventory,
   getAllMerchandise,
   updateInventory,
+  deleteInventory,
 } from "@/services/admin-services";
 import useSWR from "swr";
 import { useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
 import shuttle from "@/assets/images/shuttle.png";
+import TablePagination from "../components/TablePagination";
 
 const Page = () => {
   const [openEditStock, setOpenEditStock] = useState(false);
@@ -32,32 +35,51 @@ const Page = () => {
   const [tempQuantity, setTempQuantity] = useState(0);
   const [selectedVenue, setSelectedVenue] = useState("");
   const [venueDropdown, setVenueDropdown] = useState(false);
+   const [page, setPage] = useState(1);
+  const itemsPerPage = 6;
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+  // Delete confirmation modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const apiRoute = selectedVenue
-    ? `/admin/inventory?venueId=${selectedVenue}`
-    : "/admin/inventory";
+  ? `/admin/inventory?venueId=${selectedVenue}&page=${page}&limit=${itemsPerPage}`
+  : `/admin/inventory?page=${page}&limit=${itemsPerPage}`;
 
   const { data, isLoading, mutate } = useSWR(apiRoute, getAllMerchandise);
 
-  const inventoryItem = data?.data?.data?.inventory || [];
-  const venues = data?.data?.data?.venues || [];
+  const total = data?.data.meta.total || 0;
+
+
+  // Extract venues from data using useMemo to prevent unnecessary recalculations
+  const venues = React.useMemo(() => {
+    return data?.data?.data?.venues || [];
+  }, [data]);
   const [inventoryItems, setInventoryItems] = useState([]);
 
+  // Update inventory items when data changes
   useEffect(() => {
-    setInventoryItems(
-      inventoryItem.map((item, index) => ({
-        id: item._id,
-        name: item.productName,
-        stockInUse: item.isUse,
-        freshStock: item.inStock,
-      }))
-    );
-  }, [inventoryItem]);
+    if (data?.data?.data?.inventory) {
+      const inventoryData = data.data.data.inventory;
+      setInventoryItems(
+        inventoryData.map((item) => ({
+          id: item._id,
+          name: item.productName,
+          stockInUse: item.isUse,
+          freshStock: item.inStock,
+        }))
+      );
+    }
+  }, [data]);
 
-  // Find the selected venue's name for display
-  const selectedVenueName = selectedVenue
-    ? venues.find((venue) => venue._id === selectedVenue)?.name || "Venue"
-    : "Venue";
+  // Find the selected venue's name for display - using useMemo to prevent unnecessary recalculations
+  const selectedVenueName = React.useMemo(() => {
+    return selectedVenue
+      ? venues.find((venue) => venue._id === selectedVenue)?.name || "Venue"
+      : "Venue";
+  }, [selectedVenue, venues]);
 
   const openEditDialog = (index) => {
     setSelectedItemIndex(index);
@@ -133,7 +155,6 @@ const Page = () => {
       inStock: Number(item.quantity),
     }));
 
-    console.log("Debug:", payload);
     try {
       const response = await createInventory("/admin/inventory", payload);
 
@@ -161,6 +182,45 @@ const Page = () => {
   const handleCloseNewItemDialog = () => {
     setOpenNewItem(false);
     reset(defaultFormValues);
+  };
+
+  // Open delete confirmation modal
+  const openDeleteModal = (item) => {
+    setItemToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle delete confirmation
+  const handleDeleteItem = async () => {
+    if (!itemToDelete) return;
+    console.log('itemToDelete: ', itemToDelete);
+
+    try {
+      const response = await deleteInventory(`/admin/inventory?id=${itemToDelete.id}`);
+      console.log('response: ', response);
+
+      if (response.status === 200 || response.status === 204) {
+        // Remove the item from the local state
+        setInventoryItems(prevItems =>
+          prevItems.filter(item => item.id !== itemToDelete.id)
+        );
+
+        // Show success message
+        toast.success("Item removed successfully");
+
+        // Refresh data
+        mutate();
+      } else {
+        toast.error("Failed to remove item");
+      }
+    } catch (error) {
+      console.error("Error removing item:", error);
+      toast.error("An error occurred while removing the item");
+    }
+
+    // Close modal and reset state
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
   };
 
   return (
@@ -251,11 +311,11 @@ const Page = () => {
         <div className="justify-start text-[#10375c] text-3xl font-semibold">
           Inventory
         </div>
-        <div className="flex gap-4 mt-4 md:mt-0">
+        <div className="flex  mt-4 md:mt-0">
           {/* Venue Filter Dropdown */}
           <div className="venue-dropdown">
             <button
-              className="venue-button"
+              className="venue-button h-full"
               onClick={() => setVenueDropdown(!venueDropdown)}
             >
               {selectedVenueName}
@@ -274,6 +334,7 @@ const Page = () => {
                     onChange={() => {
                       setSelectedVenue("");
                       setVenueDropdown(false);
+                      setPage(1); // Reset to first page when changing venue filter
                     }}
                   />
                   All Venues
@@ -288,6 +349,7 @@ const Page = () => {
                       onChange={() => {
                         setSelectedVenue(venue._id);
                         setVenueDropdown(false);
+                        setPage(1); // Reset to first page when changing venue filter
                       }}
                     />
                     {venue.name}
@@ -296,7 +358,7 @@ const Page = () => {
               </div>
             )}
           </div>
-          <div className="px-5 py-3 bg-[#1b2229] rounded-[28px] flex justify-center items-center gap-[5px]">
+          <div className="px-5 py-2 bg-[#1b2229] rounded-[28px] flex justify-center items-center gap-[5px]">
             <div
               onClick={() => setOpenNewItem(true)}
               className="justify-start cursor-pointer text-white text-sm font-medium"
@@ -317,6 +379,8 @@ const Page = () => {
           <p>No Data Found</p>
         </div>
       ) : (
+        <div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           {inventoryItems.map((item, index) => (
             <div key={item.id} className="p-5 bg-white rounded-2xl shadow-md">
@@ -324,7 +388,10 @@ const Page = () => {
                 <div className="text-[#10375c] text-xl md:text-2xl font-semibold">
                   {item.name}
                 </div>
-                <button className="border border-red-500 text-red-500 text-sm font-medium rounded-full px-4 py-1 hover:bg-red-50 transition-colors">
+                <button
+                  onClick={() => openDeleteModal(item)}
+                  className="border border-red-500 text-red-500 text-sm font-medium rounded-full px-4 py-1 hover:bg-red-50 transition-colors"
+                >
                   Remove
                 </button>
               </div>
@@ -362,161 +429,21 @@ const Page = () => {
               </div>
             </div>
           ))}
+              </div>
+          {/* Pagination */}
+            <div className="mt-4 flex justify-end gap-2">
+              <TablePagination
+                setPage={handlePageChange}
+                page={page}
+                totalData={total}
+                itemsPerPage={itemsPerPage}
+                // totalPages={totalPages} // Removed as it's not part of TablePaginationProps
+                // hasNextPage={hasNextPage}
+                // hasPreviousPage={hasPreviousPage}
+              />
+        </div>
         </div>
       )}
-
-      {/* <Dialog
-        open={openEditStock}
-        onClose={() => setOpenEditStock(false)}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{
-          style: { borderRadius: "30px" },
-        }}
-      >
-        <div className="px-2 py-2 bg-[#f2f2f4] rounded-2xl">
-          <DialogTitle className="text-center text-[#10375c] text-[22px] sm:text-[28px] font-extrabold mb-[30px] sm:mb-[30px]">
-            Edit Stock In Use
-          </DialogTitle>
-          <DialogContent className="p-0">
-            {selectedItemIndex !== null && (
-              <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
-                <div className="flex-1">
-                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
-                    Name of The Item
-                  </label>
-                  <div className="w-full flex items-center bg-neutral-300 rounded-[39px] px-4 py-2 sm:py-3">
-                    <span className="text-black/60 text-xs sm:text-sm font-medium">
-                      {inventoryItems[selectedItemIndex].name}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
-                    Quantity
-                  </label>
-                  <div className="flex items-center justify-between bg-white rounded-full px-4 py-2 sm:py-3 shadow">
-                    <Image
-                      src="/-.svg"
-                      alt="Minus Icon"
-                      width={16}
-                      height={16}
-                      className="w-4 h-4 cursor-pointer"
-                      onClick={handleDecrease}
-                    />
-                    <span className="text-black/60 text-lg sm:text-xl font-medium">
-                      {tempQuantity}
-                    </span>
-                    <Image
-                      src="/+.svg"
-                      alt="Plus Icon"
-                      width={16}
-                      height={16}
-                      className="w-4 h-4 cursor-pointer"
-                      onClick={handleIncrease}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-          <DialogActions className="p-0 flex justify-center">
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={() => handleUpdateStock(selectedItemIndex, "stockInUse")}
-              style={{
-                textTransform: "none",
-                backgroundColor: "#10375c",
-                color: "#fff",
-                borderRadius: "28px",
-                paddingTop: "16px",
-                paddingBottom: "16px",
-              }}
-              className="w-full sm:w-auto text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px] px-6 sm:px-[173px] py-3 sm:py-4"
-            >
-              Update Details
-            </Button>
-          </DialogActions>
-        </div>
-      </Dialog> */}
-
-     {/* <Dialog
-        open={openAddToStock}
-        onClose={() => setOpenAddToStock(false)}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{
-          style: { borderRadius: '30px' }
-        }}
-      >
-        <div className="px-6 py-6 sm:px-[67px] sm:py-[40px] bg-[#f2f2f4] rounded-2xl">
-          <DialogTitle className="text-center text-[#10375c] text-[22px] sm:text-[28px] font-extrabold mb-[30px] sm:mb-[30px]">
-            Add To Stock
-          </DialogTitle>
-          <DialogContent className="p-0">
-            {selectedItemIndex !== null && (
-              <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
-                <div className="flex-1">
-                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
-                    Name of The Item
-                  </label>
-                  <div className="w-full flex items-center bg-neutral-300 rounded-[39px] px-4 py-2 sm:py-3">
-                    <span className="text-black/60 text-xs sm:text-sm font-medium">
-                      {inventoryItems[selectedItemIndex].name}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
-                    Quantity
-                  </label>
-                  <div className="flex items-center justify-between bg-white rounded-full px-4 py-2 sm:py-3 shadow">
-                    <Image
-                      src="/-.svg"
-                      alt="Minus Icon"
-                      width={16}
-                      height={16}
-                      className="w-4 h-4 cursor-pointer"
-                      onClick={handleDecrease}
-                    />
-                    <span className="text-black/60 text-lg sm:text-xl font-medium">
-                      {tempQuantity}
-                    </span>
-                    <Image
-                      src="/+.svg"
-                      alt="Plus Icon"
-                      width={16}
-                      height={16}
-                      className="w-4 h-4 cursor-pointer"
-                      onClick={handleIncrease}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-          <DialogActions className="p-0 flex justify-center">
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={() => handleUpdateStock(selectedItemIndex, "freshStock")}
-              style={{
-                textTransform: "none",
-                backgroundColor: "#10375c",
-                color: "#fff",
-                borderRadius: "28px",
-                paddingTop: "16px",
-                paddingBottom: "16px",
-              }}
-              className="w-full sm:w-auto text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px] px-6 sm:px-[173px] py-3 sm:py-4"
-            >
-              Update Details
-            </Button>
-          </DialogActions>
-        </div>
-      </Dialog> */}
-
        <Dialog
         open={openEditStock}
         // onClose={() => setOpenEditStock(false)}
@@ -704,9 +631,9 @@ const Page = () => {
           </DialogActions>
         </div>
       </Dialog>
-      <Dialog 
-        open={openNewItem} 
-        fullWidth 
+      <Dialog
+        open={openNewItem}
+        fullWidth
         maxWidth="sm"
         PaperProps={{
           style: { borderRadius: '30px' }
@@ -861,6 +788,15 @@ const Page = () => {
           </DialogContent>
         </div>
       </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={handleDeleteItem}
+        title="Delete?"
+        message={itemToDelete ? `Are you sure you want to delete ${itemToDelete.name}?` : "Are you sure you want to delete this item?"}
+      />
     </>
   );
 };

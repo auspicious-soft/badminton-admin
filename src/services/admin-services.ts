@@ -11,7 +11,7 @@ export const getAdminDetails = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
-export const updateAdminDetails = async (route: string, payload: any) => { 
+export const updateAdminDetails = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
@@ -29,7 +29,7 @@ export const getMerchandise = async (route: string) => {
     return axiosInstance.get(route)
 }
 
-export const updateMerchandise = async (route: string, payload: any) => { 
+export const updateMerchandise = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.patch(route, payload)
 }
@@ -48,9 +48,14 @@ export const createInventory = async (route: string,payload:any) => {
 //     return axiosInstance.get(route)
 // }
 
-export const updateInventory = async (route: string, payload: any) => { 
+export const updateInventory = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
+}
+
+export const deleteInventory = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.delete(route)
 }
 //----------Employee Page--------------------------
 export const getAllUser = async (route: string) => {
@@ -61,7 +66,7 @@ export const getUserDetails = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
-export const updateUser = async (route: string, payload: any) => { 
+export const updateUser = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
@@ -74,7 +79,7 @@ export const getAllMatches = async (route: string) => {
 //     const axiosInstance = await getAxiosInstance()
 //     return axiosInstance.get(route)
 // }
-// export const updateUser = async (route: string, payload: any) => { 
+// export const updateUser = async (route: string, payload: any) => {
 //     const axiosInstance= await getAxiosInstance()
 //     return axiosInstance.put(route, payload)
 // }
@@ -87,7 +92,7 @@ export const getAllEmployees = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
-export const updateEmployee = async (route: string, payload: any) => { 
+export const updateEmployee = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
@@ -104,11 +109,11 @@ export const getVenue = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
-export const updateVenue = async (route: string, payload: any) => { 
+export const updateVenue = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
-export const updateCourt = async (route: string, payload: any) => { 
+export const updateCourt = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.post(route, payload)
 }
@@ -125,7 +130,7 @@ export const addNewUser = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.post(route, payload)
 }
-export const updateSingleUser = async (route: string, payload: any) => { 
+export const updateSingleUser = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
@@ -147,7 +152,7 @@ export const addNewAuthor = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.post(route, payload)
 }
-export const updateSingleAuthor = async (route: string, payload: any) => { 
+export const updateSingleAuthor = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
@@ -165,7 +170,7 @@ export const addNewPublisher = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.post(route, payload)
 }
-export const updateSinglePublisher = async (route: string, payload: any) => { 
+export const updateSinglePublisher = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
@@ -191,11 +196,11 @@ export const getSubCategoryData = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
-export const addBookToCategory = async (route: string, payload: any) => { 
+export const addBookToCategory = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
-export const addBookToSubCategory = async (route: string, payload: any) => { 
+export const addBookToSubCategory = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
@@ -348,7 +353,7 @@ export const deleteSingleStory = async (route: string) => {
 }
 export const addNewStory = async (route: string, payload: any) => {
     const axiosInstance = await getAxiosInstance()
-    return axiosInstance.post(route, payload)   
+    return axiosInstance.post(route, payload)
 }
 export const updateStory = async (route: string, payload: any) =>{
     const axiosInstance = await getAxiosInstance()
@@ -370,11 +375,11 @@ export const deleteSingleBanner = async (route: string) => {
 }
 export const addNewBaner = async (route: string, payload: any) => {
     const axiosInstance = await getAxiosInstance()
-    return axiosInstance.post(route, payload)   
+    return axiosInstance.post(route, payload)
 }
 
 
-//------- Book Events------- 
+//------- Book Events-------
 export const addBookEventFormData = async (route: string, payload: any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route, payload)
@@ -397,7 +402,7 @@ export const updateBookEvent = async (route: string, payload: any) => {
 export const getAllBookLives = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
-};   
+};
 export const addNewBookLife = async (route: string, payload: any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route, payload)
