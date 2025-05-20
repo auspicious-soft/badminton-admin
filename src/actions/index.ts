@@ -341,6 +341,23 @@ export const generateSignedUrlForVenue = async (fileName: string, fileType: stri
   }
 };
 
+export const generateSignedUrlForCourt = async (fileName: string, fileType: string) => {
+  const uploadParams = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: `courts/${fileName}`,
+    ContentType: fileType,
+    acl: "public-read",
+  };
+  try {
+    const command = new PutObjectCommand(uploadParams);
+    const signedUrl = await getSignedUrl(await createS3Client(), command);
+    return { signedUrl, key: uploadParams.Key };
+  } catch (error) {
+    console.error("Error generating signed URL for court:", error);
+    throw error;
+  }
+};
+
 export const deleteFileFromS3 = async (imageKey: string) => {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,

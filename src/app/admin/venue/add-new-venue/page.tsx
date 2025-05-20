@@ -12,7 +12,8 @@ import Select from "react-select";
 import { createVenue } from "@/services/admin-services";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { generateSignedUrlForVenue } from "@/actions";
+import { generateSignedUrlForVenue, generateSignedUrlForCourt, deleteFileFromS3 } from "@/actions";
+import { getImageClientS3URL } from "@/config/axios";
 
 // Custom Modal Component
 const Modal: React.FC<{ open: boolean; onClose?: () => void; children: React.ReactNode }> = ({
@@ -36,6 +37,8 @@ interface Court {
   name: string;
   status: "Active" | "Inactive";
   image?: string;
+  imageKey?: string;
+  imageFile?: File | null;
   game: string;
 }
 
@@ -246,9 +249,16 @@ const Page = () => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (selectedImage) URL.revokeObjectURL(selectedImage);
+      // If there's an existing local image URL, revoke it
+      if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedImage);
+      }
+
+      // Create a local preview URL for the image
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
+
+      // Store the file for later upload when Save is clicked
       setImageFile(file);
     }
   };
@@ -303,21 +313,93 @@ const Page = () => {
     );
   };
 
+  // Function to upload a court image to S3
+  const uploadCourtImageToS3 = async (file: File): Promise<string> => {
+    try {
+      const timestamp = Date.now();
+      const fileName = `${timestamp}-${file.name}`;
+
+      // Generate signed URL for S3 upload
+      const { signedUrl, key } = await generateSignedUrlForCourt(
+        fileName,
+        file.type
+      );
+
+      // Upload the file to S3
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload court image to S3");
+      }
+
+      return key;
+    } catch (error) {
+      console.error("Error uploading court image:", error);
+      throw error;
+    }
+  };
+
   const handleSave = async () => {
     setIsUploading(true);
     try {
-      // Upload image to S3 if available
-      let imageKey = "";
+      // Upload venue image to S3 if available
+      let venueImageKey = "";
       if (imageFile) {
-        imageKey = await uploadImageToS3(imageFile);
+        venueImageKey = await uploadImageToS3(imageFile);
       }
+
+      // Upload all court images that have imageFile property
+      const updatedCourts = await Promise.all(
+        courts.map(async (court) => {
+          // If the court has a new image file, upload it to S3
+          if (court.imageFile) {
+            try {
+              // Upload the new image
+              const newImageKey = await uploadCourtImageToS3(court.imageFile);
+
+              // Delete the previous image if it exists
+              if (court.imageKey && court.imageKey.startsWith('courts/')) {
+                try {
+                  await deleteFileFromS3(court.imageKey);
+                  console.log("Previous court image deleted:", court.imageKey);
+                } catch (deleteError) {
+                  console.error("Error deleting previous court image:", deleteError);
+                  // Continue with the save process even if deletion fails
+                }
+              }
+
+              // Return the court with the new image key
+              return {
+                ...court,
+                imageKey: newImageKey,
+              };
+            } catch (error) {
+              console.error(`Error uploading image for court ${court.name}:`, error);
+              toast.error(`Failed to upload image for court ${court.name}`);
+              // Return the court without changing the image key
+              return court;
+            }
+          }
+          // If no new image, return the court as is
+          return court;
+        })
+      );
+
+      // Update the courts state with the new image keys
+      setCourts(updatedCourts);
 
       const payload = {
         name,
         address,
         city,
         state: selectedState,
-        image: imageKey || "https://example.com/venue-image.jpg",
+        image: venueImageKey || "https://example.com/venue-image.jpg",
         gamesAvailable,
         facilities: [
           ...option.map((opt) => ({
@@ -325,10 +407,11 @@ const Page = () => {
             isActive: selectedFacilities.includes(opt.id),
           })),
         ],
-        courts: courts.map((court) => ({
+        courts: updatedCourts.map((court) => ({
           name: court.name,
           isActive: court.status === "Active",
           games: court.game,
+          image: court.imageKey || undefined,
         })),
         employees: employees.map((emp) => ({
           employeeId: emp.id,
@@ -352,19 +435,27 @@ const Page = () => {
               setSelectedImage(null);
               setImageFile(null);
             }
+
+            // Clean up any blob URLs in courts
+            courts.forEach(court => {
+              if (court.image && typeof court.image === 'string' && court.image.startsWith('blob:')) {
+                URL.revokeObjectURL(court.image);
+              }
+            });
+
             router.push("/admin/venue");
           } else {
             toast.error("Failed to create venue");
+            setIsUploading(false);
           }
         } catch (error) {
           toast.error("Something went wrong");
-        } finally {
           setIsUploading(false);
         }
       });
     } catch (error) {
       console.error("Error in save process:", error);
-      toast.error("Failed to upload image or save venue");
+      toast.error("Failed to upload images or save venue");
       setIsUploading(false);
     }
   };
@@ -600,7 +691,9 @@ const Page = () => {
                 <div key={court.id} className="bg-white p-3 rounded-xl space-y-3">
                   <div className="flex gap-3">
                     <Image
-                      src={Court}
+                      src={court.imageKey && court.imageKey.startsWith('courts/')
+                        ? getImageClientS3URL(court.imageKey)
+                        : court.image || Court}
                       alt={`${court.name} Image`}
                       width={80}
                       height={80}

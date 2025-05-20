@@ -3,22 +3,21 @@ import React, { useState, useEffect, useRef, startTransition } from "react";
 import Image from "next/image";
 import { BottomArrow, Edit1, UpArrowIcon, EyeIcon, Add } from "@/utils/svgicons";
 import Court from "@/assets/images/courtsmallImg.png";
-import AlexParker from "@/assets/images/AlexParker.png";
 import UserProfile2 from "@/assets/images/UserProfile2.png";
 import CourtManagement from "../../components/headers/EditVenueModal";
 import AddEmployeeModal from "../../components/headers/AddEmployeesModal";
 import { states } from "@/utils";
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from "@react-google-maps/api";
 import Select from "react-select";
-import { getVenue, updateVenue } from "@/services/admin-services";
+import { getVenue, updateVenue, updateCourt } from "@/services/admin-services";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { getImageClientS3URL } from "@/config/axios";
 import SearchBar from "../../components/SearchBar";
 import JordanLee from "@/assets/images/JordanLee.png";
 import { deleteFileFromS3, generateSignedUrlForVenue } from "@/actions";
-import { getImageClientS3URL } from "@/config/axios";
 
 // Custom Modal Component
 const Modal: React.FC<{ open: boolean; onClose?: () => void; children: React.ReactNode }> = ({
@@ -48,6 +47,8 @@ interface Court {
   name: string;
   status: "Active" | "Inactive";
   image?: string;
+  imageKey?: string;
+  imageFile?: File | null;
   game: string;
 }
 
@@ -228,6 +229,7 @@ const Page = () => {
 
   useEffect(() => {
     const venueDataValue = data?.data?.data || {};
+    console.log('venueDataValue: ', venueDataValue);
     if (venueDataValue && Object.keys(venueDataValue).length > 0) {
       setName(venueDataValue.venue?.name || "");
       setAddress(venueDataValue.venue?.address || "");
@@ -240,7 +242,9 @@ const Page = () => {
         name: court.name,
         status: court.isActive ? "Active" : "Inactive",
         game: court.games,
-        image: court.image || Court.src,
+        image: court.image ? getImageClientS3URL(court.image) : Court.src,
+        imageKey: court.image || null,
+        imageFile: null,
       })) || [];
       setCourts(mappedCourts);
 
@@ -297,14 +301,53 @@ const Page = () => {
     location
   );
 
-  const handleToggleCourtStatus = (courtId: string) => {
-    setCourts((prev) =>
-      prev.map((court) =>
-        court.id === courtId
-          ? { ...court, status: court.status === "Active" ? "Inactive" : "Active" }
-          : court
-      )
-    );
+  const [togglingCourtId, setTogglingCourtId] = useState<string | null>(null);
+
+  const handleToggleCourtStatus = async (courtId: string) => {
+    try {
+      // Find the court
+      const court = courts.find(c => c.id === courtId);
+      if (!court) return;
+
+      // Set the toggling state to show loading
+      setTogglingCourtId(courtId);
+
+      // Prepare the new status
+      const newStatus = court.status === "Active" ? "Inactive" : "Active";
+
+      // Prepare the payload for the API
+      const payload = {
+        id: courtId,
+        venueId: id,
+        name: court.name,
+        isActive: newStatus === "Active",
+        games: court.game,
+        image: court.imageKey || null,
+      };
+
+      // Call the API to update the court
+      const response = await updateCourt("/admin/court", payload);
+
+      if (response?.status === 200 || response?.status === 201) {
+        // Update the local state
+        setCourts((prev) =>
+          prev.map((c) =>
+            c.id === courtId
+              ? { ...c, status: newStatus }
+              : c
+          )
+        );
+        toast.success(`Court status updated to ${newStatus}`);
+      } else {
+        toast.error("Failed to update court status");
+      }
+    } catch (error) {
+      console.error("Error updating court status:", error);
+      toast.error("Failed to update court status");
+    } finally {
+      // Clear the toggling state
+      setTogglingCourtId(null);
+    }
   };
 
   const handleAddCourt = (newCourt: Court) => {
@@ -312,9 +355,14 @@ const Page = () => {
   };
 
   const handleUpdateCourt = (updatedCourt: Court) => {
+    // Make sure we preserve the imageKey when updating the court
     setCourts((prev) =>
       prev.map((court) =>
-        court.id === updatedCourt.id ? updatedCourt : court
+        court.id === updatedCourt.id ? {
+          ...updatedCourt,
+          // Ensure the imageKey is preserved or updated
+          imageKey: updatedCourt.imageKey || court.imageKey
+        } : court
       )
     );
   };
@@ -328,7 +376,7 @@ const Page = () => {
     const mappedEmployees = newEmployees.map((emp: any) => ({
       id: emp.employeeId,
       name: emp.fullName,
-      image: UserProfile2.src,
+      image: emp?.ProfilePic,
       isActive: emp.isActive,
     }));
     setEmployees((prev) => [...prev, ...mappedEmployees]);
@@ -346,9 +394,13 @@ const Page = () => {
         URL.revokeObjectURL(selectedImage);
       }
 
+      // Create a local preview URL for the image
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
+
+      // Store the file for later upload when Save is clicked
       setImageFile(file);
+
       // Clear the image key since we're replacing the image
       setImageKey(null);
     }
@@ -396,6 +448,8 @@ const Page = () => {
     }
   };
 
+
+
   const handleTimeChange = (day: string, index: number, value: string) => {
     setOpeningHours((prev) =>
       prev.map((entry) =>
@@ -409,10 +463,10 @@ const Page = () => {
   const handleSave = async () => {
     setIsUploading(true);
     try {
-      // Handle image upload
+      // Handle venue image upload
       let finalImageKey = imageKey;
 
-      // If we have a new image file, upload it to S3
+      // If we have a new venue image file, upload it to S3
       if (imageFile) {
         finalImageKey = await uploadImageToS3(imageFile);
 
@@ -420,13 +474,24 @@ const Page = () => {
         if (imageKey && imageKey.startsWith('venues/')) {
           try {
             await deleteFileFromS3(imageKey);
-            console.log("Previous image deleted:", imageKey);
+            console.log("Previous venue image deleted:", imageKey);
           } catch (error) {
-            console.error("Error deleting previous image:", error);
+            console.error("Error deleting previous venue image:", error);
             // Continue with the save process even if deletion fails
           }
         }
       }
+
+      // Since court images are now uploaded immediately in the court modal,
+      // we don't need to upload them here again
+      console.log("Courts ready for saving:", courts.map(court => ({
+        id: court.id,
+        name: court.name,
+        imageKey: court.imageKey
+      })));
+
+      // Use the current courts state since images are already uploaded
+      const updatedCourts = courts;
 
       const payload = {
         _id: id,
@@ -442,10 +507,12 @@ const Page = () => {
             isActive: selectedFacilities.includes(opt.id),
           })),
         ],
-        courts: courts.map((court) => ({
+        courts: updatedCourts.map((court) => ({
           name: court.name,
           isActive: court.status === "Active",
           games: court.game,
+          image: court.imageKey || null,
+          id: court.id, // Include the court ID for existing courts
         })),
         employees: employees.map((emp) => ({
           employeeId: emp.id,
@@ -460,6 +527,7 @@ const Page = () => {
 
       startTransition(async () => {
         try {
+          console.log('payload: ', payload);
           const endpoint = `/admin/update-venue`;
           const response = await updateVenue(endpoint, payload);
           if (response?.status === 200 || response?.status === 201) {
@@ -469,6 +537,13 @@ const Page = () => {
             if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
               URL.revokeObjectURL(selectedImage);
             }
+
+            // Clean up any blob URLs in courts
+            courts.forEach(court => {
+              if (court.image && typeof court.image === 'string' && court.image.startsWith('blob:')) {
+                URL.revokeObjectURL(court.image);
+              }
+            });
 
             router.push("/admin/venue");
           } else {
@@ -483,7 +558,7 @@ const Page = () => {
       });
     } catch (error) {
       console.error("Error in save process:", error);
-      toast.error("Failed to upload image or save venue");
+      toast.error("Failed to upload images or save venue");
       setIsUploading(false);
     }
   };
@@ -774,13 +849,28 @@ const Page = () => {
               {courts.map((court) => (
                 <div key={court.id} className="bg-white p-3 rounded-xl space-y-3">
                   <div className="flex gap-3">
-                    <Image
-                      src={ Court}
-                      alt={`${court.name} Image`}
-                      width={80}
-                      height={80}
-                      className="object-cover rounded"
-                    />
+                    <div className="relative">
+                      {/* <Image
+                        src={court.imageKey && court.imageKey.startsWith('courts/')
+                          ? getImageClientS3URL(court.image)
+                          : court.image || Court}
+                        alt={`${court.name} Image`}
+                        width={80}
+                        height={80}
+                        className="object-cover rounded"
+                      /> */}
+
+                      <Image
+                        src={court.imageKey && court.imageKey.startsWith('courts/')
+                          ? getImageClientS3URL(court.imageKey)
+                          : court.image || Court}
+                        alt={`${court.name} Image`}
+                        width={80}
+                        height={80}
+                        className="object-cover rounded"
+                      />
+
+                    </div>
                     <div className="flex-1">
                       <h4 className="text-lg font-semibold text-[#1b2229]">
                         {court.name}
@@ -789,12 +879,17 @@ const Page = () => {
                         Game: {court.game}
                       </p>
                       <div className="mt-2">
-                        <label className="flex items-center cursor-pointer">
+                        <label className={`flex items-center ${togglingCourtId === court.id ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}>
                           <input
                             type="checkbox"
                             checked={court.status === "Active"}
-                            onChange={() => handleToggleCourtStatus(court.id)}
+                            onChange={() => {
+                              if (togglingCourtId !== court.id) {
+                                handleToggleCourtStatus(court.id);
+                              }
+                            }}
                             className="hidden"
+                            disabled={togglingCourtId === court.id}
                           />
                           <span
                             className={`w-10 h-5 ${
@@ -812,15 +907,20 @@ const Page = () => {
                             ></span>
                           </span>
                         </label>
-                        <p
-                          className={`text-[10px] font-medium mt-1 ${
-                            court.status === "Active"
-                              ? "text-[#1b2229]"
-                              : "text-[#ff0004]"
-                          }`}
-                        >
-                          {court.status}
-                        </p>
+                        <div className="flex items-center mt-1">
+                          <p
+                            className={`text-[10px] font-medium ${
+                              court.status === "Active"
+                                ? "text-[#1b2229]"
+                                : "text-[#ff0004]"
+                            }`}
+                          >
+                            {court.status}
+                          </p>
+                          {togglingCourtId === court.id && (
+                            <div className="ml-2 w-3 h-3 border-t-2 border-r-2 border-[#1b2229] rounded-full animate-spin"></div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -895,7 +995,8 @@ const Page = () => {
                     <div className="flex justify-between items-center py-1">
                       <div className="flex items-center gap-3">
                         <Image
-                          src={employee.image || UserProfile2}
+                          src={getImageClientS3URL(employee.image) || UserProfile2}
+
                           alt={`Employee ${employee.name}`}
                           width={23}
                           height={23}

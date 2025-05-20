@@ -5,6 +5,8 @@ import MatchImage from "@/assets/images/courtImage.png";
 import Image from "next/image";
 import Modal from "@mui/material/Modal";
 import { v4 as uuidv4 } from "uuid";
+import { getImageClientS3URL } from "@/config/axios";
+import { toast } from "sonner";
 
 
 interface Court {
@@ -12,6 +14,8 @@ interface Court {
   name: string;
   status: "Active" | "Inactive";
   image?: string;
+  imageKey?: string;
+  imageFile?: File | null;
   game: string;
 }
 
@@ -28,6 +32,9 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
   const [courtName, setCourtName] = useState("");
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageKey, setImageKey] = useState<string | null>(null);
+  // No longer uploading in the modal
   const [selectedGame, setSelectedGame] = useState(gamesAvailableOptions[0]); // Default to first game
 
   // Initialize form with court data if editing
@@ -35,13 +42,25 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
     if (court) {
       setCourtName(court.name);
       setStatus(court.status);
-      setSelectedImage(court.image || null);
+      setImageKey(court.imageKey || null);
+
+      // Handle S3 image URLs
+      if (court.imageKey && court.imageKey.startsWith('courts/')) {
+        const imageUrl = getImageClientS3URL(court.imageKey);
+        setSelectedImage(imageUrl);
+      } else {
+        setSelectedImage(court.image || null);
+      }
+
       setSelectedGame(court.game);
+      setImageFile(null);
     } else {
       // Reset form when adding a new court
       setCourtName("");
       setStatus("Active");
       setSelectedImage(null);
+      setImageKey(null);
+      setImageFile(null);
       setSelectedGame(gamesAvailableOptions[0]);
     }
   }, [court]);
@@ -51,23 +70,48 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
   };
 
   const handleSave = () => {
-    const courtData: Court = {
-      id: court ? court.id : uuidv4(),
-      name: courtName,
-      status,
-      image: selectedImage || MatchImage.src,
-      game: selectedGame,
-    };
-    onSave(courtData);
-    onClose();
+    try {
+      // Create court data with local image preview and file for later upload
+      const courtData: Court = {
+        id: court ? court.id : uuidv4(),
+        name: courtName,
+        status,
+        // For UI display purposes
+        image: selectedImage || MatchImage.src,
+        // Store the existing S3 key if we're editing and not changing the image
+        imageKey: imageKey || undefined,
+        // Store the image file for later upload when venue is saved
+        imageFile: imageFile,
+        game: selectedGame,
+      };
+
+      onSave(courtData);
+      onClose();
+    } catch (error) {
+      console.error("Error in save process:", error);
+      toast.error("Failed to save court");
+    }
   };
+
+
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (selectedImage) URL.revokeObjectURL(selectedImage);
+      // If the current image is a local object URL, revoke it
+      if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedImage);
+      }
+
+      // Create a local preview URL for the image
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
+
+      // Store the file for later upload when Save is clicked
+      setImageFile(file);
+
+      // Clear the image key since we're replacing the image
+      setImageKey(null);
     }
   };
 
@@ -90,10 +134,15 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
               width={442}
               height={285}
             />
-            {/* <label className="absolute bottom-2 right-2 bg-white rounded-full px-2 py-1 flex items-center gap-2 cursor-pointer shadow-md">
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+            <label className="absolute bottom-2 right-2 bg-white rounded-full px-2 py-1 flex items-center gap-2 cursor-pointer shadow-md">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
               <span className="text-sm font-medium">Change Image</span>
-            </label> */}
+            </label>
           </div>
 
           {/* Form Section */}
@@ -160,7 +209,7 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
               <button
                 type="button"
                 onClick={handleSave}
-                className="w-full text-white text-sm font-medium h-12 py-2 bg-[#10375c] rounded-[28px]"
+                className="w-full text-white text-sm font-medium h-12 py-2 bg-[#10375c] rounded-[28px] flex items-center justify-center"
               >
                 {court ? 'Update' : 'Save'}
               </button>
