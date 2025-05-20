@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import SearchBar from "../../components/SearchBar";
 import JordanLee from "@/assets/images/JordanLee.png";
+import { deleteFileFromS3, generateSignedUrlForVenue } from "@/actions";
+import { getImageClientS3URL } from "@/config/axios";
 
 // Custom Modal Component
 const Modal: React.FC<{ open: boolean; onClose?: () => void; children: React.ReactNode }> = ({
@@ -184,6 +186,9 @@ const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) =
 const Page = () => {
   const { id } = useParams();
   const [selectedImage, setSelectedImage] = useState(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageKey, setImageKey] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [stateDropdown, setStateDropdown] = useState(false);
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [selectedState, setSelectedState] = useState("");
@@ -218,19 +223,19 @@ const Page = () => {
     `admin/get-venue-by-id?id=${id}`,
     getVenue
   );
-  const venueData = data?.data?.data || {};
 
   const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
 
   useEffect(() => {
-    if (venueData && Object.keys(venueData).length > 0) {
-      setName(venueData.venue?.name || "");
-      setAddress(venueData.venue?.address || "");
-      setCity(venueData.venue?.city || "");
-      setSelectedState(venueData.venue?.state || "");
-      setSelectedStatus(venueData.venue?.isActive ? "Active" : "In-Active");
+    const venueDataValue = data?.data?.data || {};
+    if (venueDataValue && Object.keys(venueDataValue).length > 0) {
+      setName(venueDataValue.venue?.name || "");
+      setAddress(venueDataValue.venue?.address || "");
+      setCity(venueDataValue.venue?.city || "");
+      setSelectedState(venueDataValue.venue?.state || "");
+      setSelectedStatus(venueDataValue.venue?.isActive ? "Active" : "In-Active");
 
-      const mappedCourts = venueData.courts?.map((court) => ({
+      const mappedCourts = venueDataValue.courts?.map((court: any) => ({
         id: court._id,
         name: court.name,
         status: court.isActive ? "Active" : "Inactive",
@@ -239,7 +244,7 @@ const Page = () => {
       })) || [];
       setCourts(mappedCourts);
 
-      const mappedEmployees = venueData.venue?.employees?.map((emp) => ({
+      const mappedEmployees = venueDataValue.venue?.employees?.map((emp: any) => ({
         id: emp.employeeId,
         name: emp.employeeData?.fullName || "Unknown",
         image: UserProfile2.src,
@@ -247,29 +252,39 @@ const Page = () => {
       })) || [];
       setEmployees(mappedEmployees);
 
-      const activeFacilities = venueData.venue?.facilities
-        ?.map((facility, index) =>
+      const activeFacilities = venueDataValue.venue?.facilities
+        ?.map((facility: any, index: number) =>
           facility.isActive ? option[index]?.id : null
         )
-        .filter((id) => id !== null) || [];
+        .filter((id: any) => id !== null) || [];
       setSelectedFacilities(activeFacilities);
 
-      setGamesAvailable(venueData.venue?.gamesAvailable || []);
+      setGamesAvailable(venueDataValue.venue?.gamesAvailable || []);
 
-      if (venueData.venue?.location?.coordinates) {
+      if (venueDataValue.venue?.location?.coordinates) {
         setLocation({
-          lat: venueData.venue.location.coordinates[1],
-          lng: venueData.venue.location.coordinates[0],
+          lat: venueDataValue.venue.location.coordinates[1],
+          lng: venueDataValue.venue.location.coordinates[0],
         });
       }
 
-      if (venueData.venue?.openingHours) {
-        setOpeningHours(venueData.venue.openingHours);
+      if (venueDataValue.venue?.openingHours) {
+        setOpeningHours(venueDataValue.venue.openingHours);
       }
 
-      setSelectedImage(venueData.venue?.image || null);
+      // Handle image
+      const venueImage = venueDataValue.venue?.image || null;
+      setImageKey(venueImage);
+
+      // If the image is an S3 URL, fetch and display it
+      if (venueImage && venueImage.startsWith('venues/')) {
+        const imageUrl = getImageClientS3URL(venueImage);
+        setSelectedImage(imageUrl);
+      } else {
+        setSelectedImage(venueImage);
+      }
     }
-  }, [venueData]);
+  }, [data]);
 
   const isSaveDisabled = !(
     selectedImage &&
@@ -282,7 +297,7 @@ const Page = () => {
     location
   );
 
-  const handleToggleCourtStatus = (courtId) => {
+  const handleToggleCourtStatus = (courtId: string) => {
     setCourts((prev) =>
       prev.map((court) =>
         court.id === courtId
@@ -292,11 +307,11 @@ const Page = () => {
     );
   };
 
-  const handleAddCourt = (newCourt) => {
+  const handleAddCourt = (newCourt: Court) => {
     setCourts((prev) => [...prev, newCourt]);
   };
 
-  const handleUpdateCourt = (updatedCourt) => {
+  const handleUpdateCourt = (updatedCourt: Court) => {
     setCourts((prev) =>
       prev.map((court) =>
         court.id === updatedCourt.id ? updatedCourt : court
@@ -304,13 +319,13 @@ const Page = () => {
     );
   };
 
-  const handleEditCourt = (court) => {
+  const handleEditCourt = (court: Court) => {
     setEditingCourt(court);
     setModalOpen(true);
   };
 
-  const handleAddEmployees = (newEmployees) => {
-    const mappedEmployees = newEmployees.map((emp) => ({
+  const handleAddEmployees = (newEmployees: any[]) => {
+    const mappedEmployees = newEmployees.map((emp: any) => ({
       id: emp.employeeId,
       name: emp.fullName,
       image: UserProfile2.src,
@@ -319,24 +334,66 @@ const Page = () => {
     setEmployees((prev) => [...prev, ...mappedEmployees]);
   };
 
-  const handleRemoveEmployee = (employeeId) => {
+  const handleRemoveEmployee = (employeeId: string) => {
     setEmployees((prev) => prev.filter((employee) => employee.id !== employeeId));
   };
 
-  const handleImageChange = (event) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (selectedImage) URL.revokeObjectURL(selectedImage);
+      // If the current image is a local object URL, revoke it
+      if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedImage);
+      }
+
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
+      setImageFile(file);
+      // Clear the image key since we're replacing the image
+      setImageKey(null);
     }
   };
 
-  const handleGameChange = (selectedOptions) => {
+  const handleGameChange = (selectedOptions: any) => {
     const selectedGames = selectedOptions
-      ? selectedOptions.map((option) => option.value)
+      ? selectedOptions.map((option: any) => option.value)
       : [];
     setGamesAvailable(selectedGames);
+  };
+
+  const uploadImageToS3 = async (file: File): Promise<string> => {
+    try {
+      setIsUploading(true);
+      const timestamp = Date.now();
+      const fileName = `${timestamp}-${file.name}`;
+
+      // Generate signed URL for S3 upload
+      const { signedUrl, key } = await generateSignedUrlForVenue(
+        fileName,
+        file.type
+      );
+
+      // Upload the file to S3
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload image to S3");
+      }
+
+      return key;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleTimeChange = (day: string, index: number, value: string) => {
@@ -350,59 +407,93 @@ const Page = () => {
   };
 
   const handleSave = async () => {
-    const payload = {
-      _id: id,
-      name,
-      address,
-      city,
-      state: selectedState,
-      image: selectedImage || UserProfile2,
-      gamesAvailable,
-      facilities: [
-        ...option.map((opt) => ({
-          name: opt.label,
-          isActive: selectedFacilities.includes(opt.id),
-        })),
-      ],
-      courts: courts.map((court) => ({
-        name: court.name,
-        isActive: court.status === "Active",
-        games: court.game,
-      })),
-      employees: employees.map((emp) => ({
-        employeeId: emp.id,
-        isActive: emp.isActive,
-      })),
-      location: {
-        type: "Point",
-        coordinates: [location.lng, location.lat],
-      },
-      openingHours,
-    };
+    setIsUploading(true);
+    try {
+      // Handle image upload
+      let finalImageKey = imageKey;
 
-    startTransition(async () => {
-      try {
-        const endpoint = `/admin/update-venue`;
-        const response = await updateVenue(endpoint, payload);
-        if (response?.status === 200 || response?.status === 201) {
-          toast.success(id ? "Venue updated successfully" : "Venue created successfully");
-          if (selectedImage) {
-            URL.revokeObjectURL(selectedImage);
-            setSelectedImage(null);
+      // If we have a new image file, upload it to S3
+      if (imageFile) {
+        finalImageKey = await uploadImageToS3(imageFile);
+
+        // If we had a previous S3 image, delete it
+        if (imageKey && imageKey.startsWith('venues/')) {
+          try {
+            await deleteFileFromS3(imageKey);
+            console.log("Previous image deleted:", imageKey);
+          } catch (error) {
+            console.error("Error deleting previous image:", error);
+            // Continue with the save process even if deletion fails
           }
-          router.push("/admin/venue");
-        } else {
-          toast.error(id ? "Failed to update venue" : "Failed to create venue");
         }
-      } catch (error) {
-        toast.error("Something went wrong");
       }
-    });
+
+      const payload = {
+        _id: id,
+        name,
+        address,
+        city,
+        state: selectedState,
+        image: finalImageKey || UserProfile2.src,
+        gamesAvailable,
+        facilities: [
+          ...option.map((opt) => ({
+            name: opt.label,
+            isActive: selectedFacilities.includes(opt.id),
+          })),
+        ],
+        courts: courts.map((court) => ({
+          name: court.name,
+          isActive: court.status === "Active",
+          games: court.game,
+        })),
+        employees: employees.map((emp) => ({
+          employeeId: emp.id,
+          isActive: emp.isActive,
+        })),
+        location: {
+          type: "Point",
+          coordinates: [location.lng, location.lat],
+        },
+        openingHours,
+      };
+
+      startTransition(async () => {
+        try {
+          const endpoint = `/admin/update-venue`;
+          const response = await updateVenue(endpoint, payload);
+          if (response?.status === 200 || response?.status === 201) {
+            toast.success("Venue updated successfully");
+
+            // Clean up local image URL if it exists
+            if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
+              URL.revokeObjectURL(selectedImage);
+            }
+
+            router.push("/admin/venue");
+          } else {
+            toast.error("Failed to update venue");
+            setIsUploading(false);
+          }
+        } catch (error) {
+          console.error("Error updating venue:", error);
+          toast.error("Something went wrong");
+          setIsUploading(false);
+        }
+      });
+    } catch (error) {
+      console.error("Error in save process:", error);
+      toast.error("Failed to upload image or save venue");
+      setIsUploading(false);
+    }
   };
 
   useEffect(() => {
     return () => {
-      if (selectedImage) URL.revokeObjectURL(selectedImage);
+      // Only revoke object URLs for local images
+      if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedImage);
+      }
     };
   }, [selectedImage]);
 
@@ -422,8 +513,8 @@ const Page = () => {
           <div className="relative h-64 w-full bg-[#e5e5e5] rounded-xl flex items-center justify-center mb-6">
             {selectedImage ? (
               <Image
-                src={UserProfile2}
-                alt="Uploaded Venue Image"
+                src={selectedImage}
+                alt="Venue Image"
                 fill
                 className="object-cover rounded-xl"
               />
@@ -438,8 +529,14 @@ const Page = () => {
                 accept="image/*"
                 className="hidden"
                 onChange={handleImageChange}
+                disabled={isUploading}
               />
             </label>
+            {isUploading && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-xl">
+                <div className="text-white">Uploading...</div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -644,13 +741,13 @@ const Page = () => {
             <button
               onClick={handleSave}
               className={`w-full p-3 rounded-full text-white text-sm font-medium ${
-                isSaveDisabled
+                isSaveDisabled || isUploading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#10375c]"
               }`}
-              disabled={isSaveDisabled}
+              disabled={isSaveDisabled || isUploading}
             >
-              Save
+              {isUploading ? "Uploading..." : "Save"}
             </button>
           </div>
         </div>
@@ -678,7 +775,7 @@ const Page = () => {
                 <div key={court.id} className="bg-white p-3 rounded-xl space-y-3">
                   <div className="flex gap-3">
                     <Image
-                      src={court.image || Court}
+                      src={ Court}
                       alt={`${court.name} Image`}
                       width={80}
                       height={80}

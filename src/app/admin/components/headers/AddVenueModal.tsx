@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MatchImage from "@/assets/images/courtImage.png";
 import Image from "next/image";
 import Modal from "@mui/material/Modal";
@@ -19,29 +19,46 @@ interface CourtManagementProps {
   open: boolean;
   onClose: () => void;
   onSave: (court: Court) => void;
+  court?: Court | null;
 }
 
 const gamesAvailableOptions = ["Padel", "Pickleball"]; // Hardcoded; fetch from API if needed
 
-const CourtManagement = ({ open, onClose, onSave }: CourtManagementProps) => {
+const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps) => {
   const [courtName, setCourtName] = useState("");
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedGame, setSelectedGame] = useState(gamesAvailableOptions[0]); // Default to first game
+
+  // Initialize form with court data if editing
+  useEffect(() => {
+    if (court) {
+      setCourtName(court.name);
+      setStatus(court.status);
+      setSelectedImage(court.image || null);
+      setSelectedGame(court.game);
+    } else {
+      // Reset form when adding a new court
+      setCourtName("");
+      setStatus("Active");
+      setSelectedImage(null);
+      setSelectedGame(gamesAvailableOptions[0]);
+    }
+  }, [court]);
 
   const handleDelete = () => {
     onClose();
   };
 
   const handleSave = () => {
-    const newCourt: Court = {
-      id: uuidv4(),
+    const courtData: Court = {
+      id: court ? court.id : uuidv4(),
       name: courtName,
       status,
       image: selectedImage || MatchImage.src,
       game: selectedGame,
     };
-    onSave(newCourt);
+    onSave(courtData);
     onClose();
   };
 
@@ -63,6 +80,7 @@ const CourtManagement = ({ open, onClose, onSave }: CourtManagementProps) => {
     >
       <div className="flex items-center justify-center min-h-screen">
         <div className="z-50 bg-[#f2f2f4] rounded-[30px] shadow-lg p-[20px] w-full max-w-md">
+          {/* <h2 className="text-xl font-semibold text-[#10375c] mb-4">{court ? 'Edit Court' : 'Add New Court'}</h2> */}
           {/* Image Section */}
           <div className="mb-6 relative">
             <Image
@@ -72,10 +90,10 @@ const CourtManagement = ({ open, onClose, onSave }: CourtManagementProps) => {
               width={442}
               height={285}
             />
-            <label className="absolute bottom-2 right-2 bg-white rounded-full px-2 py-1 flex items-center gap-2 cursor-pointer shadow-md">
+            {/* <label className="absolute bottom-2 right-2 bg-white rounded-full px-2 py-1 flex items-center gap-2 cursor-pointer shadow-md">
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
               <span className="text-sm font-medium">Change Image</span>
-            </label>
+            </label> */}
           </div>
 
           {/* Form Section */}
@@ -144,7 +162,7 @@ const CourtManagement = ({ open, onClose, onSave }: CourtManagementProps) => {
                 onClick={handleSave}
                 className="w-full text-white text-sm font-medium h-12 py-2 bg-[#10375c] rounded-[28px]"
               >
-                Save
+                {court ? 'Update' : 'Save'}
               </button>
             </div>
           </form>

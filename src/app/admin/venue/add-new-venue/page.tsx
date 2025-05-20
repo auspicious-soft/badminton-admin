@@ -185,6 +185,7 @@ const Page = () => {
     { day: "Saturday", hours: ["07:00", "22:00"] },
     { day: "Sunday", hours: ["07:00", "20:00"] },
   ]);
+  const [editingCourt, setEditingCourt] = useState<Court | null>(null);
   const apiKey = "AIzaSyCDZoRf-BZL2yR_ZyXpzht_a63hMgLCTis";
   const router = useRouter();
 
@@ -213,6 +214,19 @@ const Page = () => {
 
   const handleAddCourt = (newCourt: Court) => {
     setCourts((prev) => [...prev, newCourt]);
+  };
+
+  const handleUpdateCourt = (updatedCourt: Court) => {
+    setCourts((prev) =>
+      prev.map((court) =>
+        court.id === updatedCourt.id ? updatedCourt : court
+      )
+    );
+  };
+
+  const handleEditCourt = (court: Court) => {
+    setEditingCourt(court);
+    setModalOpen(true);
   };
 
   const handleAddEmployees = (newEmployees: { employeeId: string; fullName: string; isActive: boolean }[]) => {
@@ -572,7 +586,10 @@ const Page = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
               <h3 className="text-2xl font-semibold text-[#10375c] mb-4 sm:mb-0">Courts</h3>
               <button
-                onClick={() => setModalOpen(true)}
+                onClick={() => {
+                  setEditingCourt(null);
+                  setModalOpen(true);
+                }}
                 className="flex items-center gap-2 px-5 py-2 bg-[#1b2229] rounded-full text-white text-sm"
               >
                 <Add /> Add A New Court
@@ -583,7 +600,7 @@ const Page = () => {
                 <div key={court.id} className="bg-white p-3 rounded-xl space-y-3">
                   <div className="flex gap-3">
                     <Image
-                      src={court.image || Court}
+                      src={Court}
                       alt={`${court.name} Image`}
                       width={80}
                       height={80}
@@ -622,7 +639,12 @@ const Page = () => {
                       </div>
                     </div>
                   </div>
-                  <button className="w-full py-2 bg-[#1C2329] text-white text-[10px] rounded-full">Edit</button>
+                  <button
+                    onClick={() => handleEditCourt(court)}
+                    className="w-full py-2 bg-[#1C2329] text-white text-[10px] rounded-full"
+                  >
+                    Edit
+                  </button>
                 </div>
               ))}
             </div>
@@ -731,7 +753,15 @@ const Page = () => {
           </div>
         </div>
       </div>
-      <CourtManagement open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddCourt} />
+      <CourtManagement
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingCourt(null);
+        }}
+        onSave={editingCourt ? handleUpdateCourt : handleAddCourt}
+        court={editingCourt}
+      />
       <AddEmployeeModal
         open={employeeModalOpen}
         setOpen={setEmployeeModalOpen}

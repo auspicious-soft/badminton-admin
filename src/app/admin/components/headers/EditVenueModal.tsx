@@ -101,14 +101,14 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
     onClose();
   };
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (selectedImage) URL.revokeObjectURL(selectedImage);
-      const imageUrl = URL.createObjectURL(file);
-      setSelectedImage(imageUrl);
-    }
-  };
+  // const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (file) {
+  //     if (selectedImage) URL.revokeObjectURL(selectedImage);
+  //     const imageUrl = URL.createObjectURL(file);
+  //     setSelectedImage(imageUrl);
+  //   }
+  // };
 
   return (
     <Modal
@@ -122,16 +122,16 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
           {/* Image Section */}
           <div className="mb-6 relative">
             <Image
-              src={selectedImage || MatchImage}
+              src={MatchImage}
               alt="Court Image"
-              className="w-full rounded-[10px]"
+              className="w-full max-h-[200px]  rounded-[10px]"
               width={400}
               height={200}
             />
-            <label className="absolute bottom-2 right-2 bg-white rounded-full px-2 py-1 flex items-center gap-2 cursor-pointer shadow-md">
+            {/* <label className="absolute bottom-2 right-2 bg-white rounded-full px-2 py-1 flex items-center gap-2 cursor-pointer shadow-md">
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
               <span className="text-sm font-medium">Change Image</span>
-            </label>
+            </label> */}
           </div>
 
           {/* Form Section */}

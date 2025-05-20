@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import useSWR from 'swr';
 import { getAllVenues } from "@/services/admin-services";
 import TablePagination from "../components/TablePagination";
+import { getImageClientS3URL } from "@/config/axios";
 
 interface Venue {
   image: string; // Adjust based on actual API response (e.g., URL or asset path)
@@ -77,7 +78,7 @@ const Page = () => {
           venues.map((venue, index) => (
             <div key={index} className="flex flex-col items-start" onClick={() => router.push(`/admin/venue/${venue._id}`)}>
               <Image
-                src={firstvenue} // Fallback to firstvenue if image is missing or invalid
+                 src={getImageClientS3URL(venue?.image)} // Fallback to firstvenue if image is missing or invalid
                 alt={venue.name}
                 width={250}
                 height={200}
