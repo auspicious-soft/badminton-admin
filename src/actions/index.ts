@@ -307,6 +307,23 @@ export const generatePublishersProfilePicture = async (fileName: string, fileTyp
   }
 };
 
+export const generateSignedUrlForVenue = async (fileName: string, fileType: string) => {
+  const uploadParams = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: `venues/${fileName}`,
+    ContentType: fileType,
+    acl: "public-read",
+  };
+  try {
+    const command = new PutObjectCommand(uploadParams);
+    const signedUrl = await getSignedUrl(await createS3Client(), command);
+    return { signedUrl, key: uploadParams.Key };
+  } catch (error) {
+    console.error("Error generating signed URL for venue:", error);
+    throw error;
+  }
+};
+
 export const deleteFileFromS3 = async (imageKey: string) => {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
