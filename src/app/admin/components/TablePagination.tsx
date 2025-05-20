@@ -24,8 +24,8 @@ const TablePagination: React.FC<TablePaginationProps> = ({ setPage, page, totalD
         renderItem={(item) => (
           <PaginationItem
             slots={{
-              previous: () => ("Prev"),
-              next: () => ("Next"),
+              previous: () => <span style={{ padding: '0 8px' }}>Prev</span>,
+              next: () => <span style={{ padding: '0 8px' }}>Next</span>,
             }}
             {...item}
             sx={{

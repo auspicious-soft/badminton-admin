@@ -5,7 +5,7 @@ import AddProductForm from '../../components/merchandises/AddProduct';
 const Page = () => {
     return (
         <div>
-          <AddVenueForm />
+          <AddProductForm />
 
         </div>
     );

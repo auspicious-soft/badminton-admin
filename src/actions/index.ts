@@ -46,12 +46,13 @@ export const getTokenCustom = async () => {
 export const generateSignedUrlToUploadOn = async (fileName: string, fileType: string) => {
   const uploadParams = {
     Bucket: process.env.AWS_BUCKET_NAME,
-    Key: `events/${fileName}`,
+    Key: `products/${fileName}`,
     ContentType: fileType,
     acl: "public-read",
   };
   try {
     const command = new PutObjectCommand(uploadParams);
+    console.log('command: ', command);
     const signedUrl = await getSignedUrl(await createS3Client(), command);
     // const signedUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
     return { signedUrl, key: uploadParams.Key };
@@ -67,6 +68,7 @@ export const generateSignedUrlForBlog = async (fileName: string, fileType: strin
     ContentType: fileType,
     acl: "public-read",
   };
+  console.log('process.env.AWS_BUCKET_NAME: ', process.env.AWS_BUCKET_NAME);
   try {
     const command = new PutObjectCommand(uploadParams);
     const signedUrl = await getSignedUrl(await createS3Client(), command);
@@ -301,6 +303,23 @@ export const generatePublishersProfilePicture = async (fileName: string, fileTyp
     return { signedUrl, key: uploadParams.Key };
   } catch (error) {
     console.error("Error generating signed URL:", error);
+    throw error;
+  }
+};
+
+export const generateSignedUrlForVenue = async (fileName: string, fileType: string) => {
+  const uploadParams = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: `venues/${fileName}`,
+    ContentType: fileType,
+    acl: "public-read",
+  };
+  try {
+    const command = new PutObjectCommand(uploadParams);
+    const signedUrl = await getSignedUrl(await createS3Client(), command);
+    return { signedUrl, key: uploadParams.Key };
+  } catch (error) {
+    console.error("Error generating signed URL for venue:", error);
     throw error;
   }
 };

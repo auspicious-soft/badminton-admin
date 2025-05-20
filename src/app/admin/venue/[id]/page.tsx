@@ -5,7 +5,7 @@ import { BottomArrow, Edit1, UpArrowIcon, EyeIcon, Add } from "@/utils/svgicons"
 import Court from "@/assets/images/courtsmallImg.png";
 import AlexParker from "@/assets/images/AlexParker.png";
 import UserProfile2 from "@/assets/images/UserProfile2.png";
-import CourtManagement from "../../components/headers/AddVenueModal";
+import CourtManagement from "../../components/headers/EditVenueModal";
 import AddEmployeeModal from "../../components/headers/AddEmployeesModal";
 import { states } from "@/utils";
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from "@react-google-maps/api";
@@ -56,6 +56,11 @@ interface Employee {
   isActive: boolean;
 }
 
+interface OpeningHour {
+  day: string;
+  hours: string[];
+}
+
 const option = [
   { id: 1, label: "Free Parking" },
   { id: 2, label: "Paid Parking" },
@@ -88,7 +93,6 @@ const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) =
     height: "calc(100% - 100px)",
   };
 
-  // Geocode the initial address when the map loads
   useEffect(() => {
     if (isLoaded && initialAddress && !location) {
       const geocoder = new google.maps.Geocoder();
@@ -100,7 +104,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) =
           setMarker(newLocation);
           if (map) {
             map.panTo(newLocation);
-            map.setZoom(15); // Zoom to street level
+            map.setZoom(15);
           }
         } else {
           console.error("Geocoding failed:", status);
@@ -115,7 +119,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) =
     mapInstance.setMapTypeId(mapType);
     if (location) {
       mapInstance.panTo(location);
-      mapInstance.setZoom(15); // Ensure zoom on load if location exists
+      mapInstance.setZoom(15);
     }
   };
 
@@ -126,7 +130,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) =
     setMarker({ lat, lng });
     if (map) {
       map.panTo({ lat, lng });
-      map.setZoom(15); // Zoom to street level on click
+      map.setZoom(15);
     }
   };
 
@@ -140,7 +144,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) =
         setMarker({ lat, lng });
         if (map) {
           map.panTo({ lat, lng });
-          map.setZoom(15); // Zoom to street level on place selection
+          map.setZoom(15);
         }
       }
     }
@@ -166,7 +170,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) =
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={location || { lat: 0, lng: 0 }}
-        zoom={location ? 15 : 2} // Default to zoom 15 if location exists
+        zoom={location ? 15 : 2}
         mapTypeId={mapType}
         onLoad={onMapLoad}
         onClick={onMapClick}
@@ -196,13 +200,17 @@ const Page = () => {
   const [mapOpen, setMapOpen] = useState(false);
   const [searchParams, setSearchParams] = useState("");
   const [location, setLocation] = useState(null);
-  const [selectedMatch, setSelectedMatch] = useState({
-    id: 1,
-    team1: "Alex Parker",
-    team2: "Alex Parker",
-    game: "Padel",
-    date: "22-01-2024",
-  });
+  const [openingHours, setOpeningHours] = useState<OpeningHour[]>([
+    { day: "Monday", hours: ["06:00", "21:00"] },
+    { day: "Tuesday", hours: ["06:00", "21:00"] },
+    { day: "Wednesday", hours: ["06:00", "21:00"] },
+    { day: "Thursday", hours: ["06:00", "21:00"] },
+    { day: "Friday", hours: ["06:00", "21:00"] },
+    { day: "Saturday", hours: ["07:00", "22:00"] },
+    { day: "Sunday", hours: ["07:00", "20:00"] },
+  ]);
+  const [editingCourt, setEditingCourt] = useState<Court | null>(null);
+
   const apiKey = "AIzaSyCDZoRf-BZL2yR_ZyXpzht_a63hMgLCTis";
   const router = useRouter();
 
@@ -210,33 +218,28 @@ const Page = () => {
     `admin/get-venue-by-id?id=${id}`,
     getVenue
   );
-  const venueData = data?.data?.data || [];
-  console.log('venueData: ', venueData);
+  const venueData = data?.data?.data || {};
 
-  // Combine address, city, and state for geocoding
   const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
 
-  // Map venueData to component state when data is available
   useEffect(() => {
     if (venueData && Object.keys(venueData).length > 0) {
-      setName(venueData.name || "");
-      setAddress(venueData.address || "");
-      setCity(venueData.city || "");
-      setSelectedState(venueData.state || "");
-      setSelectedStatus(venueData.isActive ? "Active" : "In-Active");
+      setName(venueData.venue?.name || "");
+      setAddress(venueData.venue?.address || "");
+      setCity(venueData.venue?.city || "");
+      setSelectedState(venueData.venue?.state || "");
+      setSelectedStatus(venueData.venue?.isActive ? "Active" : "In-Active");
 
-      // Map courts
       const mappedCourts = venueData.courts?.map((court) => ({
         id: court._id,
         name: court.name,
         status: court.isActive ? "Active" : "Inactive",
         game: court.games,
-        image: Court.src,
+        image: court.image || Court.src,
       })) || [];
       setCourts(mappedCourts);
 
-      // Map employees
-      const mappedEmployees = venueData.employees?.map((emp) => ({
+      const mappedEmployees = venueData.venue?.employees?.map((emp) => ({
         id: emp.employeeId,
         name: emp.employeeData?.fullName || "Unknown",
         image: UserProfile2.src,
@@ -244,116 +247,29 @@ const Page = () => {
       })) || [];
       setEmployees(mappedEmployees);
 
-      // Map facilities
-      const activeFacilities = venueData.facilities
+      const activeFacilities = venueData.venue?.facilities
         ?.map((facility, index) =>
           facility.isActive ? option[index]?.id : null
         )
         .filter((id) => id !== null) || [];
       setSelectedFacilities(activeFacilities);
 
-      // Map games available
-      setGamesAvailable(venueData.gamesAvailable || []);
+      setGamesAvailable(venueData.venue?.gamesAvailable || []);
 
-      // Map location
-      if (venueData.location?.coordinates) {
+      if (venueData.venue?.location?.coordinates) {
         setLocation({
-          lat: venueData.location.coordinates[1],
-          lng: venueData.location.coordinates[0],
+          lat: venueData.venue.location.coordinates[1],
+          lng: venueData.venue.location.coordinates[0],
         });
       }
 
-      // Set image
-      setSelectedImage(venueData.image || null);
+      if (venueData.venue?.openingHours) {
+        setOpeningHours(venueData.venue.openingHours);
+      }
+
+      setSelectedImage(venueData.venue?.image || null);
     }
   }, [venueData]);
-
-  const matches = [
-    {
-      id: 1,
-      team1: "Alex Parker",
-      team2: "Alex Parker",
-      game: "Padel",
-      date: "22-01-2024",
-    },
-    {
-      id: 2,
-      team1: "Jordan Lee",
-      team2: "Jordan Lee",
-      game: "Pickleball",
-      date: "22-01-2024",
-    },
-    {
-      id: 3,
-      team1: "Tracy Martin",
-      team2: "Tracy Martin",
-      game: "Padel",
-      date: "22-01-2024",
-    },
-    {
-      id: 4,
-      team1: "Marley Martinez",
-      team2: "Marley Martinez",
-      game: "Pickleball",
-      date: "22-01-2024",
-    },
-    {
-      id: 5,
-      team1: "Alex Parker",
-      team2: "Alex Parker",
-      game: "Padel",
-      date: "22-01-2024",
-    },
-    {
-      id: 6,
-      team1: "Jordan Lee",
-      team2: "Jordan Lee",
-      game: "Pickleball",
-      date: "22-01-2024",
-    },
-    {
-      id: 7,
-      team1: "Tracy Martin",
-      team2: "Tracy Martin",
-      game: "Padel",
-      date: "22-01-2024",
-    },
-    {
-      id: 8,
-      team1: "Marley Martinez",
-      team2: "Marley Martinez",
-      game: "Pickleball",
-      date: "22-01-2024",
-    },
-    {
-      id: 9,
-      team1: "Alex Parker",
-      team2: "Alex Parker",
-      game: "Padel",
-      date: "22-01-2024",
-    },
-    {
-      id: 10,
-      team1: "Jordan Lee",
-      team2: "Jordan Lee",
-      game: "Pickleball",
-      date: "22-01-2024",
-    },
-    {
-      id: 11,
-      team1: "Tracy Martin",
-      team2: "Tracy Martin",
-      game: "Padel",
-      date: "22-01-2024",
-    },
-    {
-      id: 12,
-      team1: "Marley Martinez",
-      team2: "Marley Martinez",
-      game: "Pickleball",
-      date: "22-01-2024",
-    },
-  ];
 
   const isSaveDisabled = !(
     selectedImage &&
@@ -378,6 +294,19 @@ const Page = () => {
 
   const handleAddCourt = (newCourt) => {
     setCourts((prev) => [...prev, newCourt]);
+  };
+
+  const handleUpdateCourt = (updatedCourt) => {
+    setCourts((prev) =>
+      prev.map((court) =>
+        court.id === updatedCourt.id ? updatedCourt : court
+      )
+    );
+  };
+
+  const handleEditCourt = (court) => {
+    setEditingCourt(court);
+    setModalOpen(true);
   };
 
   const handleAddEmployees = (newEmployees) => {
@@ -410,6 +339,16 @@ const Page = () => {
     setGamesAvailable(selectedGames);
   };
 
+  const handleTimeChange = (day: string, index: number, value: string) => {
+    setOpeningHours((prev) =>
+      prev.map((entry) =>
+        entry.day === day
+          ? { ...entry, hours: entry.hours.map((time, i) => (i === index ? value : time)) }
+          : entry
+      )
+    );
+  };
+
   const handleSave = async () => {
     const payload = {
       _id: id,
@@ -417,7 +356,7 @@ const Page = () => {
       address,
       city,
       state: selectedState,
-      image: selectedImage || "https://example.com/venue-image.jpg",
+      image: selectedImage || UserProfile2,
       gamesAvailable,
       facilities: [
         ...option.map((opt) => ({
@@ -438,6 +377,7 @@ const Page = () => {
         type: "Point",
         coordinates: [location.lng, location.lat],
       },
+      openingHours,
     };
 
     startTransition(async () => {
@@ -471,7 +411,7 @@ const Page = () => {
   }
 
   return (
-    <main >
+    <main className="mb-2">
       <h1 className="text-2xl md:text-3xl font-semibold text-[#10375c] mb-6">
         {id ? "Edit Venue" : "Add New Venue"}
       </h1>
@@ -482,7 +422,7 @@ const Page = () => {
           <div className="relative h-64 w-full bg-[#e5e5e5] rounded-xl flex items-center justify-center mb-6">
             {selectedImage ? (
               <Image
-                src={selectedImage}
+                src={UserProfile2}
                 alt="Uploaded Venue Image"
                 fill
                 className="object-cover rounded-xl"
@@ -724,7 +664,10 @@ const Page = () => {
                 Courts
               </h3>
               <button
-                onClick={() => setModalOpen(true)}
+                onClick={() => {
+                  setEditingCourt(null);
+                  setModalOpen(true);
+                }}
                 className="flex items-center gap-2 px-5 py-2 bg-[#1b2229] rounded-full text-white text-sm"
               >
                 <Add /> Add A New Court
@@ -784,7 +727,10 @@ const Page = () => {
                       </div>
                     </div>
                   </div>
-                  <button className="w-full py-2 bg-[#1C2329] text-white text-[10px] rounded-full">
+                  <button
+                    onClick={() => handleEditCourt(court)}
+                    className="w-full py-2 bg-[#1C2329] text-white text-[10px] rounded-full"
+                  >
                     Edit
                   </button>
                 </div>
@@ -887,104 +833,45 @@ const Page = () => {
             </div>
           </div>
 
-          {/* Matches */}
-          <div className="mt-[15px] bg-[#f2f2f4] rounded-[20px] p-[14px] max-h-[400px] overflow-auto">
-            <div className="flex justify-between mb-[20px] mt-[21px]">
-              <div className="text-[#10375c] text-xl font-medium">Matches</div>
-              <SearchBar setQuery={setSearchParams} query={searchParams} />
+          {/* Timings */}
+          <div className="bg-[#f2f2f4] rounded-2xl p-4">
+            <h2 className="text-xl font-medium text-[#172554] mb-4">Timings</h2>
+            <div className="grid grid-cols-3 gap-4 font-semibold text-[#10375C] text-sm border-b border-gray-300 pb-2">
+              <div>Days</div>
+              <div>Opening Hours</div>
+              <div>Closing Hours</div>
             </div>
-
-            <div className="h-3.5 justify-between items-center flex text-[#7e7e8a] mb-[8px] text-xs font-medium">
-              <div>Name of Team 1</div>
-              <div>Name of Team 2</div>
-              <div className="pl-2">Game</div>
-              <div className="pr-2">Date</div>
-              {/* <div>Action</div> */}
+            <div className="space-y-2 max-h-48 overflow-y-auto overflow-custom">
+              {openingHours.map((entry) => (
+                <div key={entry.day} className="grid grid-cols-3 gap-4 items-center text-sm">
+                  <div className="text-[#10375C]">{entry.day}</div>
+                  <input
+                    type="time"
+                    value={entry.hours[0]}
+                    onChange={(e) => handleTimeChange(entry.day, 0, e.target.value)}
+                    className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
+                  />
+                  <input
+                    type="time"
+                    value={entry.hours[1]}
+                    onChange={(e) => handleTimeChange(entry.day, 1, e.target.value)}
+                    className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
+                  />
+                </div>
+              ))}
             </div>
-            <div className="mb-[8px] h-[0px] border border-[#d0d0d0]"></div>
-
-            {venueData?.matches?.map((match, index) => (
-              <div
-                key={match.id}
-                className={`w-full min-w-[600px] cursor-pointer flex items-center h-[47px] px-2 py-3 rounded-[10px] ${
-                  selectedMatch?.id === match.id
-                    ? "bg-[#176dbf] text-white"
-                    : index % 2 === 0
-                    ? "bg-white"
-                    : "bg-gray-200"
-                }`}
-                onClick={() => setSelectedMatch(match)}
-              >
-                <div
-                  className={`px-1  py-2 w-[40%] flex items-center gap-2 text-xs font-medium ${
-                    selectedMatch?.id === match.id
-                      ? "text-white"
-                      : "text-[#1b2229]"
-                  }`}
-                >
-                  <Image
-                    src={AlexParker}
-                    alt="Avatar"
-                    className="rounded-full"
-                    width={25}
-                    height={25}
-                  />
-                  {match.team1}
-                </div>
-
-                <div
-                  className={`px-1  py-2 w-[30%] flex items-center gap-2 text-xs font-medium ${
-                    selectedMatch?.id === match.id
-                      ? "text-white"
-                      : "text-[#1b2229]"
-                  }`}
-                >
-                  <Image
-                    src={JordanLee}
-                    alt="Avatar"
-                    className="rounded-full"
-                    width={25}
-                    height={25}
-                  />
-                  {match.team2}
-                </div>
-
-                <div
-                  className={`pr-8 py-2 w-[25%] text-xs  font-medium text-right ${
-                    selectedMatch?.id === match.id
-                      ? "text-white"
-                      : "text-[#1b2229]"
-                  }`}
-                >
-                  {/* {match.game} */}
-                  padel
-                </div>
-
-                <div
-                  className={`text-xs w-[25%] font-medium text-right ${
-                    selectedMatch?.id === match.id
-                      ? "text-white"
-                      : "text-[#1b2229]"
-                  }`}
-                >
-                  {/* {match.bookingDate} */}
-                  {new Date(match.bookingDate).toLocaleDateString()}
-                </div>
-
-                {/* <div className="px-4 py-2 w-1/6 text-xs font-medium flex justify-end">
-                  <EyeIcon
-                    stroke={selectedMatch?.id === match.id ? "#FFFF" : "#fd5602"}
-                  />
-                </div> */}
-              </div>
-            ))}
           </div>
         </div>
       </div>
       <CourtManagement
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={handleAddCourt}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingCourt(null);
+        }}
+        onSave={editingCourt ? handleUpdateCourt : handleAddCourt}
+        court={editingCourt ? {...editingCourt, venueId: id} : null}
+        venueId={id}
       />
       <AddEmployeeModal
         open={employeeModalOpen}

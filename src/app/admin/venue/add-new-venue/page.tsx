@@ -12,6 +12,7 @@ import Select from "react-select";
 import { createVenue } from "@/services/admin-services";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { generateSignedUrlForVenue } from "@/actions";
 
 // Custom Modal Component
 const Modal: React.FC<{ open: boolean; onClose?: () => void; children: React.ReactNode }> = ({
@@ -43,6 +44,11 @@ interface Employee {
   name: string;
   image?: string;
   isActive: boolean;
+}
+
+interface OpeningHour {
+  day: string;
+  hours: string[];
 }
 
 const option = [
@@ -153,6 +159,7 @@ const GoogleMapComponent = ({ location, setLocation, apiKey, initialAddress }) =
 
 const Page = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [stateDropdown, setStateDropdown] = useState(false);
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [selectedState, setSelectedState] = useState("");
@@ -168,7 +175,17 @@ const Page = () => {
   const [gamesAvailable, setGamesAvailable] = useState<string[]>([]);
   const [mapOpen, setMapOpen] = useState(false);
   const [location, setLocation] = useState(null);
-  const apiKey = "AIzaSyCDZoRf-BZL2yR_ZyXpzht_a63hMgLCTis"; // Replace with your actual API key
+  const [isUploading, setIsUploading] = useState(false);
+  const [openingHours, setOpeningHours] = useState<OpeningHour[]>([
+    { day: "Monday", hours: ["06:00", "21:00"] },
+    { day: "Tuesday", hours: ["06:00", "21:00"] },
+    { day: "Wednesday", hours: ["06:00", "21:00"] },
+    { day: "Thursday", hours: ["06:00", "21:00"] },
+    { day: "Friday", hours: ["06:00", "21:00"] },
+    { day: "Saturday", hours: ["07:00", "22:00"] },
+    { day: "Sunday", hours: ["07:00", "20:00"] },
+  ]);
+  const apiKey = "AIzaSyCDZoRf-BZL2yR_ZyXpzht_a63hMgLCTis";
   const router = useRouter();
 
   const isSaveDisabled = !(
@@ -182,7 +199,6 @@ const Page = () => {
     location
   );
 
-  // Combine address, city, and state for geocoding
   const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
 
   const handleToggleCourtStatus = (courtId: string) => {
@@ -219,61 +235,124 @@ const Page = () => {
       if (selectedImage) URL.revokeObjectURL(selectedImage);
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
+      setImageFile(file);
     }
   };
 
-  const handleGameChange = (selectedOptions) => {
-    const selectedGames = selectedOptions ? selectedOptions.map((option) => option.value) : [];
+  const handleGameChange = (selectedOptions: any) => {
+    const selectedGames = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
     setGamesAvailable(selectedGames);
   };
 
-  const handleSave = async () => {
-    const payload = {
-      name,
-      address,
-      city,
-      state: selectedState,
-      image: selectedImage || "https://example.com/venue-image.jpg",
-      gamesAvailable,
-      facilities: [
-        ...option.map((opt) => ({
-          name: opt.label,
-          isActive: selectedFacilities.includes(opt.id),
-        })),
-      ],
-      courts: courts.map((court) => ({
-        name: court.name,
-        isActive: court.status === "Active",
-        games: court.game,
-      })),
-      employees: employees.map((emp) => ({
-        employeeId: emp.id,
-        isActive: emp.isActive,
-      })),
-      location: {
-        type: "Point",
-        coordinates: [location.lng, location.lat],
-      },
-    };
-    console.log("payload", payload);
+  const uploadImageToS3 = async (file: File): Promise<string> => {
+    try {
+      setIsUploading(true);
+      const timestamp = Date.now();
+      const fileName = `${timestamp}-${file.name}`;
 
-    startTransition(async () => {
-      try {
-        const response = await createVenue("/admin/create-venue", payload);
-        if (response?.status === 200 || response?.status === 201) {
-          toast.success("Venue created successfully");
-          if (selectedImage) {
-            URL.revokeObjectURL(selectedImage);
-            setSelectedImage(null);
-          }
-          router.push("/admin/venue");
-        } else {
-          toast.error("Failed to create employee");
-        }
-      } catch (error) {
-        toast.error("Something went wrong");
+      // Generate signed URL for S3 upload
+      const { signedUrl, key } = await generateSignedUrlForVenue(
+        fileName,
+        file.type
+      );
+
+      // Upload the file to S3
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload image to S3");
       }
-    });
+
+      return key;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleTimeChange = (day: string, index: number, value: string) => {
+    setOpeningHours((prev) =>
+      prev.map((entry) =>
+        entry.day === day
+          ? { ...entry, hours: entry.hours.map((time, i) => (i === index ? value : time)) }
+          : entry
+      )
+    );
+  };
+
+  const handleSave = async () => {
+    setIsUploading(true);
+    try {
+      // Upload image to S3 if available
+      let imageKey = "";
+      if (imageFile) {
+        imageKey = await uploadImageToS3(imageFile);
+      }
+
+      const payload = {
+        name,
+        address,
+        city,
+        state: selectedState,
+        image: imageKey || "https://example.com/venue-image.jpg",
+        gamesAvailable,
+        facilities: [
+          ...option.map((opt) => ({
+            name: opt.label,
+            isActive: selectedFacilities.includes(opt.id),
+          })),
+        ],
+        courts: courts.map((court) => ({
+          name: court.name,
+          isActive: court.status === "Active",
+          games: court.game,
+        })),
+        employees: employees.map((emp) => ({
+          employeeId: emp.id,
+          isActive: emp.isActive,
+        })),
+        location: {
+          type: "Point",
+          coordinates: [location.lng, location.lat],
+        },
+        openingHours,
+      };
+      console.log("payload", payload);
+
+      startTransition(async () => {
+        try {
+          const response = await createVenue("/admin/create-venue", payload);
+          if (response?.status === 200 || response?.status === 201) {
+            toast.success("Venue created successfully");
+            if (selectedImage) {
+              URL.revokeObjectURL(selectedImage);
+              setSelectedImage(null);
+              setImageFile(null);
+            }
+            router.push("/admin/venue");
+          } else {
+            toast.error("Failed to create venue");
+          }
+        } catch (error) {
+          toast.error("Something went wrong");
+        } finally {
+          setIsUploading(false);
+        }
+      });
+    } catch (error) {
+      console.error("Error in save process:", error);
+      toast.error("Failed to upload image or save venue");
+      setIsUploading(false);
+    }
   };
 
   useEffect(() => {
@@ -283,7 +362,7 @@ const Page = () => {
   }, [selectedImage]);
 
   return (
-    <main className="container mx-auto p-4 max-w-7xl">
+    <main className="mb-2">
       <h1 className="text-2xl md:text-3xl font-semibold text-[#10375c] mb-6">Add New Venue</h1>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -478,11 +557,11 @@ const Page = () => {
             <button
               onClick={handleSave}
               className={`w-full p-3 rounded-full text-white text-sm font-medium ${
-                isSaveDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-[#10375c]"
+                isSaveDisabled || isUploading ? "bg-gray-400 cursor-not-allowed" : "bg-[#10375c]"
               }`}
-              disabled={isSaveDisabled}
+              disabled={isSaveDisabled || isUploading}
             >
-              Save
+              {isUploading ? "Uploading..." : "Save"}
             </button>
           </div>
         </div>
@@ -620,6 +699,34 @@ const Page = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div className="bg-[#f2f2f4] rounded-2xl p-4">
+            <h2 className="text-xl font-medium text-[#172554] mb-4">Timings</h2>
+            <div className="grid grid-cols-3 gap-4 font-semibold text-[#10375C] text-sm border-b border-gray-300 pb-2">
+              <div>Days</div>
+              <div>Opening Hours</div>
+              <div>Closing Hours</div>
+            </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto overflow-custom">
+              {openingHours.map((entry) => (
+                <div key={entry.day} className="grid grid-cols-3 gap-4 items-center text-sm">
+                  <div className="text-[#10375C]">{entry.day}</div>
+                  <input
+                    type="time"
+                    value={entry.hours[0]}
+                    onChange={(e) => handleTimeChange(entry.day, 0, e.target.value)}
+                    className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
+                  />
+                  <input
+                    type="time"
+                    value={entry.hours[1]}
+                    onChange={(e) => handleTimeChange(entry.day, 1, e.target.value)}
+                    className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>
