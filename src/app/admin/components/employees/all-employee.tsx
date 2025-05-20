@@ -10,6 +10,8 @@ import useSWR from "swr";
 import { getAllEmployees, updateEmployee } from "@/services/admin-services";
 import TablePagination from "@/app/components/TablePagination";
 import { toast } from "sonner";
+import { generateSignedUrlForEmployee, deleteFileFromS3 } from "@/actions";
+import { getImageClientS3URL } from "@/config/axios";
 
 const games = ["Working", "Ex-Employee"];
 const sortOptions = [
@@ -30,6 +32,7 @@ interface Employee {
   email: string;
   phoneNumber: string;
   image?: string;
+  profilePic?: string;
 }
 
 interface EmployeesResponse {
@@ -86,6 +89,9 @@ const AllEmployeeComponent = () => {
   };
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [previousImageKey, setPreviousImageKey] = useState<string | null>(null);
   const [dropdownStates, setDropdownStates] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
@@ -123,14 +129,57 @@ const AllEmployeeComponent = () => {
     };
   }, []);
 
+  const uploadImageToS3 = async (file: File): Promise<string> => {
+    try {
+      setIsUploading(true);
+      const timestamp = Date.now();
+      const fileName = `${timestamp}-${file.name}`;
+
+      // Generate signed URL for S3 upload
+      const { signedUrl, key } = await generateSignedUrlForEmployee(
+        fileName,
+        file.type
+      );
+
+      // Upload the file to S3
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload image to S3");
+      }
+
+      return key;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (selectedImage) {
+      // If the current image is a local object URL, revoke it
+      if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
         URL.revokeObjectURL(selectedImage);
       }
+
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
+      setImageFile(file);
+
+      // Store the previous image key if it's an S3 image
+      if (selectedEmployee?.profilePic && typeof selectedEmployee.profilePic === 'string' && selectedEmployee.profilePic.startsWith('employees/')) {
+        setPreviousImageKey(selectedEmployee.profilePic);
+      }
     }
   };
 
@@ -145,10 +194,23 @@ const AllEmployeeComponent = () => {
     setSelectedEmployee(employee);
     setEditFormData({
       ...employee,
-      image: employee.image || "",
+      image: employee.profilePic || "",
     });
-    setSelectedImage(employee.image || null);
-    setOriginalFormData({ ...employee, image: employee.image || "" });
+
+    // Reset image file and previous image key
+    setImageFile(null);
+
+    // Handle S3 image URLs
+    if (employee.profilePic && employee.profilePic.startsWith('employees/')) {
+      setPreviousImageKey(employee.profilePic);
+      const imageUrl = getImageClientS3URL(employee.profilePic);
+      setSelectedImage(imageUrl);
+    } else {
+      setPreviousImageKey(null);
+      setSelectedImage(employee.profilePic || null);
+    }
+
+    setOriginalFormData({ ...employee, image: employee.profilePic || "" });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,12 +244,19 @@ const AllEmployeeComponent = () => {
 
   const hasChanges = () => {
     if (!originalFormData) return false;
+
+    // Check if the image has changed
+    const imageChanged = selectedImage !== null &&
+      (selectedImage !== originalFormData.image &&
+       selectedImage !== getImageClientS3URL(originalFormData.image || ""));
+
     return (
       editFormData.fullName !== originalFormData.fullName ||
       editFormData.email !== originalFormData.email ||
       editFormData.phoneNumber !== originalFormData.phoneNumber ||
       editFormData.status !== originalFormData.status ||
-      (selectedImage !== null && selectedImage !== originalFormData.image)
+      imageChanged ||
+      imageFile !== null
     );
   };
 
@@ -204,13 +273,42 @@ const AllEmployeeComponent = () => {
     }
 
     setLoading(true);
+    setIsUploading(true);
+
     try {
+      // Handle image upload if there's a new image file
+      let finalImageKey = previousImageKey;
+
+      if (imageFile) {
+        try {
+          // Upload the new image to S3
+          finalImageKey = await uploadImageToS3(imageFile);
+
+          // Delete the previous image from S3 if it exists
+          if (previousImageKey) {
+            try {
+              await deleteFileFromS3(previousImageKey);
+              console.log("Previous image deleted:", previousImageKey);
+            } catch (deleteError) {
+              console.error("Error deleting previous image:", deleteError);
+              // Continue with the save process even if deletion fails
+            }
+          }
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          toast.error("Failed to upload image");
+          setLoading(false);
+          setIsUploading(false);
+          return;
+        }
+      }
+
       const payload = {
         fullName: editFormData.fullName,
         email: editFormData.email,
         phoneNumber: editFormData.phoneNumber,
         status: editFormData.status,
-        image: selectedImage || undefined,
+        profilePic: finalImageKey || undefined,
         id: selectedEmployee?._id,
       };
 
@@ -218,20 +316,47 @@ const AllEmployeeComponent = () => {
 
       if (response?.status === 200) {
         toast.success("Employee updated successfully");
+
+        // Clean up local image URL if it exists
+        if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
+          URL.revokeObjectURL(selectedImage);
+        }
+
+        // Update the UI with the new image
+        let displayImage = finalImageKey;
+        if (finalImageKey && finalImageKey.startsWith('employees/')) {
+          displayImage = getImageClientS3URL(finalImageKey);
+        }
+
         mutate();
         setSelectedEmployee({
           ...selectedEmployee,
           ...payload,
-          image: selectedImage || undefined,
+          profilePic: finalImageKey || undefined,
         });
-        setOriginalFormData({ ...editFormData, image: selectedImage || undefined });
+        setSelectedImage(displayImage);
+        setImageFile(null);
+        setPreviousImageKey(finalImageKey);
+        setOriginalFormData({ ...editFormData, image: finalImageKey || undefined });
       } else {
         toast.error("Failed to update employee");
+
+        // If employee update failed but we uploaded a new image, delete it
+        if (imageFile && finalImageKey && finalImageKey !== previousImageKey) {
+          try {
+            await deleteFileFromS3(finalImageKey);
+            console.log("Uploaded image deleted after failed update:", finalImageKey);
+          } catch (deleteError) {
+            console.error("Error deleting uploaded image:", deleteError);
+          }
+        }
       }
     } catch (error) {
+      console.error("Error updating employee:", error);
       toast.error("Something went wrong");
     } finally {
       setLoading(false);
+      setIsUploading(false);
     }
   };
 
@@ -362,7 +487,16 @@ const AllEmployeeComponent = () => {
                       selectedEmployee?._id === employee._id ? "text-white" : "text-[#1b2229]"
                     }`}
                   >
-                    <Image src={AlexParker} alt="Avatar" className="rounded-full" width={25} height={25} unoptimized />
+                    <Image
+                      src={employee.profilePic && employee.profilePic.startsWith('employees/')
+                        ? getImageClientS3URL(employee.profilePic)
+                        : employee.profilePic || AlexParker}
+                      alt="Avatar"
+                      className="rounded-full"
+                      width={25}
+                      height={25}
+                      unoptimized
+                    />
                     <span className="md:hidden font-bold">Name: </span> {employee.fullName}
                   </div>
 
@@ -434,8 +568,19 @@ const AllEmployeeComponent = () => {
             <label className="absolute bottom-2 right-2 h-12 px-4 py-2 flex bg-white rounded-full items-center gap-2 cursor-pointer">
               <Edit1 />
               <span className="text-black text-sm font-medium">Change Image</span>
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+                disabled={!selectedEmployee || isUploading || loading}
+              />
             </label>
+            {isUploading && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-[10px]">
+                <div className="text-white">Uploading...</div>
+              </div>
+            )}
           </div>
 
           <div className="w-full rounded-[20px] mt-4">
@@ -516,11 +661,11 @@ const AllEmployeeComponent = () => {
             <button
               className="w-full h-12 bg-[#10375c] rounded-full text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               onClick={handleSave}
-              disabled={!selectedEmployee || loading || !hasChanges()}
+              disabled={!selectedEmployee || loading || isUploading || !hasChanges()}
             >
-              {loading ? (
+              {loading || isUploading ? (
                 <svg
-                  className="animate-spin h-5 w-5 text-white"
+                  className="animate-spin h-5 w-5 text-white mr-2"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -532,9 +677,8 @@ const AllEmployeeComponent = () => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   ></path>
                 </svg>
-              ) : (
-                "Save"
-              )}
+              ) : null}
+              {isUploading ? "Uploading..." : loading ? "Saving..." : "Save"}
             </button>
           </div>
         </div>

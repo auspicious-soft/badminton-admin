@@ -8,18 +8,9 @@ import { UpArrowIcon } from "@/utils/svgicons";
 import { toast } from "sonner";
 import { createEmployee } from "@/services/admin-services";
 import { useRouter } from "next/navigation";
+import { generateSignedUrlForEmployee, deleteFileFromS3 } from "@/actions";
 
 const games = ["Working", "Ex-Employee"];
-
-interface OptionType {
-  value: string;
-  label: string;
-}
-
-const options: OptionType[] = [
-  { value: "Ex-Employee", label: "Ex-Employee" },
-  { value: "Working", label: "Working" },
-];
 
 const AddEmployee = () => {
   const [formData, setFormData] = useState({
@@ -30,6 +21,8 @@ const AddEmployee = () => {
     phoneNumber: ""
   });
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [gameDropdown, setGameDropdown] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // New state for password visibility
   const [isPending, startTransition] = useTransition();
@@ -64,11 +57,48 @@ const AddEmployee = () => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (selectedImage) {
+      // If the current image is a local object URL, revoke it
+      if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
         URL.revokeObjectURL(selectedImage);
       }
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
+      setImageFile(file);
+    }
+  };
+
+  const uploadImageToS3 = async (file: File): Promise<string> => {
+    try {
+      setIsUploading(true);
+      const timestamp = Date.now();
+      const fileName = `${timestamp}-${file.name}`;
+
+      // Generate signed URL for S3 upload
+      const { signedUrl, key } = await generateSignedUrlForEmployee(
+        fileName,
+        file.type
+      );
+
+      // Upload the file to S3
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload image to S3");
+      }
+
+      return key;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+      throw error;
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -76,37 +106,83 @@ const AddEmployee = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isPhoneValid) {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
-    startTransition(async () => {
-      try {
-        const payload = {
-          fullName: formData.name,
-          email: formData.email,
-          status: formData.status,
-          password: formData.password,
-          phoneNumber: formData.phoneNumber,
-          image: selectedImage || undefined,
-        };
-        const response = await createEmployee("/admin/create-employee", payload);
-        if (response?.status === 200 || response?.status === 201) {
-          toast.success("Employee created successfully");
-          setFormData({ name: "", email: "", status: "", password: "", phoneNumber: "" });
-          if (selectedImage) {
-            URL.revokeObjectURL(selectedImage);
-            setSelectedImage(null);
-          }
-          router.push("/admin/employees");
-        } else {
-          toast.error("Failed to create employee");
-        }
-      } catch (error) {
-        toast.error("Something went wrong");
+
+    setIsUploading(true);
+
+    try {
+      // Upload image to S3 if available
+      let finalImageKey = null;
+
+      if (imageFile) {
+        finalImageKey = await uploadImageToS3(imageFile);
       }
-    });
+
+      startTransition(async () => {
+        try {
+          const payload = {
+            fullName: formData.name,
+            email: formData.email,
+            status: formData.status,
+            password: formData.password,
+            phoneNumber: formData.phoneNumber,
+            profilePic: finalImageKey || undefined,
+          };
+
+          const response = await createEmployee("/admin/create-employee", payload);
+
+          if (response?.status === 200 || response?.status === 201) {
+            toast.success("Employee created successfully");
+            setFormData({ name: "", email: "", status: "", password: "", phoneNumber: "" });
+
+            // Clean up local image URL if it exists
+            if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
+              URL.revokeObjectURL(selectedImage);
+            }
+
+            setSelectedImage(null);
+            setImageFile(null);
+
+            router.push("/admin/employees");
+          } else {
+            toast.error("Failed to create employee");
+
+            // If employee creation failed but we uploaded an image, delete it
+            if (finalImageKey) {
+              try {
+                await deleteFileFromS3(finalImageKey);
+              } catch (error) {
+                console.error("Failed to delete uploaded image:", error);
+              }
+            }
+
+            setIsUploading(false);
+          }
+        } catch (error) {
+          console.error("Error creating employee:", error);
+          toast.error("Something went wrong");
+
+          // If an error occurred but we uploaded an image, delete it
+          if (finalImageKey) {
+            try {
+              await deleteFileFromS3(finalImageKey);
+            } catch (deleteError) {
+              console.error("Failed to delete uploaded image:", deleteError);
+            }
+          }
+
+          setIsUploading(false);
+        }
+      });
+    } catch (error) {
+      console.error("Error in image upload:", error);
+      toast.error("Failed to upload image");
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -135,8 +211,19 @@ const AddEmployee = () => {
             <label className="absolute bottom-2 right-2 h-12 px-4 py-2 flex bg-white rounded-full items-center gap-2 cursor-pointer">
               <Edit1 />
               <span className="text-[#1C2329] text-sm font-medium">Change Image</span>
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+                disabled={isUploading || isPending}
+              />
             </label>
+            {isUploading && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-[10px]">
+                <div className="text-white">Uploading...</div>
+              </div>
+            )}
           </div>
 
           <div className="w-full rounded-[20px] mt-4">
@@ -231,14 +318,14 @@ const AddEmployee = () => {
           <button
             className="w-full h-12 bg-black rounded-full text-white text-sm font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSubmit}
-            disabled={isPending || !isFormValid}
+            disabled={isPending || isUploading || !isFormValid}
           >
-            {isPending ? (
+            {isPending || isUploading ? (
               <Loading />
             ) : null}
-            {isPending ? 'Saving...' : 'Save'}
+            {isPending || isUploading ? 'Uploading...' : 'Save'}
           </button>
-          
+
         </div>
       </div>
     </>
