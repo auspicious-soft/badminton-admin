@@ -903,7 +903,7 @@ const Page = () => {
             </div>
             <div className="mb-[8px] h-[0px] border border-[#d0d0d0]"></div>
 
-            {venueData.matches.map((match, index) => (
+            {venueData?.matches?.map((match, index) => (
               <div
                 key={match.id}
                 className={`w-full min-w-[600px] cursor-pointer flex items-center h-[47px] px-2 py-3 rounded-[10px] ${
