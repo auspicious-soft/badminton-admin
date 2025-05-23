@@ -29,13 +29,11 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, on
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     const { data: venueData } = useSWR("admin/venue-list", getVenueForMaintenance);
-    console.log('venueData: ', venueData?.data?.data);
 
     const { data: courtData } = useSWR(
         selectedVenue ? `admin/court-list?venueId=${selectedVenue}` : null,
         getCourtForMaintenance
     );
-    console.log('courtData: ', courtData?.data?.data);
 
     const { register, handleSubmit, control, formState: { errors }, reset, watch } = useForm({
         resolver: yupResolver(maintenanceSchema),
