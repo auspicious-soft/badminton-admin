@@ -61,6 +61,23 @@ export const generateSignedUrlToUploadOn = async (fileName: string, fileType: st
     throw error;
   }
 };
+
+export const generateSignedUrlForProfile = async (fileName: string, fileType: string) => {
+  const uploadParams = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: `profiles/${fileName}`,
+    ContentType: fileType,
+    acl: "public-read",
+  };
+  try {
+    const command = new PutObjectCommand(uploadParams);
+    const signedUrl = await getSignedUrl(await createS3Client(), command);
+    return { signedUrl, key: uploadParams.Key };
+  } catch (error) {
+    console.error("Error generating signed URL for profile:", error);
+    throw error;
+  }
+};
 export const generateSignedUrlForBlog = async (fileName: string, fileType: string) => {
   const uploadParams = {
     Bucket: process.env.AWS_BUCKET_NAME,
