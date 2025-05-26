@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, User, Menu, X } from "lucide-react";
@@ -35,6 +35,24 @@ export default function Headers() {
  const router = useRouter();
  const pathname = usePathname();
  const isProfileActive = pathname === "/admin/profile";
+ const dropdownRef = useRef(null);
+
+ // Close dropdown when clicking outside
+ useEffect(() => {
+  const handleClickOutside = (event) => {
+   if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    setShowDropdown(false);
+   }
+  };
+
+  if (showDropdown) {
+   document.addEventListener("mousedown", handleClickOutside);
+  }
+
+  return () => {
+   document.removeEventListener("mousedown", handleClickOutside);
+  };
+ }, [showDropdown]);
 
  return (
   <div className="sticky top-0 w-full py-4 px-4 md:px-6 z-50 bg-[#fbfaff] pb-1">
@@ -56,7 +74,7 @@ export default function Headers() {
        ))}
       </nav>
 
-      <div className="flex items-center relative">
+      <div className="flex items-center relative" ref={dropdownRef}>
        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden p-2 rounded-full hover:bg-gray-100 transition-colors">
         {isMobileMenuOpen ? <X className="w-5 h-5 md:w-6 md:h-6" /> : <Menu className="w-5 h-5 md:w-6 md:h-6" />}
        </button>
