@@ -283,7 +283,7 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                     }`}
                   >
                     <Image src={UserProfile} alt="Avatar" className="rounded-full" width={25} height={25} />
-                    {match.team1?.[1]?.userData?.fullName || "N/A"}
+                    {match.team2?.[0]?.userData?.fullName || "N/A"}
                   </div>
                   <div
                     className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${
@@ -339,7 +339,7 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
               </h3>
               <div className="flex justify-between">
                 <p className="text-[#1b2229] text-sm font-medium leading-[16.80px] flex items-center gap-2">
-                  {selectedMatch.venueId?.city || "N/A"}, {selectedMatch.venueId?.state || "N/A"}
+                  {/* {selectedMatch.venueId?.city || "N/A"}, {selectedMatch.venueId?.state || "N/A"} */}
                 </p>
                 <div className="flex gap-[20px]">
                   <div className="flex gap-[10px] text-[#5f6a7c] text-xs font-medium leading-[14.40px]">
