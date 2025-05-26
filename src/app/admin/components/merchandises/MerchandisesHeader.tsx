@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UpArrowIcon, DownArrowIcon, PlusIcon } from "@/utils/svgicons";
 import { useRouter } from "next/navigation";
 
@@ -19,7 +19,26 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
   const [gameDropdown, setGameDropdown] = useState(false);
   const [cityDropdown, setCityDropdown] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const gameDropdownRef = useRef<HTMLDivElement>(null);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (gameDropdownRef.current && !gameDropdownRef.current.contains(event.target as Node)) {
+        setGameDropdown(false);
+      }
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
+        setCityDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   const handleAddProduct = () => {
     router.push('/admin/merchandises/add');
   }
@@ -44,7 +63,7 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
         {selectedTab==="Orders" &&
         <div className="flex gap-[5px] relative">
 
-          <div className="relative">
+          <div className="relative" ref={gameDropdownRef}>
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
               {selectedGame || "Sort"}
               <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
@@ -73,7 +92,7 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
           </div>
 
 
-          <div className="relative w-full ">
+          <div className="relative w-full " ref={cityDropdownRef}>
             <button className="w-[180px] flex justify-between h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setCityDropdown(!cityDropdown)}>
               {selectedCity || "Status"}
               <span className="">

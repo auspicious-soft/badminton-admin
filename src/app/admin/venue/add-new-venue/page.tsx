@@ -167,6 +167,8 @@ const Page = () => {
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const stateDropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedFacilities, setSelectedFacilities] = useState<number[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
@@ -204,6 +206,23 @@ const Page = () => {
   );
 
   const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
+
+  // Click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (stateDropdownRef.current && !stateDropdownRef.current.contains(event.target as Node)) {
+        setStateDropdown(false);
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setStatusDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleToggleCourtStatus = (courtId: string) => {
     setCourts((prev) =>
@@ -522,7 +541,7 @@ const Page = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="relative">
+              <div className="relative" ref={stateDropdownRef}>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">State</label>
                 <button
                   className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
@@ -625,7 +644,7 @@ const Page = () => {
                 />
               </div>
 
-              <div className="relative">
+              <div className="relative" ref={statusDropdownRef}>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">Status</label>
                 <button
                   className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"

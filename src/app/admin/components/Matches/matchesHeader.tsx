@@ -1,28 +1,53 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UpArrowIcon, DownArrowIcon } from "@/utils/svgicons";
 
 const tabs = ["Upcoming", "Previous", "Cancelled"];
-const games = ["Padel", "Pickleball"];
-const cities = ["New York", "Los Angeles", "Chicago", "Houston"];
+const games = ["All", "Padel", "Pickleball"];
+const cities = ["All", "New York", "Los Angeles", "Chicago", "Houston"];
 
 interface MatchesHeaderProps {
   selectedTab: string;
   setSelectedTab: (tab: string) => void;
-  selectedGame:string,
-  setSelectedGame:any,
-  selectedCity:string,
-  setSelectedCity:any,
-  selectedDate:string,
-  setSelectedDate:any
-
+  selectedGame: string,
+  setSelectedGame: any,
+  selectedCity: string,
+  setSelectedCity: any,
+  selectedDate: string,
+  setSelectedDate: any
 }
 
-const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedTab, setSelectedGame ,selectedGame, selectedCity, setSelectedCity, selectedDate, setSelectedDate}) => {
-
+const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedTab, setSelectedGame, selectedGame, selectedCity, setSelectedCity, selectedDate, setSelectedDate }) => {
   const [gameDropdown, setGameDropdown] = useState(false);
   const [cityDropdown, setCityDropdown] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const gameDropdownRef = useRef<HTMLDivElement>(null);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (gameDropdownRef.current && !gameDropdownRef.current.contains(event.target as Node)) {
+        setGameDropdown(false);
+      }
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
+        setCityDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleGameChange = (value: string) => {
+    setSelectedGame(value === "All" ? null : value);
+    setGameDropdown(false);
+  };
+
+  const handleCityChange = (value: string) => {
+    setSelectedCity(value === "All" ? null : value);
+    setCityDropdown(false);
+  };
 
   return (
     <div className="space-y-[10px] relative">
@@ -43,25 +68,21 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
 
         {/* Filters */}
         <div className="flex gap-[5px] relative">
-
-          <div className="relative">
+          <div className="relative" ref={gameDropdownRef}>
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
               {selectedGame || "Game"}
               <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
             </button>
             {gameDropdown && (
-              <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-0  p-[20px] w-[168px] h-[81px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+              <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-0 p-[20px] w-[168px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
                 {games.map((game) => (
-                  <label key={game} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium ">
+                  <label key={game} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
                     <input
                       type="radio"
                       name="game"
                       value={game}
-                      checked={selectedGame === game}
-                      onChange={(e) => {
-                        setSelectedGame(e.target.value);
-                        setGameDropdown(false);
-                      }}
+                      checked={(game === "All" && !selectedGame) || selectedGame === game}
+                      onChange={(e) => handleGameChange(e.target.value)}
                       className="bg-[#1b2229]"
                     />
                     {game}
@@ -70,13 +91,12 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
               </div>
             )}
           </div>
-          
 
           <div className="relative" onClick={() => dateInputRef.current?.showPicker()}>
             <button className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] w-full flex items-center justify-between">
               {selectedDate || "Select Date"}
               <span className="ml-2">
-              {dateInputRef.current ? <DownArrowIcon /> : <UpArrowIcon />}
+                {dateInputRef.current?.showPicker ? <DownArrowIcon /> : <UpArrowIcon />}
               </span>
             </button>
             <input
@@ -90,35 +110,31 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
             />
           </div>
 
-          <div className="relative">
+          {/* <div className="relative" ref={cityDropdownRef}>
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setCityDropdown(!cityDropdown)}>
               {selectedCity || "City"}
               <span className="ml-2">
-              {!cityDropdown ? <DownArrowIcon /> : <UpArrowIcon />}
+                {!cityDropdown ? <DownArrowIcon /> : <UpArrowIcon />}
               </span>
             </button>
             {cityDropdown && (
-              <div className="z-50 flex flex-col gap-[5px] absolute top-12 right-2  p-[20px] w-[160px] h-[100] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+              <div className="z-50 flex flex-col gap-[5px] absolute top-12 right-2 p-[20px] w-[160px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
                 {cities.map((city) => (
                   <label key={city} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
                     <input
                       type="radio"
                       name="city"
                       value={city}
-                      checked={selectedCity === city}
-                      onChange={(e) => {
-                        setSelectedCity(e.target.value);
-                        setCityDropdown(false);
-                      }}
+                      checked={(city === "All" && !selectedCity) || selectedCity === city}
+                      onChange={(e) => handleCityChange(e.target.value)}
                       className="mr-2"
                     />
                     {city}
-                    <span className="ml-2"></span>
                   </label>
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
@@ -126,130 +142,3 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
 };
 
 export default MatchesHeader;
-
-// "use client";
-// import { useState, useRef } from "react";
-
-// const tabs = ["Upcoming", "Previous", "Cancelled"];
-// const games = ["Padel", "Pickleball"];
-// const cities = ["New York", "Los Angeles", "Chicago", "Houston"];
-
-// interface MatchesHeaderProps {
-//   selectedTab: string;
-//   setSelectedTab: (tab: string) => void;
-// }
-
-// const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedTab }) => {
-//   const [selectedGame, setSelectedGame] = useState("");
-//   const [selectedCity, setSelectedCity] = useState("");
-//   const [selectedDate, setSelectedDate] = useState("");
-//   const [gameDropdown, setGameDropdown] = useState(false);
-//   const [cityDropdown, setCityDropdown] = useState(false);
-//   const dateInputRef = useRef<HTMLInputElement>(null);
-
-//   return (
-//     <div className="space-y-[10px] relative">
-//       <p className="text-[#10375c] text-3xl font-semibold">Matches</p>
-//       <div className="flex justify-between">
-//         {/* Tabs */}
-//         <div className="bg-white rounded-[44px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)] justify-start items-start inline-flex">
-//           {tabs.map((tab) => (
-//             <button
-//               key={tab}
-//               className={`h-10 px-5 py-3 rounded-[28px] justify-center items-center inline-flex ${
-//                 selectedTab === tab ? "bg-[#1b2229] text-white" : "bg-white"
-//               }`}
-//               onClick={() => setSelectedTab(tab)}
-//             >
-//               {tab}
-//             </button>
-//           ))}
-//         </div>
-
-//         {/* Filters */}
-//         <div className="flex gap-[5px] relative">
-//           <div className="relative">
-//             <button
-//               className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] flex items-center justify-between"
-//               onClick={() => setGameDropdown(!gameDropdown)}
-//             >
-//               {selectedGame || "Game"}
-//               <span className="ml-2">▼</span>
-//             </button>
-//             {gameDropdown && (
-//               <div className="absolute top-12 left-0 bg-white p-2 rounded-md shadow-md">
-//                 {games.map((game) => (
-//                   <label key={game} className="block px-2 py-1 cursor-pointer">
-//                     <input
-//                       type="radio"
-//                       name="game"
-//                       value={game}
-//                       checked={selectedGame === game}
-//                       onChange={(e) => {
-//                         setSelectedGame(e.target.value);
-//                         console.log("Selected Game:", e.target.value);
-//                         setGameDropdown(false);
-//                       }}
-//                       className="mr-2"
-//                     />
-//                     {game}
-//                   </label>
-//                 ))}
-//               </div>
-//             )}
-//           </div>
-
-//           <div className="relative" onClick={() => dateInputRef.current?.showPicker()}>
-//             <button className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] w-full flex items-center justify-between">
-//               {selectedDate || "Select Date"}
-//               <span className="ml-2">📅</span>
-//             </button>
-//             <input
-//               ref={dateInputRef}
-//               type="date"
-//               className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-//               value={selectedDate}
-//               onChange={(e) => {
-//                 setSelectedDate(e.target.value);
-//                 console.log("Selected Date:", e.target.value);
-//               }}
-//             />
-//           </div>
-
-//           <div className="relative">
-//             <button
-//               className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] flex items-center justify-between"
-//               onClick={() => setCityDropdown(!cityDropdown)}
-//             >
-//               {selectedCity || "City"}
-//               <span className="ml-2">▼</span>
-//             </button>
-//             {cityDropdown && (
-//               <div className="absolute top-12 left-0 bg-white p-2 rounded-md shadow-md">
-//                 {cities.map((city) => (
-//                   <label key={city} className="block px-2 py-1 cursor-pointer">
-//                     <input
-//                       type="radio"
-//                       name="city"
-//                       value={city}
-//                       checked={selectedCity === city}
-//                       onChange={(e) => {
-//                         setSelectedCity(e.target.value);
-//                         console.log("Selected City:", e.target.value);
-//                         setCityDropdown(false);
-//                       }}
-//                       className="mr-2"
-//                     />
-//                     {city}
-//                   </label>
-//                 ))}
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default MatchesHeader;

@@ -12,9 +12,7 @@ export const loginAction = async (payload: any) => {
   console.log('loginAction payload: ', payload);
   try {
     const res: any = await loginService(payload);
-    console.log('res: ', res);
     const user = res?.data?.data?.user;
-    console.log('user: ', user);
     if (res && res?.data?.success) {
       await signIn("credentials", {
         fullName:  res?.data?.data?.user?.fullName,

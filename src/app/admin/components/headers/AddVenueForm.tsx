@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -64,6 +64,7 @@ const AddVenueForm = () => {
  const [imagePreview, setImagePreview] = useState(null);
  const [gameDropdown, setGameDropdown] = useState(false);
  const [selectedGame, setSelectedGame] = useState("");
+ const gameDropdownRef = useRef<HTMLDivElement>(null);
 
  const status = ["Active", "Inactive"];
  const [isActive, setIsActive] = useState(false);
@@ -99,6 +100,20 @@ const AddVenueForm = () => {
    }
   };
  }, [imagePreview]);
+
+ // Click outside to close dropdown
+ useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+   if (gameDropdownRef.current && !gameDropdownRef.current.contains(event.target as Node)) {
+    setGameDropdown(false);
+   }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+   document.removeEventListener("mousedown", handleClickOutside);
+  };
+ }, []);
 
  const handleGamesChange = (selectedOptions) => {
   setSelectedGames(selectedOptions || []);
@@ -222,7 +237,7 @@ const AddVenueForm = () => {
                                 placeholder="Enter status"
                             /> */}
 
-       <div className="relative">
+       <div className="relative" ref={gameDropdownRef}>
         <button className="w-full flex justify-between h-10h-[45px] px-[15px] py-2.5 bg-white rounded-[39px] text-black/60 text-xs font-medium " onClick={() => setGameDropdown(!gameDropdown)}>
          {selectedGame || "Status"}
          <span className="">{!gameDropdown ? <DownArrowIcon stroke="#1b2229" /> : <UpArrowIcon stroke="#1b2229" />}</span>

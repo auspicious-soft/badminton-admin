@@ -6,11 +6,11 @@ import * as yup from "yup";
 import Image from "next/image";
 import { CrossIcon, DeleteProductIcon, EditIcon, Loading } from "@/utils/svgicons";
 import NoImage from "@/assets/images/nofile.png";
-import { createMerchandise } from "@/services/admin-services";
+import { createMerchandise, getMerchandise } from "@/services/admin-services";
 import { generateSignedUrlToUploadOn } from "@/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
+import useSWR from "swr";
 // Validation schema using Yup
 const schema = yup.object().shape({
   productName: yup.string().required("Product name is required"),
@@ -89,10 +89,18 @@ const AddProductForm = () => {
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
 
   // Mock venue data (replace with actual data from your API/backend)
-  const venues = [
-    { id: "681c6bb7083d124cc5e35c63", name: "Venue 1" },
-    { id: "681c6b66083d124cc5e35c0d", name: "Venue 2" },
-  ];
+   const { data: DATA1 } = useSWR(`admin/get-venues`, getMerchandise);
+
+  // Map venues from API data
+  const venues = DATA1?.data?.data
+    ? DATA1.data.data.map((venue) => ({
+        id: venue._id,
+        name: venue.name,
+        city: venue.city,
+        state: venue.state,
+        image: venue.image,
+      }))
+    : [];
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;

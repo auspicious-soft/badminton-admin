@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Human from "@/assets/images/Human.png";
 import { EyeIcon, DownArrowIcon, UpArrowIcon } from "@/utils/svgicons";
@@ -10,20 +10,26 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { getAllUser } from "@/services/admin-services";
 
-const games = ["Padel", "Pickleball"];
+const games = [
+  { label: "Default", value: null },
+  { label: "Alphabetically", value: "fullName" },
+  { label: "Newest", value: "createdAt" }
+];
 
 export default function UsersComponent() {
   const router = useRouter();
+  const dropdownRef = useRef(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchParams, setSearchParams] = useState("");
-  const [selectedGame, setSelectedGame] = useState("");
+  const [selectedGame, setSelectedGame] = useState(null);
+
   const [gameDropdown, setGameDropdown] = useState(false);
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
 
   // Fetch data with SWR
   const { data, isLoading, error } = useSWR(
-    `/admin/get-users?search=${searchParams}&page=${page}&limit=${itemsPerPage}`,
+    `/admin/get-users?search=${searchParams}&page=${page}&limit=${itemsPerPage}&sortBy=${selectedGame || ""}`,
     getAllUser
   );
 
@@ -36,12 +42,26 @@ export default function UsersComponent() {
 
 
 
-  // Set the first user as selected when users data is loaded
+  // Set the first user as selected when users data is loaded or page changes
   useEffect(() => {
-    if (users.length > 0 && !selectedUser) {
+    if (users.length > 0) {
       setSelectedUser(users[0]);
     }
-  }, [users, selectedUser]);
+  }, [users]);
+
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setGameDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -58,35 +78,35 @@ export default function UsersComponent() {
 
   return (
     <>
-      <div className="flex w-full lg:w-2/3 justify-between mb-[15px]">
+      <div className="h-fit flex w-full lg:w-2/3 justify-between mb-[15px]">
         <div className="text-[#10375c] text-3xl font-semibold">Users</div>
-        <div className="relative lg:mr-[15px]">
+        <div className="relative lg:mr-[15px]" ref={dropdownRef}>
           <button
             className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]"
             onClick={() => setGameDropdown(!gameDropdown)}
           >
-            {selectedGame || "Sort"}
+            {games.find(game => game.value === selectedGame)?.label || "Sort"}
             <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
           </button>
           {gameDropdown && (
             <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-0 p-[20px] w-[168px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
               {games?.map((game) => (
                 <label
-                  key={game}
+                  key={game.label}
                   className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium"
                 >
                   <input
                     type="radio"
                     name="game"
-                    value={game}
-                    checked={selectedGame === game}
-                    onChange={(e) => {
-                      setSelectedGame(e.target.value);
+                    value={game.value || ""}
+                    checked={selectedGame === game.value}
+                    onChange={() => {
+                      setSelectedGame(game.value);
                       setGameDropdown(false);
                     }}
                     className="bg-[#1b2229]"
                   />
-                  {game}
+                  {game.label}
                 </label>
               ))}
             </div>
@@ -95,7 +115,7 @@ export default function UsersComponent() {
       </div>
       <div className="flex flex-col lg:flex-row w-full rounded-[20px] gap-6 mb-[40px]">
         {/* Left Panel: User List */}
-        <div className="w-full lg:w-2/3 bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto">
+        <div className={`w-full ${users.length === 0 ? 'lg:w-full' : 'lg:w-2/3'} bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto`}>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-[#10375c] text-xl font-semibold">Users</h2>
             <SearchBar setQuery={setSearchParams} query={searchParams} />
@@ -170,6 +190,7 @@ export default function UsersComponent() {
               )}
             </div>
             {/* Pagination */}
+            {users.length !== 0 &&
             <div className="mt-4 flex justify-end gap-2">
               <TablePagination
                 setPage={handlePageChange}
@@ -181,10 +202,12 @@ export default function UsersComponent() {
                 // hasPreviousPage={hasPreviousPage}
               />
             </div>
+}
           </div>
         </div>
 
-        {/* Right Panel: User Details */}
+        {/* Right Panel: User Details - Only show when users exist */}
+        {users.length > 0 && (
         <div className="flex flex-col w-full lg:w-1/3 gap-[24px] h-full justify-between">
           <div className="bg-[#f2f2f4] shadow-md rounded-[20px] relative">
             {selectedUser ? (
@@ -337,6 +360,7 @@ export default function UsersComponent() {
             View More Details
           </button>
         </div>
+        )}
       </div>
     </>
   );

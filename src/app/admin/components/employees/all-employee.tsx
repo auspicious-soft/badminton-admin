@@ -56,7 +56,7 @@ const AllEmployeeComponent = () => {
   const [selectedStatus, setSelectedStatus] = useState(false);
   const [searchParams, setSearchParams] = useState("");
   const [page, setPage] = useState(1);
-  const itemsPerPage = 11;
+  const itemsPerPage = 6;
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [editFormData, setEditFormData] = useState<Employee>({
     _id: "",
@@ -444,9 +444,9 @@ const AllEmployeeComponent = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 mb-3">
         {/* Left Side - Employee List */}
-        <div className="w-full lg:w-2/3 bg-[#f2f2f4] rounded-[20px] p-4 md:p-6 h-auto lg:h-[657px] overflow-auto">
+        <div className="w-full h-fit lg:w-2/3 bg-[#f2f2f4] rounded-[20px] p-4 md:p-6  overflow-auto">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
             <h2 className="text-[#10375c] text-lg md:text-xl font-medium">All Employees</h2>
             <div className="w-full sm:w-auto mt-2 sm:mt-0">
@@ -462,7 +462,7 @@ const AllEmployeeComponent = () => {
             <div className="w-[20%] text-left">Phone Number</div>
             <div className="w-[5%] text-right pr-2 ">Action</div>
           </div>
-          <div className="hidden md:block border-t border-[#d0d0d0] mb-2"></div>
+          <div className="hidden md:block border-t border-[#d0d0d0]  mb-2"></div>
           {isLoading ? (
             <p className="text-center text-[#10375c] py-4">Loading...</p>
           ) : employees.length === 0 ? (
@@ -473,7 +473,7 @@ const AllEmployeeComponent = () => {
               {employees.map((employee: Employee, index: number) => (
                 <div
                   key={employee._id}
-                  className={`w-full cursor-pointer flex flex-col md:flex-row items-start md:items-center p-3 rounded-[10px] mb-2 ${
+                  className={`w-full cursor-pointer flex flex-col md:flex-row  items-start md:items-center p-3 rounded-[10px] mb-2 ${
                     selectedEmployee?._id === employee._id
                       ? "bg-[#176dbf] text-white"
                       : index % 2 === 0

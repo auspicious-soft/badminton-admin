@@ -93,14 +93,14 @@ const Page = () => {
 
       {/* Pagination */}
       <div className="my-4 flex justify-end gap-2">
-        {/* {totalVenues > itemsPerPage && ( */}
+        {venues.length !== 0 && (
           <TablePagination
             setPage={handlePageChange}
             page={page}
             totalData={totalVenues}
             itemsPerPage={itemsPerPage}
           />
-        {/* )} */}
+          )} 
       </div>
     </>
   );

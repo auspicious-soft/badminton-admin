@@ -76,7 +76,7 @@ export default function InventoryComponent() {
       <div className="flex flex-col lg:flex-row w-full rounded-[20px] gap-6 mb-[40px]">
         {/* Left Panel: Product List */}
         <div
-          className={`w-full ${
+          className={`w-full  h-fit ${
             inventoryData.length > 0 ? "lg:w-2/3" : "lg:w-full"
           } bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto`}
         >

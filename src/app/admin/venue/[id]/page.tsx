@@ -194,6 +194,8 @@ const Page = () => {
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const stateDropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
@@ -226,6 +228,23 @@ const Page = () => {
   );
 
   const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
+
+  // Click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (stateDropdownRef.current && !stateDropdownRef.current.contains(event.target as Node)) {
+        setStateDropdown(false);
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setStatusDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const venueDataValue = data?.data?.data || {};
@@ -656,7 +675,7 @@ const Page = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="relative">
+              <div className="relative" ref={stateDropdownRef}>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">
                   State
                 </label>
@@ -774,7 +793,7 @@ const Page = () => {
                 />
               </div>
 
-              <div className="relative">
+              <div className="relative" ref={statusDropdownRef}>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">
                   Status
                 </label>
