@@ -51,7 +51,7 @@ const TextEditor = ({ value = "", setDescription }: TextEditorProps) => {
 
   return (
     <Editor
-      apiKey="cn7fp4jgljz9ci9zxpjsxt8kyi7i4370grt9ktu6lxke03eo"
+      apiKey="bfiif5l897h0tnz5633ntzuzxtnccbq360798pls2ilxjs0o"
       value={editorContent}
       onInit={(evt, editor) => {
         editorRef.current = editor;
