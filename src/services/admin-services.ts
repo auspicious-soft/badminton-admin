@@ -93,6 +93,10 @@ export const getAllMatches = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
+export const getAllCities = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
 // export const getUserDetails = async (route: string) => {
 //     const axiosInstance = await getAxiosInstance()
 //     return axiosInstance.get(route)
@@ -193,6 +197,25 @@ export const addBookEventFormData = async (route: string, payload: any) => {
 export const addBlogFormData = async (route: string, payload: any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route, payload)
+}
+
+//--------------Admin Settings ---------------
+export const updateAdminSettings = async (payload: any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post('/admin/admin-settings', payload)
+}
+export const getAdminSettings = async () => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get('/admin/admin-settings')
+}
+//--------------Terms&Conditions Settings ---------------
+export const postTermsSettings = async (route:string ,payload: any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route, payload)
+}
+export const getTermsSettings = async (route: any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route)
 }
 
 

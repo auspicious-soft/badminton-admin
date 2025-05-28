@@ -9,6 +9,8 @@ import TablePagination from "../TablePagination";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { getAllUser } from "@/services/admin-services";
+import UserProfile2 from "@/assets/images/images.png";
+import { getImageClientS3URL } from "@/config/axios";
 
 const games = [
   { label: "Default", value: null },
@@ -138,47 +140,42 @@ export default function UsersComponent() {
                 users?.map((user, index) => (
                   <div
                     key={user._id}
-                    className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${
-                      selectedUser?._id === user._id
+                    className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedUser?._id === user._id
                         ? "bg-[#176dbf] text-white"
                         : index % 2 === 0
-                        ? "bg-white"
-                        : "bg-gray-200"
-                    }`}
+                          ? "bg-white"
+                          : "bg-gray-200"
+                      }`}
                     onClick={() => setSelectedUser(user)}
                   >
                     <div
-                      className={`w-1/4 flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${
-                        selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"
-                      }`}
+                      className={`w-1/4 flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"
+                        }`}
                     >
                       <Image
-                        src={UserProfileImage}
+                        src={user.profilePic ? getImageClientS3URL(user.profilePic) : UserProfile2}
                         alt="Avatar"
-                        className="rounded-full"
+                        className="rounded-full w-[25px] h-[25px] object-cover"
                         width={25}
                         height={25}
                       />
                       {user.fullName || "N/A"}
                     </div>
                     <div
-                      className={`w-[15%] text-[#1b2229] text-xs text-center font-medium ${
-                        selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"
-                      }`}
+                      className={`w-[15%] text-[#1b2229] text-xs text-center font-medium ${selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"
+                        }`}
                     >
                       {user.level || "0000"}
                     </div>
                     <div
-                      className={`w-[35%] text-[#1b2229] break-words text-xs font-medium ${
-                        selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"
-                      }`}
+                      className={`w-[35%] text-[#1b2229] break-words text-xs font-medium ${selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"
+                        }`}
                     >
                       {user.email || "N/A"}
                     </div>
                     <div
-                      className={`w-[20%] text-[#1b2229] text-center flex-wrap text-xs font-medium ${
-                        selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"
-                      }`}
+                      className={`w-[20%] text-[#1b2229] text-center flex-wrap text-xs font-medium ${selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"
+                        }`}
                     >
                       {user.phoneNumber || "N/A"}
                     </div>
@@ -191,175 +188,177 @@ export default function UsersComponent() {
             </div>
             {/* Pagination */}
             {users.length !== 0 &&
-            <div className="mt-4 flex justify-end gap-2">
-              <TablePagination
-                setPage={handlePageChange}
-                page={page}
-                totalData={total}
-                itemsPerPage={itemsPerPage}
+              <div className="mt-4 flex justify-end gap-2">
+                <TablePagination
+                  setPage={handlePageChange}
+                  page={page}
+                  totalData={total}
+                  itemsPerPage={itemsPerPage}
                 // totalPages={totalPages} // Removed as it's not part of TablePaginationProps
                 // hasNextPage={hasNextPage}
                 // hasPreviousPage={hasPreviousPage}
-              />
-            </div>
-}
+                />
+              </div>
+            }
           </div>
         </div>
 
         {/* Right Panel: User Details - Only show when users exist */}
         {users.length > 0 && (
-        <div className="flex flex-col w-full lg:w-1/3 gap-[24px] h-full justify-between">
-          <div className="bg-[#f2f2f4] shadow-md rounded-[20px] relative">
-            {selectedUser ? (
-              <div className="w-full bg-[#f2f2f4] rounded-[20px] min-h-full">
-                {/* Blue Header with Wave */}
-                <div className="relative w-full">
-                  <svg
-                    width="100%"
-                    height="100%"
-                    viewBox="0 0 471 165"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0 20 Q0 0 20 0 H451 Q471 0 471 20 V155.046 C471 155.046 372.679 132.651 235.5 155.046 C98.3213 177.442 0 155.046 0 155.046 Z"
-                      fill="#176dbf"
-                    />
-                  </svg>
-                  <div className="absolute top-0 left-0 w-full h-full flex gap-[15px] items-center p-2 text-white">
-                    <Image
-                      src={UserProfileImage}
-                      alt="User Avatar"
-                      className="rounded-full border-2 border-white w-30 h-30 sm:w-30 sm:h-30 lg:w-16 lg:h-16"
-                    />
-                    <div>
-                      <div className="text-white text:2xl md:text-3xl font-bold leading-10 tracking-wide">
-                        {selectedUser.fullName || "N/A"}
+          <div className="flex flex-col w-full lg:w-1/3 gap-[24px] h-full justify-between">
+            <div className="bg-[#f2f2f4] shadow-md rounded-[20px] relative">
+              {selectedUser ? (
+                <div className="w-full bg-[#f2f2f4] rounded-[20px] min-h-full">
+                  {/* Blue Header with Wave */}
+                  <div className="relative w-full">
+                    <svg
+                      width="100%"
+                      height="100%"
+                      viewBox="0 0 471 165"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M0 20 Q0 0 20 0 H451 Q471 0 471 20 V155.046 C471 155.046 372.679 132.651 235.5 155.046 C98.3213 177.442 0 155.046 0 155.046 Z"
+                        fill="#176dbf"
+                      />
+                    </svg>
+                    <div className="absolute top-0 left-0 w-full h-full flex gap-[15px] items-center p-2 text-white">
+                      <Image
+                        src={selectedUser.profilePic !== null ? getImageClientS3URL(selectedUser.profilePic) : UserProfile2}
+                        alt="User Avatar"
+                        className="rounded-full border-2 border-white w-30 h-30 sm:w-30 sm:h-30 lg:w-16 lg:h-16"
+                        width="100"
+                        height="100"
+                      />
+                      <div>
+                        <div className="text-white text:2xl md:text-3xl font-bold leading-10 tracking-wide">
+                          {selectedUser.fullName || "N/A"}
+                        </div>
+                      </div>
+                      <div className="h-10 px-5 py-3 bg-[#10375c] rounded-[28px] gap-[5px] inline-flex mb-[30px]">
+                        <div className="text-white text-sm font-medium">₹0</div>
                       </div>
                     </div>
-                    <div className="h-10 px-5 py-3 bg-[#10375c] rounded-[28px] gap-[5px] inline-flex mb-[30px]">
-                      <div className="text-white text-sm font-medium">₹2000</div>
-                    </div>
                   </div>
-                </div>
 
-                <div className="relative w-full pointer-events-none">
-                  <Image
-                    src={Human}
-                    alt="Tennis Player Illustration"
-                    className="object-contain max-w-full h-auto absolute right-1 top-[-30px] w-[250px] sm:top-[-130px] md:top-[-260px] lg:top-[-80px] z-10 sm:w-[300px] md:w-[380px] lg:w-[280px]"
-                    width={300}
-                    height={180}
-                    sizes="(max-width: 640px) 200px, (max-width: 768px) 150px, (max-width: 1024px) 180px, 300px"
-                    priority
-                  />
-                </div>
-                {/* Content Section */}
-                <div className="flex flex-col w-full mt-[27px] gap-[30px] relative z-20">
-                  {/* Personal Details */}
-                  <div className="w-[55%] ml-[30px] flex-col justify-start items-start gap-3 inline-flex">
-                    <div className="self-stretch text-[#1c2329] text-sm font-semibold leading-[16.80px]">
-                      Personal Details
-                    </div>
-                    <div className="self-stretch justify-between items-center inline-flex">
-                      <div className="flex-col justify-start items-start gap-2.5 inline-flex">
-                        <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Phone Number
-                        </div>
-                        <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Email Address
-                        </div>
-                        {/* <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                  <div className="relative w-full pointer-events-none">
+                    <Image
+                      src={Human}
+                      alt="Tennis Player Illustration"
+                      className="object-contain max-w-full h-auto absolute right-1 top-[-30px] w-[250px] sm:top-[-130px] md:top-[-260px] lg:top-[-80px] z-10 sm:w-[300px] md:w-[380px] lg:w-[280px]"
+                      width={300}
+                      height={180}
+                      sizes="(max-width: 640px) 200px, (max-width: 768px) 150px, (max-width: 1024px) 180px, 300px"
+                      priority
+                    />
+                  </div>
+                  {/* Content Section */}
+                  <div className="flex flex-col w-full mt-[27px] gap-[30px] relative z-20">
+                    {/* Personal Details */}
+                    <div className="w-[55%] ml-[30px] flex-col justify-start items-start gap-3 inline-flex">
+                      <div className="self-stretch text-[#1c2329] text-sm font-semibold leading-[16.80px]">
+                        Personal Details
+                      </div>
+                      <div className="self-stretch justify-between items-center inline-flex">
+                        <div className="flex-col justify-start items-start gap-2.5 inline-flex">
+                          <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Phone Number
+                          </div>
+                          <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Email Address
+                          </div>
+                          {/* <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
                           City
                         </div> */}
-                      </div>
-                      <div className="flex-col justify-start items-end gap-2.5 inline-flex">
-                        <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.phoneNumber || "N/A"}
                         </div>
-                        <div className="text-right text-[#1b2229] text-xs font-bold leading-[15px]">
-                          {selectedUser.email || "N/A"}
-                        </div>
-                        {/* <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                        <div className="flex-col justify-start items-end gap-2.5 inline-flex">
+                          <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.phoneNumber || "N/A"}
+                          </div>
+                          <div className="text-right text-[#1b2229] text-xs font-bold leading-[15px]">
+                            {selectedUser.email || "N/A"}
+                          </div>
+                          {/* <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
                           {selectedUser.city || "N/A"}
                         </div> */}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Statistics */}
-                  <div className="w-[45%] ml-[30px] flex-col justify-start items-start gap-3 inline-flex mb-[30px]">
-                    <div className="self-stretch text-[#1c2329] text-sm font-semibold leading-[16.80px]">
-                      Statistics
-                    </div>
-                    <div className="self-stretch justify-between items-center inline-flex">
-                      <div className="flex-col justify-start items-start gap-2.5 inline-flex">
-                        <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Loyalty Points
-                        </div>
-                        <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Level
-                        </div>
-                        <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Last Month Level
-                        </div>
-                        <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Level This Month
-                        </div>
-                        <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Level 6 Months Ago
-                        </div>
-                        <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Level 12 Months Ago
-                        </div>
-                        <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Improvement
-                        </div>
-                        <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
-                          Confidence
-                        </div>
+                    {/* Statistics */}
+                    <div className="w-[45%] ml-[30px] flex-col justify-start items-start gap-3 inline-flex mb-[30px]">
+                      <div className="self-stretch text-[#1c2329] text-sm font-semibold leading-[16.80px]">
+                        Statistics
                       </div>
-                      <div className="flex-col justify-start items-end gap-2.5 inline-flex">
-                        <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.loyaltyPoints || "5800"}
+                      <div className="self-stretch justify-between items-center inline-flex">
+                        <div className="flex-col justify-start items-start gap-2.5 inline-flex">
+                          <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Loyalty Points
+                          </div>
+                          <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Level
+                          </div>
+                          <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Last Month Level
+                          </div>
+                          <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Level This Month
+                          </div>
+                          <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Level 6 Months Ago
+                          </div>
+                          <div className="text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Level 12 Months Ago
+                          </div>
+                          <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Improvement
+                          </div>
+                          <div className="self-stretch text-[#7e7e8a] text-xs font-medium capitalize leading-[15px]">
+                            Confidence
+                          </div>
                         </div>
-                        <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.level || "65456"}
-                        </div>
-                        <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.lastMonthLevel || "-1"}
-                        </div>
-                        <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.levelThisMonth || "-1"}
-                        </div>
-                        <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.level6MonthsAgo || "-1"}
-                        </div>
-                        <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.level12MonthsAgo || "-1"}
-                        </div>
-                        <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.improvement || "-0.01"}
-                        </div>
-                        <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
-                          {selectedUser.confidence || "27%"}
+                        <div className="flex-col justify-start items-end gap-2.5 inline-flex">
+                          <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.loyaltyPoints || "5800"}
+                          </div>
+                          <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.level || "65456"}
+                          </div>
+                          <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.lastMonthLevel || "-1"}
+                          </div>
+                          <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.levelThisMonth || "-1"}
+                          </div>
+                          <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.level6MonthsAgo || "-1"}
+                          </div>
+                          <div className="text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.level12MonthsAgo || "-1"}
+                          </div>
+                          <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.improvement || "-0.01"}
+                          </div>
+                          <div className="self-stretch text-right text-[#1b2229] text-xs font-bold capitalize leading-[15px]">
+                            {selectedUser.confidence || "27%"}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">Select a user to see details</p>
-            )}
+              ) : (
+                <p className="text-center text-gray-500">Select a user to see details</p>
+              )}
+            </div>
+            <button
+              onClick={handleClick}
+              className="h-12 py-4 bg-[#10375c] rounded-[28px] justify-center items-center text-white text-sm font-medium"
+            >
+              View More Details
+            </button>
           </div>
-          <button
-            onClick={handleClick}
-            className="h-12 py-4 bg-[#10375c] rounded-[28px] justify-center items-center text-white text-sm font-medium"
-          >
-            View More Details
-          </button>
-        </div>
         )}
       </div>
     </>

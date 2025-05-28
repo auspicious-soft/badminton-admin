@@ -3,7 +3,8 @@
 import { BottomArrow, Edit1, Eye, EyeOff, Loading } from "@/utils/svgicons";
 import React, { useState, useTransition } from "react";
 import Image from "next/image";
-import Ball from "@/assets/images/Ball.png";
+import UserProfile2 from "@/assets/images/employeeProfile.jpg";
+import { getImageClientS3URL } from "@/config/axios";
 import { UpArrowIcon } from "@/utils/svgicons";
 import { toast } from "sonner";
 import { createEmployee } from "@/services/admin-services";
@@ -202,7 +203,7 @@ const AddEmployee = () => {
               />
             ) : (
               <Image
-                src={Ball}
+                src={UserProfile2}
                 alt="Ball Image"
                 fill
                 className="rounded-[10px] object-cover"

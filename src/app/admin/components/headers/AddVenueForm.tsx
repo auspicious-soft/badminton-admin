@@ -143,7 +143,7 @@ const AddVenueForm = () => {
      <div className="relative bg-gray-100 rounded-lg flex flex-col items-center justify-center">
       {imagePreview ? (
        <div className="w-full">
-        <Image src={imagePreview.url} alt="Preview" className="w-full h-48 object-cover rounded-lg" width={400} height={200} />
+        <Image src={imagePreview.url} alt="Preview" className="h-24 w-24 object-fit rounded-[10px]" width={100} height={100} />
         <button type="button" onClick={removeImage} className="absolute top-1 right-1 bg-white text-black text-center rounded-full p-[6px] px-[7px] flex items-center justify-center">
          <CrossIcon />
         </button>
@@ -153,6 +153,7 @@ const AddVenueForm = () => {
         <Image src={NoImage} alt="No image selected" className="h-24 w-24 object-cover rounded-[10px]" width={100} height={100} />
        </div>
       )}
+
       <label htmlFor="imageUpload" className="flex items-center gap-[10px] absolute bottom-2 right-2 h-12 px-5 py-4 bg-white rounded-[28px] text-[#1b2229] text-sm font-medium cursor-pointer">
        <EditIcon stroke="black" />
        Upload Image

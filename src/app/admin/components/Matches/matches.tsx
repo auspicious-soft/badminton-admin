@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import MatchImage from "@/assets/images/padelImage.png";
 import UserProfile from "@/assets/images/userprofile.png";
-import UserProfile2 from "@/assets/images/UserProfile2.png";
+import UserProfile2 from "@/assets/images/images.png";
 import UserProfile3 from "@/assets/images/userProfile3.png";
 import UserProfile4 from "@/assets/images/userProfile4.png";
 import { EyeIcon, ClockIcon, CalenderIcon } from "@/utils/svgicons";
@@ -13,7 +13,6 @@ import TablePagination from "../TablePagination";
 import useSWR from "swr";
 import { getAllMatches } from "@/services/admin-services";
 import { getImageClientS3URL } from "@/config/axios";
-import LocalImage from "@/components/LocalImage";
 
 export default function MatchesComponent({ name,selectedGame,selectedCity, selectedDate }: { name: string, selectedGame:string, selectedCity:string, selectedDate:string }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -38,15 +37,32 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
   // );
   // &search=${searchParams}&game=${selectedGame}&date=${selectedDate}
    const { data, mutate, isLoading, error } = useSWR(
-    `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}`,
+    `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}`,
     getAllMatches
   );
   // // Fetch 
 
+const getTotalEquipmentRented = (match) => {
+    let total = 0;
 
+    // Count equipment for team1
+    if (match.team1 && Array.isArray(match.team1)) {
+      match.team1.forEach(player => {
+        total += (player.racketA || 0) + (player.racketB || 0) + (player.racketC || 0) + (player.balls || 0);
+      });
+    }
+
+    // Count equipment for team2
+    if (match.team2 && Array.isArray(match.team2)) {
+      match.team2.forEach(player => {
+        total += (player.racketA || 0) + (player.racketB || 0) + (player.racketC || 0) + (player.balls || 0);
+      });
+    }
+
+   return total === 0 ? "None" : total;
+  };
   // Extract match data and pagination metadata
   const matchData = data?.data?.data || [];
-  console.log('matchData: ', matchData);
   const total = data?.data?.meta?.total || 0;
   const totalPages = data?.data?.meta?.totalPages || Math.ceil(total / itemsPerPage);
   const hasNextPage = data?.data?.meta?.hasNextPage ?? page < totalPages;
@@ -85,9 +101,9 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
           <div className="w-full h-[0px] border border-[#d0d0d0] border-dotted mt-[8px]"></div>
           <div className="w-full min-w-[600px]">
             {isLoading ? (
-              <p>Loading...</p>
+              <p className="m-2">Loading...</p>
             ) : matchData.length === 0 ? (
-              <p>No matches found</p>
+              <p className="m-2">No matches found</p>
             ) : (
               matchData.map((match, index) => (
                 <div
@@ -108,7 +124,11 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                   >
                     <div className="w-[25px] h-[25px] relative">
                       <Image 
-                        src={getImageClientS3URL(match.team1?.[0]?.userData?.profilePic)} 
+                        src={
+  match.team1?.length > 0 && match.team1?.[0]?.userData?.profilePic
+    ? getImageClientS3URL(match.team1?.[0]?.userData?.profilePic)
+    : UserProfile2
+}
                         alt="Avatar" 
                         className="rounded-full object-cover" 
                         fill 
@@ -124,8 +144,11 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                   >
                     <div className="w-[25px] h-[25px] relative">
                       <Image 
-                        src={getImageClientS3URL(match.team2?.[0]?.userData?.profilePic)} 
-                        alt="Avatar" 
+src={
+  match.team2?.length > 0 && match.team2[0]?.userData?.profilePic
+    ? getImageClientS3URL(match.team2[0].userData.profilePic)
+    : UserProfile2
+}                        alt="Avatar" 
                         className="rounded-full object-cover" 
                         fill 
                         unoptimized
@@ -160,6 +183,8 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
           </div>
 
           {/* Pagination */}
+          {matchData.length !== 0 && (
+          
           <div className="mt-4 flex justify-end gap-2">
             <TablePagination
               setPage={handlePageChange}
@@ -171,6 +196,8 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
               // hasPreviousPage={hasPreviousPage}
             />
           </div>
+            
+          )}
         </div>
       </div>
 
@@ -184,12 +211,12 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
               <h3 className="text-xl font-bold mt-4 flex justify-between mb-[8px]">
                 {selectedMatch.court?.games || "N/A"} Game{" "}
                 <span className="text-right text-[#1b2229] text-sm font-semibold leading-[16.80px]">
-                  120 Mins
+                  60 Mins
                 </span>
               </h3>
               <div className="flex justify-between">
                 <p className="text-[#1b2229] text-sm font-medium leading-[16.80px] flex items-center gap-2">
-                  {/* {selectedMatch.venueId?.city || "N/A"}, {selectedMatch.venueId?.state || "N/A"} */}
+                  {selectedMatch.venue?.city || "N/A"}, {selectedMatch.venue?.state || "N/A"}
                 </p>
                 <div className="flex gap-[20px]">
                   <div className="flex gap-[10px] text-[#5f6a7c] text-xs font-medium leading-[14.40px]">
@@ -211,7 +238,7 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                 <div className="flex items-center gap-2">
                   <div className="w-[25px] h-[25px] relative">
                     <Image 
-                      src={getImageClientS3URL(selectedMatch.team1?.[0]?.userData?.profilePic)} 
+                      src={selectedMatch.team1?.[0]?.userData?.profilePic !== null ? getImageClientS3URL(selectedMatch.team1?.[0]?.userData?.profilePic) : UserProfile2  } 
                       alt="Avatar" 
                       className="rounded-full object-cover" 
                       fill 
@@ -230,17 +257,18 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                 </p>
                 <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Equipment Rented</p>
                 <p className="text-right text-[#1b2229] text-xs font-medium">
-                  {selectedMatch.team1?.[0]?.racketA ||
+                  {/* {selectedMatch.team1?.[0]?.racketA ||
                   selectedMatch.team1?.[0]?.racketB ||
                   selectedMatch.team1?.[0]?.racketC ||
                   selectedMatch.team1?.[0]?.balls
                     ? "Yes"
-                    : "None"}
+                    : "None"} */}
+                    {getTotalEquipmentRented(selectedMatch)}
                 </p>
-                <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Paid for</p>
+                {/* <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Paid for</p>
                 <p className="text-right text-[#1b2229] text-xs font-medium">
                   {selectedMatch.team1?.[0]?.paidBy || "N/A"}
-                </p>
+                </p> */}
               </div>
 
               <div className="bg-[#f2f2f4] rounded-[20px] mt-[15px]">
@@ -253,7 +281,7 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                       <div key={idx} className="flex flex-col items-center">
                         <div className="w-16 h-16 relative">
                           <Image
-                            src={getImageClientS3URL(player.userData?.profilePic)}
+                            src={player.userData?.profilePic !== null ? getImageClientS3URL(player.userData?.profilePic) : UserProfile2}
                             alt="Player"
                             className="rounded-full object-cover"
                             fill
@@ -269,7 +297,7 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                         <div key={idx} className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
                             <Image
-                              src={getImageClientS3URL(player.userData?.profilePic)}
+                              src={player.userData?.profilePic !== null ? getImageClientS3URL(player.userData?.profilePic) : UserProfile2}
                               alt="Player"
                               className="rounded-full object-cover"
                               fill
@@ -284,7 +312,7 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                         <div className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
                             <Image 
-                              src={UserProfile4} 
+                              src={UserProfile2} 
                               alt="Player" 
                               className="rounded-full object-cover" 
                               fill 
@@ -296,7 +324,7 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
                         <div className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
                             <Image 
-                              src={UserProfile4} 
+                              src={UserProfile2} 
                               alt="Player" 
                               className="rounded-full object-cover" 
                               fill 

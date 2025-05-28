@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Human from "@/assets/images/Human.png";
 import { EyeIcon, DownArrowIcon, UpArrowIcon } from "@/utils/svgicons";
-import UserProfileImage from "@/assets/images/userProfile4.png";
+import ProductImage from "@/assets/images/default-product.jpg";
 import SearchBar from "../SearchBar";
 import TablePagination from "../TablePagination";
 import { useRouter } from "next/navigation";
@@ -76,9 +76,8 @@ export default function InventoryComponent() {
       <div className="flex flex-col lg:flex-row w-full rounded-[20px] gap-6 mb-[40px]">
         {/* Left Panel: Product List */}
         <div
-          className={`w-full  h-fit ${
-            inventoryData.length > 0 ? "lg:w-2/3" : "lg:w-full"
-          } bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto`}
+          className={`w-full  h-fit ${inventoryData.length > 0 ? "lg:w-2/3" : "lg:w-full"
+            } bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto`}
         >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-[#10375c] text-xl font-semibold">Inventory</h2>
@@ -114,21 +113,19 @@ export default function InventoryComponent() {
                 inventoryData.map((product, index) => (
                   <div
                     key={product._id}
-                    className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${
-                      selectedProduct?._id === product._id
+                    className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedProduct?._id === product._id
                         ? "bg-[#176dbf] text-white"
                         : index % 2 === 0
-                        ? "bg-[#f2f2f4]"
-                        : "bg-white"
-                    }`}
+                          ? "bg-[#f2f2f4]"
+                          : "bg-white"
+                      }`}
                     onClick={() => setSelectedProduct(product)}
                   >
                     <div
-                      className={`w-[45%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${
-                        selectedProduct?._id === product._id
+                      className={`w-[45%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedProduct?._id === product._id
                           ? "text-white"
                           : "text-[#1b2229]"
-                      }`}
+                        }`}
                     >
                       <Image
                         src={getImageClientS3URL(product.primaryImage)}
@@ -140,29 +137,26 @@ export default function InventoryComponent() {
                       {product.productName}
                     </div>
                     <div
-                      className={`w-[20%] text-[#1b2229] text-xs text-center font-medium ${
-                        selectedProduct?._id === product._id
+                      className={`w-[20%] text-[#1b2229] text-xs text-center font-medium ${selectedProduct?._id === product._id
                           ? "text-white"
                           : "text-[#1b2229]"
-                      }`}
+                        }`}
                     >
                       ₹{product.discountedPrice}
                     </div>
                     <div
-                      className={`w-[15%] text-[#1b2229] text-center text-xs font-medium ${
-                        selectedProduct?._id === product._id
+                      className={`w-[15%] text-[#1b2229] text-center text-xs font-medium ${selectedProduct?._id === product._id
                           ? "text-white"
                           : "text-[#1b2229]"
-                      }`}
+                        }`}
                     >
                       ₹{product.actualPrice}
                     </div>
                     <div
-                      className={`w-[20%] text-[#1b2229] text-center flex-wrap text-xs font-medium ${
-                        selectedProduct?._id === product._id
+                      className={`w-[20%] text-[#1b2229] text-center flex-wrap text-xs font-medium ${selectedProduct?._id === product._id
                           ? "text-white"
                           : "text-[#1b2229]"
-                      }`}
+                        }`}
                     >
                       {product.soldThisMonth || 0} items
                     </div>
@@ -214,13 +208,23 @@ export default function InventoryComponent() {
                       />
                     </svg>
                     <div className="absolute top-0 left-0 w-full h-full flex gap-[25px] items-center p-2 pl-[20px] text-white">
-                      <Image
+                      {/* <Image
                         src={getImageClientS3URL(selectedProduct.primaryImage)}
                         alt="Product Image"
                         className="rounded-full border-2 border-white w-100 h-100"
                         height={81}
                         width={81}
-                      />
+                      /> */}
+                      <div className="w-[81px] h-[81px] rounded-full border-2 border-white overflow-hidden">
+                        <Image
+                          src={getImageClientS3URL(selectedProduct.primaryImage)}
+                          alt="Product Image"
+                          width={81}
+                          height={81}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+
                       <div>
                         <div className="text-white text:2xl md:text-3xl font-bold leading-10 tracking-wide">
                           {selectedProduct.productName}

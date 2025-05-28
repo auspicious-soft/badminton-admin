@@ -1,10 +1,11 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { UpArrowIcon, DownArrowIcon } from "@/utils/svgicons";
+import useSWR from "swr";
+import { getAllCities } from "@/services/admin-services";
 
 const tabs = ["Upcoming", "Previous", "Cancelled"];
 const games = ["All", "Padel", "Pickleball"];
-const cities = ["All", "New York", "Los Angeles", "Chicago", "Houston"];
 
 interface MatchesHeaderProps {
   selectedTab: string;
@@ -23,6 +24,9 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
   const dateInputRef = useRef<HTMLInputElement>(null);
   const gameDropdownRef = useRef<HTMLDivElement>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
+  const { data, mutate, isLoading } = useSWR("/admin/get-cities", getAllCities)
+  const cities = data?.data?.data || [];
+  console.log('data: ', data?.data?.data);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (gameDropdownRef.current && !gameDropdownRef.current.contains(event.target as Node)) {
@@ -110,7 +114,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
             />
           </div>
 
-          {/* <div className="relative" ref={cityDropdownRef}>
+          <div className="relative" ref={cityDropdownRef}>
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setCityDropdown(!cityDropdown)}>
               {selectedCity || "City"}
               <span className="ml-2">
@@ -118,15 +122,16 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
               </span>
             </button>
             {cityDropdown && (
-              <div className="z-50 flex flex-col gap-[5px] absolute top-12 right-2 p-[20px] w-[160px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
-                {cities.map((city) => (
+
+              <div className="z-50 flex flex-col gap-[5px] h-[250px] overflow-y-auto overflow-custom absolute top-12 right-2 p-[20px] w-[160px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+                {["All", ...cities.filter(city => city !== "All")].map((city) => (
                   <label key={city} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
                     <input
                       type="radio"
                       name="city"
-                      value={city}
-                      checked={(city === "All" && !selectedCity) || selectedCity === city}
-                      onChange={(e) => handleCityChange(e.target.value)}
+                      value={city === "All" ? "" : city} // Set value to empty string for "All" (interpreted as null in handleCityChange)
+                      checked={city === "All" ? selectedCity === null : selectedCity === city}
+                      onChange={(e) => handleCityChange(e.target.value === "" ? null : e.target.value)}
                       className="mr-2"
                     />
                     {city}
@@ -134,7 +139,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
                 ))}
               </div>
             )}
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

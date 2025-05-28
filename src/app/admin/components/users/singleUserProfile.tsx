@@ -7,6 +7,8 @@ import UserProfileImage from "@/assets/images/userProfile4.png";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { getUserDetails } from "@/services/admin-services";
+import UserProfile2 from "@/assets/images/employeeProfile.jpg";
+import { getImageClientS3URL } from "@/config/axios";
 
 const games = ["Padel", "Pickleball"];
 
@@ -153,9 +155,9 @@ export default function SingleUserProfile() {
                                 </svg>
                                 <div className="absolute top-0 left-0 w-full h-full flex gap-[15px] items-center p-2 text-white">
                                     <Image
-                                        src={ UserProfileImage}
+                                        src={userDetails.profilePic !== null ? getImageClientS3URL(userDetails.profilePic) : UserProfile2}
                                         alt="User Avatar"
-                                        className="rounded-full border-2 border-white w-16 h-16"
+                                        className="rounded-full border-2 border-white w-18 h-18 ml-2"
                                         width={64}
                                         height={64}
                                     />
@@ -416,7 +418,7 @@ export default function SingleUserProfile() {
                                 );
                             })
                         ) : (
-                            <p className="text-gray-500">No upcoming matches</p>
+                            <p className="text-gray-500 my-4 text-center">No upcoming matches</p>
                         )}
 
                         {/* Previous Matches Section */}
@@ -572,7 +574,7 @@ export default function SingleUserProfile() {
                                 );
                             })
                         ) : (
-                            <p className="text-gray-500">No previous matches</p>
+                            <p className="text-gray-500 my-4 text-center">No previous matches</p>
                         )}
                     </div>
                 </div>

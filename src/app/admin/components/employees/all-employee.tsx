@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import SearchBar from "../SearchBar";
 import Image from "next/image";
 import AlexParker from "@/assets/images/AlexParker.png";
-import Ball from "@/assets/images/Ball.png";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { getAllEmployees, updateEmployee } from "@/services/admin-services";
@@ -12,6 +11,8 @@ import TablePagination from "@/app/components/TablePagination";
 import { toast } from "sonner";
 import { generateSignedUrlForEmployee, deleteFileFromS3 } from "@/actions";
 import { getImageClientS3URL } from "@/config/axios";
+import UserProfile from "@/assets/images/employeeProfile.jpg";
+import UserProfile2 from "@/assets/images/images.png";
 
 const games = ["Working", "Ex-Employee"];
 const sortOptions = [
@@ -52,6 +53,7 @@ const AllEmployeeComponent = () => {
   });
 
   const [selectedGame, setSelectedGame] = useState("");
+
   const [gameDropdown, setGameDropdown] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(false);
   const [searchParams, setSearchParams] = useState("");
@@ -248,7 +250,7 @@ const AllEmployeeComponent = () => {
     // Check if the image has changed
     const imageChanged = selectedImage !== null &&
       (selectedImage !== originalFormData.image &&
-       selectedImage !== getImageClientS3URL(originalFormData.image || ""));
+        selectedImage !== getImageClientS3URL(originalFormData.image || ""));
 
     return (
       editFormData.fullName !== originalFormData.fullName ||
@@ -379,23 +381,25 @@ const AllEmployeeComponent = () => {
               </button>
               {sortDropdown && (
                 <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
-                  {sortOptions.map((option) => (
-                    <label key={option.value} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
-                      <input
-                        type="radio"
-                        name="Sort"
-                        value={option.value}
-                        checked={selectedSort === option.value}
-                        onChange={(e) => {
-                          setSelectedSort(e.target.value);
-                          setSortDropdown(false);
-                          setPage(1);
-                        }}
-                        className="accent-[#1b2229]"
-                      />
-                      {option.label}
-                    </label>
-                  ))}
+                 
+                  {[{ value: null, label: "All" }, ...sortOptions.filter(option => option.label !== "All")].map((option) => (
+  <label key={option.value ?? "all"} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
+    <input
+      type="radio"
+      name="Sort"
+      value={option.value ?? ""} // Use empty string for null (HTML radio inputs don't support null directly)
+      checked={option.value === null ? selectedSort === null : selectedSort === option.value}
+      onChange={(e) => {
+        const value = e.target.value === "" ? null : e.target.value;
+        setSelectedSort(value);
+        setSortDropdown(false);
+        setPage(1);
+      }}
+      className="accent-[#1b2229]"
+    />
+    {option.label}
+  </label>
+))}
                 </div>
               )}
             </div>
@@ -411,27 +415,30 @@ const AllEmployeeComponent = () => {
                 {selectedGame || "Select Status"}
                 <span>{!gameDropdown ? <WhiteDownArrow /> : <UpArrowIcon />}</span>
               </button>
-              {gameDropdown && (
-                <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
-                  {games.map((status) => (
-                    <label key={status} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
-                      <input
-                        type="radio"
-                        name="Select Status"
-                        value={status}
-                        checked={selectedGame === status}
-                        onChange={(e) => {
-                          setSelectedGame(e.target.value);
-                          setGameDropdown(false);
-                          setPage(1);
-                        }}
-                        className="accent-[#1b2229]"
-                      />
-                      {status}
-                    </label>
-                  ))}
-                </div>
-              )}
+             
+                  {gameDropdown && (
+  <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
+    {["All", ...games.filter(status => status !== "All")].map((status) => (
+      <label key={status} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
+        <input
+          type="radio"
+          name="Select Status"
+          value={status === "All" ? "" : status} // Use empty string for "All" (mapped to null)
+          checked={status === "All" ? selectedGame === " " : selectedGame === status}
+          onChange={(e) => {
+            const value = e.target.value === "" ? "" : e.target.value;
+            setSelectedGame(value);
+            setGameDropdown(false);
+            setPage(1);
+          }}
+          className="accent-[#1b2229]"
+        />
+        {status}
+      </label>
+    ))}
+  </div>
+)}
+              
             </div>
           </div>
         </div>
@@ -473,26 +480,26 @@ const AllEmployeeComponent = () => {
               {employees.map((employee: Employee, index: number) => (
                 <div
                   key={employee._id}
-                  className={`w-full cursor-pointer flex flex-col md:flex-row  items-start md:items-center p-3 rounded-[10px] mb-2 ${
-                    selectedEmployee?._id === employee._id
+                  className={`w-full cursor-pointer flex flex-col md:flex-row  items-start md:items-center p-3 rounded-[10px] mb-2 ${selectedEmployee?._id === employee._id
                       ? "bg-[#176dbf] text-white"
                       : index % 2 === 0
-                      ? "bg-white"
-                      : "bg-gray-200"
-                  }`}
+                        ? "bg-white"
+                        : "bg-gray-200"
+                    }`}
                   onClick={() => handleEmployeeSelect(employee)}
                 >
                   <div
-                    className={`w-full md:w-[25%] flex items-center gap-2 text-xs font-medium p-2 ${
-                      selectedEmployee?._id === employee._id ? "text-white" : "text-[#1b2229]"
-                    }`}
+                    className={`w-full md:w-[25%] flex items-center gap-2 text-xs font-medium p-2 ${selectedEmployee?._id === employee._id ? "text-white" : "text-[#1b2229]"
+                      }`}
                   >
                     <Image
-                      src={employee.profilePic && employee.profilePic.startsWith('employees/')
-                        ? getImageClientS3URL(employee.profilePic)
-                        : employee.profilePic || AlexParker}
+                      src={
+                        employee.profilePic && employee.profilePic.startsWith('employees/')
+                          ? getImageClientS3URL(employee.profilePic)
+                          : employee.profilePic || UserProfile2
+                      }
                       alt="Avatar"
-                      className="rounded-full"
+                      className="rounded-full w-[25px] h-[25px] object-cover"
                       width={25}
                       height={25}
                       unoptimized
@@ -502,26 +509,23 @@ const AllEmployeeComponent = () => {
 
                   <div className={`w-full md:w-[22%] p-2 flex justify-center items-center`}>
                     <span
-                      className={`flex items-center w-[100px] md:w-full px-2 py-1 rounded-full text-xs font-medium ${
-                        employee.status === "Working" ? "bg-[#14d1a4] text-white" : "bg-[#d11414] text-white"
-                      }`}
+                      className={`flex items-center w-[100px] md:w-full px-2 py-1 rounded-full text-xs font-medium ${employee.status === "Working" ? "bg-[#14d1a4] text-white" : "bg-[#d11414] text-white"
+                        }`}
                     >
                       {employee.status}
                     </span>
                   </div>
 
                   <div
-                    className={`w-full md:w-[25%] text-xs md:text-center font-medium p-2 ${
-                      selectedEmployee?._id === employee._id ? "text-white" : "text-[#1b2229]"
-                    }`}
+                    className={`w-full md:w-[25%] text-xs md:text-center font-medium p-2 ${selectedEmployee?._id === employee._id ? "text-white" : "text-[#1b2229]"
+                      }`}
                   >
                     <span className="md:hidden font-bold">Email: </span> {employee.email}
                   </div>
 
                   <div
-                    className={`w-full md:w-[18%] md:text-center text-xs font-medium p-2 ${
-                      selectedEmployee?._id === employee._id ? "text-white" : "text-[#1b2229]"
-                    }`}
+                    className={`w-full md:w-[18%] md:text-center text-xs font-medium p-2 ${selectedEmployee?._id === employee._id ? "text-white" : "text-[#1b2229]"
+                      }`}
                   >
                     <span className="md:hidden font-bold">Phone: </span> {employee.phoneNumber}
                   </div>
@@ -558,7 +562,7 @@ const AllEmployeeComponent = () => {
             ) : (
               <Image
                 className="w-full h-full rounded-[10px] object-cover"
-                src={Ball}
+                src={UserProfile}
                 alt="Ball Image"
                 width={300}
                 height={262}

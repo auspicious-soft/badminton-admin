@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef, startTransition } from "react";
 import Image from "next/image";
 import { Add, BottomArrow, Edit1, UpArrowIcon } from "@/utils/svgicons";
 import Court from "@/assets/images/courtsmallImg.png";
-import UserProfile2 from "@/assets/images/UserProfile2.png";
 import CourtManagement from "../../components/headers/AddVenueModal";
 import AddEmployeeModal from "../../components/headers/AddEmployeesModal";
 import { states } from "@/utils";
@@ -13,6 +12,7 @@ import { createVenue } from "@/services/admin-services";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { generateSignedUrlForVenue, generateSignedUrlForCourt, deleteFileFromS3 } from "@/actions";
+import UserProfile2 from "@/assets/images/images.png";
 import { getImageClientS3URL } from "@/config/axios";
 
 // Custom Modal Component
@@ -167,6 +167,8 @@ const Page = () => {
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [contactNumber, setContactNumber] = useState(""); // State for contact number
+  const [description, setDescription] = useState(""); // New state for description
   const stateDropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedFacilities, setSelectedFacilities] = useState<number[]>([]);
@@ -194,12 +196,15 @@ const Page = () => {
   const apiKey = "AIzaSyCDZoRf-BZL2yR_ZyXpzht_a63hMgLCTis";
   const router = useRouter();
 
+  // Update isSaveDisabled to include description
   const isSaveDisabled = !(
     selectedImage &&
     name &&
     address &&
     city &&
     selectedState &&
+    contactNumber &&
+    description && // Added description to validation
     courts.length > 0 &&
     employees.length > 0 &&
     location
@@ -251,13 +256,14 @@ const Page = () => {
     setModalOpen(true);
   };
 
-  const handleAddEmployees = (newEmployees: { employeeId: string; fullName: string; isActive: boolean }[]) => {
+  const handleAddEmployees = (newEmployees: { employeeId: string; fullName: string; isActive: boolean, image: string }[]) => {
     const mappedEmployees = newEmployees.map((emp) => ({
       id: emp.employeeId,
       name: emp.fullName,
-      image: UserProfile2.src,
+      image: emp.image,
       isActive: emp.isActive,
     }));
+    console.log("mappedEmployees", mappedEmployees);
     setEmployees((prev) => [...prev, ...mappedEmployees]);
   };
 
@@ -418,6 +424,8 @@ const Page = () => {
         address,
         city,
         state: selectedState,
+        contactInfo: contactNumber,
+        venueInfo: description, // Added description as venueInfo
         image: venueImageKey || "https://example.com/venue-image.jpg",
         gamesAvailable,
         facilities: [
@@ -541,6 +549,16 @@ const Page = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-[#1b2229]">Contact Number</label>
+                <input
+                  type="tel"
+                  value={contactNumber}
+                  onChange={(e) => setContactNumber(e.target.value)}
+                  className="w-full mt-2 p-3 bg-white rounded-full text-xs border border-gray-300"
+                  placeholder="Enter Contact Number"
+                />
+              </div>
               <div className="relative" ref={stateDropdownRef}>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">State</label>
                 <button
@@ -573,6 +591,9 @@ const Page = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">Location</label>
                 <button
@@ -582,9 +603,6 @@ const Page = () => {
                   <span>{location ? `Lat: ${location.lat.toFixed(4)}, Lng: ${location.lng.toFixed(4)}` : "Select a location"}</span>
                 </button>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="h-[69.41px]">
                 <div className="text-[#1B2229] mb-[8px] text-xs font-medium">Games Available</div>
                 <Select
@@ -643,46 +661,56 @@ const Page = () => {
                   }}
                 />
               </div>
+            </div>
 
-              <div className="relative" ref={statusDropdownRef}>
-                <label className="text-xs font-medium text-[#1b2229] block mb-2">Status</label>
-                <button
-                  className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
-                  onClick={() => setStatusDropdown(!statusDropdown)}
-                  aria-expanded={statusDropdown}
-                  aria-label="Select Status"
-                >
-                  {selectedStatus || "Select Status"}
-                  <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
-                </button>
-                {statusDropdown && (
-                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
-                    {statuses.map((status) => (
-                      <label key={status} className="flex gap-2 cursor-pointer text-xs py-1">
-                        <input
-                          type="radio"
-                          name="status"
-                          value={status}
-                          checked={selectedStatus === status}
-                          onChange={(e) => {
-                            setSelectedStatus(e.target.value);
-                            setStatusDropdown(false);
-                          }}
-                          className="accent-[#1b2229]"
-                        />
-                        {status}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="relative" ref={statusDropdownRef}>
+              <label className="text-xs font-medium text-[#1b2229] block mb-2">Status</label>
+              <button
+                className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
+                onClick={() => setStatusDropdown(!statusDropdown)}
+                aria-expanded={statusDropdown}
+                aria-label="Select Status"
+              >
+                {selectedStatus || "Select Status"}
+                <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
+              </button>
+              {statusDropdown && (
+                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
+                  {statuses.map((status) => (
+                    <label key={status} className="flex gap-2 cursor-pointer text-xs py-1">
+                      <input
+                        type="radio"
+                        name="status"
+                        value={status}
+                        checked={selectedStatus === status}
+                        onChange={(e) => {
+                          setSelectedStatus(e.target.value);
+                          setStatusDropdown(false);
+                        }}
+                        className="accent-[#1b2229]"
+                      />
+                      {status}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Description Field */}
+            <div>
+              <label className="text-xs font-medium text-[#1b2229] block mb-2">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-3 bg-white rounded-xl text-xs border border-gray-300 resize-y h-24"
+                placeholder="Enter venue description"
+              />
             </div>
 
             <button
               onClick={handleSave}
-              className={`w-full p-3 rounded-full text-white text-sm font-medium ${
-                isSaveDisabled || isUploading ? "bg-gray-400 cursor-not-allowed" : "bg-[#10375c]"
-              }`}
+              className={`w-full p-3 rounded-full text-white text-sm font-medium ${isSaveDisabled || isUploading ? "bg-gray-400 cursor-not-allowed" : "bg-[#10375c]"
+                }`}
               disabled={isSaveDisabled || isUploading}
             >
               {isUploading ? "Uploading..." : "Save"}
@@ -730,21 +758,18 @@ const Page = () => {
                             className="hidden"
                           />
                           <span
-                            className={`w-10 h-5 ${
-                              court.status === "Active" ? "bg-[#1b2229]" : "bg-[#ccc]"
-                            } rounded-full relative transition-colors duration-300`}
+                            className={`w-10 h-5 ${court.status === "Active" ? "bg-[#1b2229]" : "bg-[#ccc]"
+                              } rounded-full relative transition-colors duration-300`}
                           >
                             <span
-                              className={`w-4 h-4 bg-white rounded-full absolute top-0.5 ${
-                                court.status === "Active" ? "left-5" : "left-0.5"
-                              } transition-transform duration-300`}
+                              className={`w-4 h-4 bg-white rounded-full absolute top-0.5 ${court.status === "Active" ? "left-5" : "left-0.5"
+                                } transition-transform duration-300`}
                             ></span>
                           </span>
                         </label>
                         <p
-                          className={`text-[10px] font-medium mt-1 ${
-                            court.status === "Active" ? "text-[#1b2229]" : "text-[#ff0004]"
-                          }`}
+                          className={`text-[10px] font-medium mt-1 ${court.status === "Active" ? "text-[#1b2229]" : "text-[#ff0004]"
+                            }`}
                         >
                           {court.status}
                         </p>
@@ -809,14 +834,13 @@ const Page = () => {
                           alt={`Employee ${employee.name}`}
                           width={23}
                           height={23}
-                          className="rounded-full"
+                          className="rounded-full w-[23px] h-[23px] object-cover"
                         />
                         <div>
                           <span className="text-xs font-medium text-[#1b2229]">{employee.name}</span>
                           <p
-                            className={`text-[10px] font-medium ${
-                              employee.isActive ? "text-[#1b2229]" : "text-[#ff0004]"
-                            }`}
+                            className={`text-[10px] font-medium ${employee.isActive ? "text-[#1b2229]" : "text-[#ff0004]"
+                              }`}
                           >
                             {employee.isActive ? "Active" : "Inactive"}
                           </p>

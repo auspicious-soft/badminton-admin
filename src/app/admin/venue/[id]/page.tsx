@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, startTransition } from "react";
 import Image from "next/image";
 import { BottomArrow, Edit1, UpArrowIcon, EyeIcon, Add } from "@/utils/svgicons";
 import Court from "@/assets/images/courtsmallImg.png";
-import UserProfile2 from "@/assets/images/UserProfile2.png";
+import UserProfile2 from "@/assets/images/images.png";
 import CourtManagement from "../../components/headers/EditVenueModal";
 import AddEmployeeModal from "../../components/headers/AddEmployeesModal";
 import { states } from "@/utils";
@@ -194,6 +194,8 @@ const Page = () => {
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [contactNumber, setContactNumber] = useState(""); // State for contact number
+  const [description, setDescription] = useState(""); // New state for description
   const stateDropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedFacilities, setSelectedFacilities] = useState([]);
@@ -255,6 +257,8 @@ const Page = () => {
       setCity(venueDataValue.venue?.city || "");
       setSelectedState(venueDataValue.venue?.state || "");
       setSelectedStatus(venueDataValue.venue?.isActive ? "Active" : "In-Active");
+      setContactNumber(venueDataValue.venue?.contactInfo || "");
+      setDescription(venueDataValue.venue?.venueInfo || ""); // Map venueInfo to description
 
       const mappedCourts = venueDataValue.courts?.map((court: any) => ({
         id: court._id,
@@ -270,7 +274,7 @@ const Page = () => {
       const mappedEmployees = venueDataValue.venue?.employees?.map((emp: any) => ({
         id: emp.employeeId,
         name: emp.employeeData?.fullName || "Unknown",
-        image: UserProfile2.src,
+        image: emp.employeeData?.profilePic ? getImageClientS3URL(emp.employeeData.profilePic) : UserProfile2.src,
         isActive: emp.isActive,
       })) || [];
       setEmployees(mappedEmployees);
@@ -315,6 +319,8 @@ const Page = () => {
     address &&
     city &&
     selectedState &&
+    contactNumber &&
+    description && // Added description to validation
     courts.length > 0 &&
     employees.length > 0 &&
     location
@@ -395,7 +401,7 @@ const Page = () => {
     const mappedEmployees = newEmployees.map((emp: any) => ({
       id: emp.employeeId,
       name: emp.fullName,
-      image: emp?.ProfilePic,
+      image: emp.image, // Already a URL from AddEmployeeModal
       isActive: emp.isActive,
     }));
     setEmployees((prev) => [...prev, ...mappedEmployees]);
@@ -467,8 +473,6 @@ const Page = () => {
     }
   };
 
-
-
   const handleTimeChange = (day: string, index: number, value: string) => {
     setOpeningHours((prev) =>
       prev.map((entry) =>
@@ -501,14 +505,6 @@ const Page = () => {
         }
       }
 
-      // Since court images are now uploaded immediately in the court modal,
-      // we don't need to upload them here again
-      console.log("Courts ready for saving:", courts.map(court => ({
-        id: court.id,
-        name: court.name,
-        imageKey: court.imageKey
-      })));
-
       // Use the current courts state since images are already uploaded
       const updatedCourts = courts;
 
@@ -518,7 +514,9 @@ const Page = () => {
         address,
         city,
         state: selectedState,
-        image: finalImageKey || UserProfile2.src,
+        contactInfo: contactNumber,
+        venueInfo: description, // Added description as venueInfo
+        image: finalImageKey,
         gamesAvailable,
         facilities: [
           ...option.map((opt) => ({
@@ -675,6 +673,18 @@ const Page = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-[#1b2229]">
+                  Contact Number
+                </label>
+                <input
+                  type="tel"
+                  value={contactNumber}
+                  onChange={(e) => setContactNumber(e.target.value)}
+                  className="w-full mt-2 p-3 bg-white rounded-full text-xs border border-gray-300"
+                  placeholder="Enter Contact Number"
+                />
+              </div>
               <div className="relative" ref={stateDropdownRef}>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">
                   State
@@ -712,6 +722,9 @@ const Page = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">
                   Location
@@ -727,9 +740,6 @@ const Page = () => {
                   </span>
                 </button>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="h-[69.41px]">
                 <div className="text-[#1B2229] mb-[8px] text-xs font-medium">
                   Games Available
@@ -792,44 +802,57 @@ const Page = () => {
                   }}
                 />
               </div>
+            </div>
 
-              <div className="relative" ref={statusDropdownRef}>
-                <label className="text-xs font-medium text-[#1b2229] block mb-2">
-                  Status
-                </label>
-                <button
-                  className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
-                  onClick={() => setStatusDropdown(!statusDropdown)}
-                  aria-expanded={statusDropdown}
-                  aria-label="Select Status"
-                >
-                  {selectedStatus || "Select Status"}
-                  <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
-                </button>
-                {statusDropdown && (
-                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
-                    {statuses.map((status) => (
-                      <label
-                        key={status}
-                        className="flex gap-2 cursor-pointer text-xs py-1"
-                      >
-                        <input
-                          type="radio"
-                          name="status"
-                          value={status}
-                          checked={selectedStatus === status}
-                          onChange={(e) => {
-                            setSelectedStatus(e.target.value);
-                            setStatusDropdown(false);
-                          }}
-                          className="accent-[#1b2229]"
-                        />
-                        {status}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="relative" ref={statusDropdownRef}>
+              <label className="text-xs font-medium text-[#1b2229] block mb-2">
+                Status
+              </label>
+              <button
+                className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
+                onClick={() => setStatusDropdown(!statusDropdown)}
+                aria-expanded={statusDropdown}
+                aria-label="Select Status"
+              >
+                {selectedStatus || "Select Status"}
+                <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
+              </button>
+              {statusDropdown && (
+                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
+                  {statuses.map((status) => (
+                    <label
+                      key={status}
+                      className="flex gap-2 cursor-pointer text-xs py-1"
+                    >
+                      <input
+                        type="radio"
+                        name="status"
+                        value={status}
+                        checked={selectedStatus === status}
+                        onChange={(e) => {
+                          setSelectedStatus(e.target.value);
+                          setStatusDropdown(false);
+                        }}
+                        className="accent-[#1b2229]"
+                      />
+                      {status}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Description Field */}
+            <div>
+              <label className="text-xs font-medium text-[#1b2229] block mb-2">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-3 bg-white rounded-xl text-xs border border-gray-300 resize-y h-24"
+                placeholder="Enter venue description"
+              />
             </div>
 
             <button
@@ -869,16 +892,6 @@ const Page = () => {
                 <div key={court.id} className="bg-white p-3 rounded-xl space-y-3">
                   <div className="flex gap-3">
                     <div className="relative">
-                      {/* <Image
-                        src={court.imageKey && court.imageKey.startsWith('courts/')
-                          ? getImageClientS3URL(court.image)
-                          : court.image || Court}
-                        alt={`${court.name} Image`}
-                        width={80}
-                        height={80}
-                        className="object-cover rounded"
-                      /> */}
-
                       <Image
                         src={court.imageKey && court.imageKey.startsWith('courts/')
                           ? getImageClientS3URL(court.imageKey)
@@ -888,7 +901,6 @@ const Page = () => {
                         height={80}
                         className="object-cover rounded"
                       />
-
                     </div>
                     <div className="flex-1">
                       <h4 className="text-lg font-semibold text-[#1b2229]">
@@ -1014,8 +1026,7 @@ const Page = () => {
                     <div className="flex justify-between items-center py-1">
                       <div className="flex items-center gap-3">
                         <Image
-                          src={getImageClientS3URL(employee.image) || UserProfile2}
-
+                          src={employee.image || UserProfile2} // Fallback to UserProfile2 if image is null
                           alt={`Employee ${employee.name}`}
                           width={23}
                           height={23}
