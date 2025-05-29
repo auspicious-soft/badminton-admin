@@ -217,5 +217,11 @@ export const getTermsSettings = async (route: any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route)
 }
+//--------------Dashboard Settings ---------------
+
+export const getDashboard = async (route: any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
 
 

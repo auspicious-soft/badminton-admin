@@ -15,30 +15,33 @@ const yAxisTickFormatter = (value: number) => {
 };
 
 const SalesChart = ({ selectedYear, data, onYearChange }: Props) => {
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) => currentYear - i);
+  console.log("graphD",data)
+
+ const currentYear = new Date().getFullYear(); // 2025
+const minYear = 2025; // Minimum year
+const startYear = Math.max(currentYear, minYear); // Start from currentYear or minYear, whichever is greater
+const years = Array.from({ length: startYear - minYear + 1 }, (_, i) => startYear - i);
 
   const monthlyCounts = useMemo(() => data?.monthlyCounts || [], [data]);
-
   const [chartData, setChartData] = useState<{ name: string; padel: number; pickleball: number }[]>([]);
 
   useEffect(() => {
-    const dummyData = [
-      { month: "01/2025", padel: 120, pickleball: 90 },
-      { month: "02/2025", padel: 150, pickleball: 110 },
-      { month: "03/2025", padel: 170, pickleball: 130 },
-      { month: "04/2025", padel: 140, pickleball: 160 },
-      { month: "05/2025", padel: 180, pickleball: 200 },
-      { month: "06/2025", padel: 160, pickleball: 140 },
-      { month: "07/2025", padel: 190, pickleball: 180 },
-      { month: "08/2025", padel: 170, pickleball: 150 },
-      { month: "09/2025", padel: 180, pickleball: 190 },
-      { month: "10/2025", padel: 150, pickleball: 130 },
-      { month: "11/2025", padel: 160, pickleball: 140 },
-      { month: "12/2025", padel: 170, pickleball: 150 },
-    ];
+    // const dummyData = [
+    //   { month: "01/2025", padel: 120, pickleball: 90 },
+    //   { month: "02/2025", padel: 150, pickleball: 110 },
+    //   { month: "03/2025", padel: 170, pickleball: 130 },
+    //   { month: "04/2025", padel: 140, pickleball: 160 },
+    //   { month: "05/2025", padel: 180, pickleball: 200 },
+    //   { month: "06/2025", padel: 160, pickleball: 140 },
+    //   { month: "07/2025", padel: 190, pickleball: 180 },
+    //   { month: "08/2025", padel: 170, pickleball: 150 },
+    //   { month: "09/2025", padel: 180, pickleball: 190 },
+    //   { month: "10/2025", padel: 150, pickleball: 130 },
+    //   { month: "11/2025", padel: 160, pickleball: 140 },
+    //   { month: "12/2025", padel: 170, pickleball: 150 },
+    // ];
 
-    const formattedData = (monthlyCounts.length ? monthlyCounts : dummyData).map((item: any) => ({
+    const formattedData = (monthlyCounts.length ? monthlyCounts : data)?.map((item: any) => ({
       name: item.month.split("/")[0],
       padel: item.padel,
       pickleball: item.pickleball,

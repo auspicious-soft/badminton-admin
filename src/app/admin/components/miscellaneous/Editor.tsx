@@ -11,38 +11,16 @@ interface TextEditorProps {
 const TextEditor = ({ value = "", setDescription }: TextEditorProps) => {
   const [isClient, setIsClient] = useState(false);
   const editorRef = useRef<TinyMCEEditor | null>(null);
-  const [editorContent, setEditorContent] = useState(value);
-  const skipUpdateRef = useRef(false);
 
   // Client-side rendering check
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Update local state when prop changes
-  useEffect(() => {
-    if (!skipUpdateRef.current) {
-      setEditorContent(value);
-    }
-  }, [value]);
-
-  // Update parent when local state changes
-  useEffect(() => {
-    if (editorContent !== value && !skipUpdateRef.current) {
-      skipUpdateRef.current = true;
-      setDescription(editorContent);
-      setTimeout(() => {
-        skipUpdateRef.current = false;
-      }, 0);
-    }
-  }, [editorContent, setDescription, value]);
-
+  // Simple direct handler for editor changes
   const handleEditorChange = (content: string) => {
-    skipUpdateRef.current = true;
-    setEditorContent(content);
-    setTimeout(() => {
-      skipUpdateRef.current = false;
-    }, 0);
+    console.log("Editor content changed:", content);
+    setDescription(content);
   };
 
   if (!isClient) {
@@ -52,7 +30,7 @@ const TextEditor = ({ value = "", setDescription }: TextEditorProps) => {
   return (
     <Editor
       apiKey="bfiif5l897h0tnz5633ntzuzxtnccbq360798pls2ilxjs0o"
-      value={editorContent}
+      value={value}
       onInit={(evt, editor) => {
         editorRef.current = editor;
       }}

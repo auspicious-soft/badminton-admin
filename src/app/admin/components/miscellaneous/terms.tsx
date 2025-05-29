@@ -24,7 +24,13 @@ const TermsPage = ({ name }: { name: string }) => {
     }
   }, [actualData, name]);
 
+  const handleDescriptionChange = (content: string) => {
+    console.log("Description changed:", content);
+    setDescription(content);
+  };
+
   const handleSave = async () => {
+    console.log("Saving description:", description);
     setIsSaving(true);
     try {
       const payload = { [name]: description };
@@ -49,7 +55,7 @@ const TermsPage = ({ name }: { name: string }) => {
       <TextEditor
         key={`editor-${name}`}
         value={description}
-        setDescription={setDescription}
+        setDescription={handleDescriptionChange}
       />
       <button
         onClick={handleSave}
