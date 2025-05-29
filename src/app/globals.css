@@ -9,7 +9,7 @@
 }
 :root {
   background: #fbfaff;
-  --tw-bg-orange: #F96915; 
+  --tw-bg-orange: #F96915;
   --tw-bg-darkBlack: #060606;
 }
 
@@ -86,9 +86,21 @@ textarea:focus-visible {
   outline: none;
 }
 
+/* Remove spinner buttons from number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .table-common, .table-normal {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch; 
+  -webkit-overflow-scrolling: touch;
 }
 .table-normal table {
   background: transparent;
@@ -145,12 +157,12 @@ th, td {
 }
 .table-common tr td:first-child {
     border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px; 
+    border-bottom-left-radius: 8px;
 }
 .table-common tr td:last-child {
     border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px; 
-    
+    border-bottom-right-radius: 8px;
+
 
 }
 
@@ -174,8 +186,8 @@ th, td {
 }
 .main-form label {
 display: block;
-color: #060606; 
-font-size: 14px; 
+color: #060606;
+font-size: 14px;
 }
 .main-form input,
 .main-form select,
