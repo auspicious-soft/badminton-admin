@@ -30,7 +30,7 @@ const BookingRow = ({ fullName, game, city, date, image, index }) => {
     <div className={` rounded-[10px] justify-start items-center inline-flex ${bgColor} w-full ring-offset-purple-950  py-3`}>
       <div className=" w-[30%] grow shrink basis-0 self-stretch justify-start items-center gap-1 flex">
         {/* <div className="w-1/5"> */}
-        <Image className=" rounded-full" src={Profile} alt={fullName} width={23} height={23} />
+        <Image className=" rounded-full"  src={Profile} alt={fullName} width={23} height={23} />
         <div className=" text-[#1b2229] text-xs font-medium ">{fullName}</div>
       </div>
       <div className="w-[20%] h-3.5 text-[#1b2229] text-xs font-medium ">

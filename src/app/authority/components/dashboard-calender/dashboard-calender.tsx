@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { TiltedArrowIcon } from "@/utils/svgicons";
+import { useRouter } from "next/navigation";
 
 // Function to get current week days dynamically
 const getCurrentWeekDays = () => {
@@ -31,9 +32,9 @@ const isCurrentTimeInSlot = (slotTime: string, currentTime: Date) => {
 };
 
 const ScheduleCalender = ({ data }: any) => {
-  console.log("Calenderdata", data);
-  const [weekDays, setWeekDays] = useState(getCurrentWeekDays());
 
+  const [weekDays, setWeekDays] = useState(getCurrentWeekDays());
+  const router = useRouter();
   // Current time: 06:02 PM IST (18:02 in 24-hour format)
   const currentTime = new Date();
   currentTime.setHours(18, 2, 0, 0); // Hardcoding to 18:02 as per system message
@@ -60,7 +61,7 @@ const ScheduleCalender = ({ data }: any) => {
         <h2 className="text-[#10375c] text-lg sm:text-xl font-medium">
           Today&apos;s Schedule
         </h2>
-        <div className="rounded-[50px] bg-white p-2">
+        <div onClick={() => router.push('/authority/matches')} className="rounded-[50px] bg-white p-1">
           <TiltedArrowIcon />
         </div>
       </div>

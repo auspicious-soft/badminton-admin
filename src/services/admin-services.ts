@@ -33,6 +33,17 @@ export const updateMerchandise = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.patch(route, payload)
 }
+
+//----------Orders Page--------------------------
+export const updateOrder = async (payload: any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.put('/admin/orders', payload)
+}
+
+export const getOrderReceipt = async (orderId: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(`/order-receipt/${orderId}`)
+}
 //----------Inventory Page--------------------------
 
 export const createInventory = async (route: string,payload:any) => {
