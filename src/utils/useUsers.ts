@@ -2,7 +2,7 @@ import { getAllUsers } from '@/services/admin-services';
 import useSWR from 'swr'; 
 
 const UseUsers = () => {
-    const { data, error, isLoading } = useSWR(`/admin/users`, getAllUsers);
+    const { data, error, isLoading } = useSWR(`/authority/users`, getAllUsers);
 
     const users = data?.data?.data?.map((row: any) => ({
         label: `${row?.fullName?.eng}`,

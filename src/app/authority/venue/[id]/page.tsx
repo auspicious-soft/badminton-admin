@@ -562,7 +562,7 @@ const Page = () => {
               }
             });
 
-            router.push("/admin/venue");
+            router.push("/authority/venue");
           } else {
             toast.error("Failed to update venue");
             setIsUploading(false);

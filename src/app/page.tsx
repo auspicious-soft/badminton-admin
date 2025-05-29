@@ -18,12 +18,14 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (session) {
-      if ((session as any)?.user?.role === "employee") {
+      // if ((session as any)?.user?.role === "employee") {
 
-        router.push("/");
-      } else {
-        router.push("/admin/dashboard");
-      }
+      //   router.push("/");
+      // } else {
+      //   router.push("/authority/dashboard");
+      // }
+              router.push("/authority/dashboard");
+
     }
   }, [session, router]);
  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
@@ -53,7 +55,7 @@ export default function LoginPage() {
           router.push("/publisher/dashboard");
         } 
           else {
-          router.push("/admin/dashboard");
+          router.push("/authority/dashboard");
         }
       }
       else if (response?.message === "Invalid password") {

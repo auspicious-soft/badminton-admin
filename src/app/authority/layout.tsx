@@ -17,7 +17,7 @@ export default async function AdminLayout({
   }
 
   const userRole = (session as any)?.user?.role;
-  const restrictedRoles = ['user', 'employee']; 
+  const restrictedRoles = ['user']; 
   
   //Check if user has restricted role
   if (restrictedRoles.includes(userRole)) {

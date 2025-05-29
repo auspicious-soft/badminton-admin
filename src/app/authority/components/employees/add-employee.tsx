@@ -148,7 +148,7 @@ const AddEmployee = () => {
             setSelectedImage(null);
             setImageFile(null);
 
-            router.push("/admin/employees");
+            router.push("/authority/employees");
           } else {
             toast.error("Failed to create employee");
 

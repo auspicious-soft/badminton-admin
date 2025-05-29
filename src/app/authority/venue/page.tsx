@@ -60,7 +60,7 @@ const Page = () => {
           </div>
           <div
             className="px-5 py-3 bg-[#1b2229] rounded-[28px] flex justify-center items-center gap-[5px] cursor-pointer"
-            onClick={() => router.push("/admin/venue/add-new-venue")}
+            onClick={() => router.push("/authority/venue/add-new-venue")}
           >
             <Add />
             <div className="text-white text-sm font-medium">Add A New Venue</div>
@@ -76,7 +76,7 @@ const Page = () => {
           <p className="text-center text-[#10375C] py-4">No data found.</p>
         ) : (
           venues.map((venue, index) => (
-            <div key={index} className="flex flex-col items-start" onClick={() => router.push(`/admin/venue/${venue._id}`)}>
+            <div key={index} className="flex flex-col items-start" onClick={() => router.push(`/authority/venue/${venue._id}`)}>
               <Image
                  src={getImageClientS3URL(venue?.image)} // Fallback to firstvenue if image is missing or invalid
                 alt={venue.name}

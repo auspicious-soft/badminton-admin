@@ -51,7 +51,7 @@ export default function OrdersComponent() {
   // Filter users based on search
   const filteredUsers = users.filter((user) => user.name.toLowerCase().includes(searchParams.toLowerCase()));
   const handleClick = () => {
-    router.push('/admin/users/1');
+    router.push('/authority/users/1');
   }
   return (
     <>

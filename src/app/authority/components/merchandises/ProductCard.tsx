@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 const ProductCard = ({ product ,image }) => {
   const router = useRouter();
   return (
-    <div onClick={()=>router.push(`/admin/merchandises/${product._id}`)} className="w-full overflow-hidden transition-shadow duration-300  ">
+    <div onClick={()=>router.push(`/authority/merchandises/${product._id}`)} className="w-full overflow-hidden transition-shadow duration-300  ">
 
       <div className="relative w-full aspect-square overflow-hidden rounded-[10px]">
         <Image

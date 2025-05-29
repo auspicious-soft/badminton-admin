@@ -345,7 +345,7 @@ const ProductDetailForm = () => {
           mutate();
           reset();
           setImagePreviews([]);
-          router.push("/admin/merchandises");
+          router.push("/authority/merchandises");
         } else {
           toast.error(`Failed to update product: ${response.statusText}`);
         }

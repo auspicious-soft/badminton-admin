@@ -13,7 +13,7 @@ import {
   UpArrowIcon,
 } from "@/utils/svgicons";
 import CustomSelect from "@/app/components/CustomSelect";
-import RefundConfirmationModal from "@/app/admin/components/Matches/refundConfirmationModal";
+import RefundConfirmationModal from "@/app/authority/components/Matches/refundConfirmationModal";
 
 
 const Page = () => {

@@ -443,7 +443,7 @@ const AllEmployeeComponent = () => {
           </div>
         </div>
         <button
-          onClick={() => router.push("/admin/employees/add")}
+          onClick={() => router.push("/authority/employees/add")}
           className="flex h-10 w-[210px] md:w-[210px] sm:w-[210px] px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium"
         >
           <Add /> Add A New Employee

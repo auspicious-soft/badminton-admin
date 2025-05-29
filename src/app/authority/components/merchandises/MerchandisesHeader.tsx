@@ -40,7 +40,7 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
     };
   }, []);
   const handleAddProduct = () => {
-    router.push('/admin/merchandises/add');
+    router.push('/authority/merchandises/add');
   }
   return (
     <div className="space-y-[10px] relative">

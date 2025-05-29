@@ -35,7 +35,7 @@ const TextEditor = ({ value = "", setDescription }: TextEditorProps) => {
         editorRef.current = editor;
       }}
       init={{
-        height: 250,
+        height: 300,
         menubar: false,
         statusbar: false,
         toolbar: 'fontfamily fontsizeinput blocks forecolor bold italic underline alignleft aligncenter alignright undo redo',

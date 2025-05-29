@@ -8,16 +8,16 @@ import { signOut, useSession } from "next-auth/react";
 import NotificationDropdown from "../notifications/NotificationModal";
 
 const navigationLinks = [
-  { href: "/admin/dashboard", label: "Dashboard", routes: ["/admin/dashboard"] },
-  { href: "/admin/matches", label: "Matches", routes: ["/admin/matches"] },
-  { href: "/admin/tournaments", label: "Tournaments", routes: ["/admin/tournaments"] },
-  { href: "/admin/users", label: "Users", routes: ["/admin/users"] },
-  { href: "/admin/notifications", label: "Notifications", routes: ["/admin/notifications"] },
-  { href: "/admin/venue", label: "Venue", routes: ["/admin/venue"] },
-  { href: "/admin/merchandises", label: "Merchandise", routes: ["/admin/merchandises", "/admin/merchandises/[id]", "/admin/merchandises/add"] },
-  { href: "/admin/inventory", label: "Inventory", routes: ["/admin/inventory"] },
-  { href: "/admin/employees", label: "Employees", routes: ["/admin/employees"] },
-  { href: "/admin/miscellaneous", label: "Misc", routes: ["/admin/miscellaneous"] },
+  { href: "/authority/dashboard", label: "Dashboard", routes: ["/authority/dashboard"] },
+  { href: "/authority/matches", label: "Matches", routes: ["/authority/matches"] },
+  { href: "/authority/tournaments", label: "Tournaments", routes: ["/authority/tournaments"] },
+  { href: "/authority/users", label: "Users", routes: ["/authority/users"] },
+  { href: "/authority/notifications", label: "Notifications", routes: ["/authority/notifications"] },
+  { href: "/authority/venue", label: "Venue", routes: ["/authority/venue"] },
+  { href: "/authority/merchandises", label: "Merchandise", routes: ["/authority/merchandises", "/authority/merchandises/[id]", "/authority/merchandises/add"] },
+  { href: "/authority/inventory", label: "Inventory", routes: ["/authority/inventory"] },
+  { href: "/authority/employees", label: "Employees", routes: ["/authority/employees"] },
+  { href: "/authority/miscellaneous", label: "Misc", routes: ["/authority/miscellaneous"] },
 ];
 
 const isTabActive = (pathname, routes) => {
@@ -37,7 +37,7 @@ export default function Headers() {
   const name = data?.user?.name || "User";
   const router = useRouter();
   const pathname = usePathname();
-  const isProfileActive = pathname === "/admin/profile";
+  const isProfileActive = pathname === "/authority/profile";
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null); // Ref for notification dropdown
 
@@ -65,7 +65,7 @@ export default function Headers() {
     <div className="sticky top-0 w-full py-4 px-4 md:px-6 z-50 bg-[#fbfaff] pb-1">
       <div className="max-w-[1920px] mx-auto">
         <div className="flex items-center justify-between w-full">
-          <Link href="/admin/dashboard" className="flex items-center rounded-[44px] border-[#10375C] border px-3 py-2 md:px-4 lg:px-6 hover:bg-gray-50 transition-colors">
+          <Link href="/authority/dashboard" className="flex items-center rounded-[44px] border-[#10375C] border px-3 py-2 md:px-4 lg:px-6 hover:bg-gray-50 transition-colors">
             <span className="text-orange-500 font-semibold">
               <AppLogoIcon />
             </span>
@@ -105,7 +105,7 @@ export default function Headers() {
                 <div className="absolute z-20 top-[50px] right-0 w-48 bg-white p-5 rounded-lg shadow-xl">
                   <button
                     onClick={() => {
-                      router.push("/admin/profile");
+                      router.push("/authority/profile");
                       setShowDropdown(false);
                     }}
                     className="text-darkBlack w-full hover:underline text-left mb-[5px]"

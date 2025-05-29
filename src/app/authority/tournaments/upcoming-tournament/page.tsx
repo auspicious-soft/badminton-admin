@@ -195,7 +195,7 @@ const Page = () => {
             </div>
 
             <div
-              onClick={() => router.push("/admin/tournaments/upcoming-tournament/2")}
+              onClick={() => router.push("/authority/tournaments/upcoming-tournament/2")}
               className="cursor-pointer mt-6 h-12 px-4 py-3 bg-[#10375c] rounded-[28px] flex justify-center items-center"
             >
               <button className="text-white text-sm font-medium">View Details</button>

@@ -204,7 +204,7 @@ const AddProductForm = () => {
           toast.success("Product added successfully");
           reset(); // Reset form
           setImagePreviews([]); // Clear image previews
-          router.push("/admin/merchandises"); // Redirect to merchandise list
+          router.push("/authority/merchandises"); // Redirect to merchandise list
         } else {
           toast.error("Failed to add product");
         }

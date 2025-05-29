@@ -66,7 +66,7 @@ export default function InventoryComponent() {
 
   const handleClick = () => {
     if (selectedProduct) {
-      router.push(`/admin/merchandises/${selectedProduct._id}`);
+      router.push(`/authority/merchandises/${selectedProduct._id}`);
     }
   };
 
