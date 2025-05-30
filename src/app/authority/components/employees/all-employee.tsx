@@ -104,8 +104,18 @@ const AllEmployeeComponent = () => {
         ...firstEmployee,
         image: firstEmployee.image || "",
       });
-      setSelectedImage(firstEmployee.image || null);
-      setOriginalFormData({ ...firstEmployee, image: firstEmployee.image || "" });
+      
+      // Handle S3 image URLs properly on initial load
+      if (firstEmployee.profilePic && firstEmployee.profilePic.startsWith('employees/')) {
+        setPreviousImageKey(firstEmployee.profilePic);
+        const imageUrl = getImageClientS3URL(firstEmployee.profilePic);
+        setSelectedImage(imageUrl);
+      } else {
+        setPreviousImageKey(null);
+        setSelectedImage(firstEmployee.profilePic || null);
+      }
+      
+      setOriginalFormData({ ...firstEmployee, image: firstEmployee.profilePic || "" });
     }
   }, [employees, selectedEmployee]);
 
@@ -362,6 +372,30 @@ const AllEmployeeComponent = () => {
     }
   };
 
+  // Reset selection and select first employee when page changes
+  useEffect(() => {
+    if (employees.length > 0) {
+      const firstEmployee = employees[0];
+      setSelectedEmployee(firstEmployee);
+      setEditFormData({
+        ...firstEmployee,
+        image: firstEmployee.profilePic || "",
+      });
+      
+      // Handle S3 image URLs properly
+      if (firstEmployee.profilePic && firstEmployee.profilePic.startsWith('employees/')) {
+        setPreviousImageKey(firstEmployee.profilePic);
+        const imageUrl = getImageClientS3URL(firstEmployee.profilePic);
+        setSelectedImage(imageUrl);
+      } else {
+        setPreviousImageKey(null);
+        setSelectedImage(firstEmployee.profilePic || null);
+      }
+      
+      setOriginalFormData({ ...firstEmployee, image: firstEmployee.profilePic || "" });
+    }
+  }, [page, employees]);
+
   return (
     <div>
       <h1 className="text-[#10375c] mb-4 text-3xl font-semibold">All Employees</h1>
@@ -381,25 +415,25 @@ const AllEmployeeComponent = () => {
               </button>
               {sortDropdown && (
                 <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
-                 
+
                   {[{ value: null, label: "All" }, ...sortOptions.filter(option => option.label !== "All")].map((option) => (
-  <label key={option.value ?? "all"} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
-    <input
-      type="radio"
-      name="Sort"
-      value={option.value ?? ""} // Use empty string for null (HTML radio inputs don't support null directly)
-      checked={option.value === null ? selectedSort === null : selectedSort === option.value}
-      onChange={(e) => {
-        const value = e.target.value === "" ? null : e.target.value;
-        setSelectedSort(value);
-        setSortDropdown(false);
-        setPage(1);
-      }}
-      className="accent-[#1b2229]"
-    />
-    {option.label}
-  </label>
-))}
+                    <label key={option.value ?? "all"} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
+                      <input
+                        type="radio"
+                        name="Sort"
+                        value={option.value ?? ""} // Use empty string for null (HTML radio inputs don't support null directly)
+                        checked={option.value === null ? selectedSort === null : selectedSort === option.value}
+                        onChange={(e) => {
+                          const value = e.target.value === "" ? null : e.target.value;
+                          setSelectedSort(value);
+                          setSortDropdown(false);
+                          setPage(1);
+                        }}
+                        className="accent-[#1b2229]"
+                      />
+                      {option.label}
+                    </label>
+                  ))}
                 </div>
               )}
             </div>
@@ -415,30 +449,30 @@ const AllEmployeeComponent = () => {
                 {selectedGame || "Select Status"}
                 <span>{!gameDropdown ? <WhiteDownArrow /> : <UpArrowIcon />}</span>
               </button>
-             
-                  {gameDropdown && (
-  <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
-    {["All", ...games.filter(status => status !== "All")].map((status) => (
-      <label key={status} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
-        <input
-          type="radio"
-          name="Select Status"
-          value={status === "All" ? "" : status} // Use empty string for "All" (mapped to null)
-          checked={status === "All" ? selectedGame === " " : selectedGame === status}
-          onChange={(e) => {
-            const value = e.target.value === "" ? "" : e.target.value;
-            setSelectedGame(value);
-            setGameDropdown(false);
-            setPage(1);
-          }}
-          className="accent-[#1b2229]"
-        />
-        {status}
-      </label>
-    ))}
-  </div>
-)}
-              
+
+              {gameDropdown && (
+                <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
+                  {["All", ...games.filter(status => status !== "All")].map((status) => (
+                    <label key={status} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
+                      <input
+                        type="radio"
+                        name="Select Status"
+                        value={status === "All" ? "" : status} // Use empty string for "All" (mapped to null)
+                        checked={status === "All" ? selectedGame === " " : selectedGame === status}
+                        onChange={(e) => {
+                          const value = e.target.value === "" ? "" : e.target.value;
+                          setSelectedGame(value);
+                          setGameDropdown(false);
+                          setPage(1);
+                        }}
+                        className="accent-[#1b2229]"
+                      />
+                      {status}
+                    </label>
+                  ))}
+                </div>
+              )}
+
             </div>
           </div>
         </div>
@@ -481,10 +515,10 @@ const AllEmployeeComponent = () => {
                 <div
                   key={employee._id}
                   className={`w-full cursor-pointer flex flex-col md:flex-row  items-start md:items-center p-3 rounded-[10px] mb-2 ${selectedEmployee?._id === employee._id
-                      ? "bg-[#176dbf] text-white"
-                      : index % 2 === 0
-                        ? "bg-white"
-                        : "bg-gray-200"
+                    ? "bg-[#176dbf] text-white"
+                    : index % 2 === 0
+                      ? "bg-white"
+                      : "bg-gray-200"
                     }`}
                   onClick={() => handleEmployeeSelect(employee)}
                 >
