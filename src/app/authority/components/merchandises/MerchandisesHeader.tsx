@@ -4,7 +4,7 @@ import { UpArrowIcon, DownArrowIcon, PlusIcon } from "@/utils/svgicons";
 import { useRouter } from "next/navigation";
 
 const tabs = ["Orders", "Products", "Inventory"];
-const games = ["Sort","Newest", "Oldest"];
+const games = ["All","Newest", "Oldest"];
 const cities = ["All","Pending", "Cancelled","Ready", "Confirmed" , "Delivered" ];
 
 // Mapping objects for API values
@@ -83,11 +83,12 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
 
           <div className="relative" ref={gameDropdownRef}>
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
-              {getDisplayValueFromApiValue(selectedGame, true) || "Sort"}
+              {/* {getDisplayValueFromApiValue(selectedGame, true) || "Sort"} */}
+{selectedGame === "" ? "Sort" : getDisplayValueFromApiValue(selectedGame, true)}
               <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
             </button>
             {gameDropdown && (
-              <div className="z-50 h-fit flex flex-col gap-[5px] absolute top-12 left-0  p-[20px] w-[168px] h-[81px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+              <div className="z-50 h-fit flex flex-col gap-[5px] absolute top-12 left-0  p-[20px] w-[168px]  bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
                 {games.map((game) => (
                   <label key={game} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium ">
                     <input
@@ -116,7 +117,9 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
 
           <div className="relative w-full " ref={cityDropdownRef}>
             <button className="w-[180px] flex justify-between h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setCityDropdown(!cityDropdown)}>
-              {getDisplayValueFromApiValue(selectedCity, false) || "Status"}
+              {/* {getDisplayValueFromApiValue(selectedCity, false) || "Status"} */}
+              {selectedCity === "" ? "Status" : getDisplayValueFromApiValue(selectedCity, false)}
+
               <span className="">
                 {!cityDropdown ? <DownArrowIcon /> : <UpArrowIcon />}
               </span>

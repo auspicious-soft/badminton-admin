@@ -174,8 +174,8 @@ const OrdersComponent: React.FC<MatchesHeaderProps> = ({ selectedGame, setSelect
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-[#10375c] text-lg">Loading orders...</div>
+      <div className="flex  h-64">
+        <div className="text-[#10375c] text-lg">Loading...</div>
       </div>
     );
   }

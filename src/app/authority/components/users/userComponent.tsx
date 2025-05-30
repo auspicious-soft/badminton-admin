@@ -87,7 +87,7 @@ export default function UsersComponent() {
             className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]"
             onClick={() => setGameDropdown(!gameDropdown)}
           >
-            {games.find(game => game.value === selectedGame)?.label || "Sort"}
+            {selectedGame === null ?"Sort" : games.find(game => game.value === selectedGame)?.label }
             <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
           </button>
           {gameDropdown && (
