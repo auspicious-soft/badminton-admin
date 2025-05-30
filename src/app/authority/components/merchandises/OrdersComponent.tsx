@@ -172,14 +172,6 @@ const OrdersComponent: React.FC<MatchesHeaderProps> = ({ selectedGame, setSelect
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex  h-64">
-        <div className="text-[#10375c] text-lg">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="flex w-full lg:w-2/3 justify-between mb-[15px]">
@@ -202,10 +194,10 @@ const OrdersComponent: React.FC<MatchesHeaderProps> = ({ selectedGame, setSelect
             </div>
             <div className="w-full h-[0px] border border-[#d0d0d0] border-dotted mt-[8px]"></div>
             <div className="w-full min-w-[600px]">
-              {filteredOrders.length === 0 ? (
-                <div className="flex justify-center items-center h-32">
-                  <p className="text-[#7e7e8a] text-sm">No orders found</p>
-                </div>
+              {isLoading ? (
+                <p className="text-center text-[#10375C] py-4">Loading...</p>
+              ) : filteredOrders.length === 0 ? (
+                <p className="text-center text-[#10375C] py-4">No data found.</p>
               ) : (
                 filteredOrders.map((order: any, index: number) => {
                 const isSelected = selectedOrderId === order.orderId;
@@ -229,7 +221,7 @@ const OrdersComponent: React.FC<MatchesHeaderProps> = ({ selectedGame, setSelect
                     </div>
                   </div>
                 );
-                })
+               })
               )}
             </div>
             {/* Pagination */}
