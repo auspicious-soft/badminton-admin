@@ -153,13 +153,13 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                         fill
                         unoptimized
                       />
-}
+                      }
                     </div>
                     {match.isMaintenance === true
                       ? ""
                       : match.team2?.[0]?.userData
                         ? match.team2?.[0]?.userData?.fullName
-                        : "N/A"}  
+                        : "N/A"}
                     {/* {match.team2?.[0]?.userData?.fullName || "N/A"} */}
                   </div>
                   <div
@@ -236,68 +236,55 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                   </div>
                 </div>
               </div>
-
-              <div className="flex justify-between items-center mt-4">
-                <h4 className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Created By</h4>
-                <div className="flex items-center gap-2">
-                  <div className="w-[25px] h-[25px] relative">
-                    <Image
-                      src={selectedMatch.team1?.[0]?.userData?.profilePic !== null ? getImageClientS3URL(selectedMatch.team1?.[0]?.userData?.profilePic) : UserProfile2}
-                      alt="Avatar"
-                      className="rounded-full object-cover"
-                      fill
-                      unoptimized
-                    />
-                  </div>
-                  <p className="text-right text-[#1b2229] text-xs font-medium">
-                    {selectedMatch.team1?.[0]?.userData?.fullName || "N/A"}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-[10px]">
-                <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Players</p>
-                <p className="text-right text-[#1b2229] text-xs font-medium">
-                  {selectedMatch.team1?.length + (selectedMatch.team2?.length || 0) || 0}
-                </p>
-                <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Equipment Rented</p>
-                <p className="text-right text-[#1b2229] text-xs font-medium">
-                  {/* {selectedMatch.team1?.[0]?.racketA ||
-                  selectedMatch.team1?.[0]?.racketB ||
-                  selectedMatch.team1?.[0]?.racketC ||
-                  selectedMatch.team1?.[0]?.balls
-                    ? "Yes"
-                    : "None"} */}
-                  {getTotalEquipmentRented(selectedMatch)}
-                </p>
-                {/* <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Paid for</p>
-                <p className="text-right text-[#1b2229] text-xs font-medium">
-                  {selectedMatch.team1?.[0]?.paidBy || "N/A"}
-                </p> */}
-              </div>
-
-              <div className="bg-[#f2f2f4] rounded-[20px] mt-[15px]">
-                <div className="flex flex-col items-center mt-[15px] bg-white px-[17px] py-[20px] gap-[20px] rounded-lg">
-                  <h4 className="text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">
-                    Players in the Game
-                  </h4>
-                  <div className="flex items-center gap-[15px]">
-                    {selectedMatch.team1?.map((player, idx) => (
-                      <div key={idx} className="flex flex-col items-center">
-                        <div className="w-16 h-16 relative">
-                          <Image
-                            src={player.userData?.profilePic !== null ? getImageClientS3URL(player.userData?.profilePic) : UserProfile2}
-                            alt="Player"
-                            className="rounded-full object-cover"
-                            fill
-                            unoptimized
-                          />
-                        </div>
-                        <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
+              {selectedMatch.isMaintenance === false && (
+                <div>
+                  <div className="flex justify-between items-center mt-4">
+                    <h4 className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Created By</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="w-[25px] h-[25px] relative">
+                        <Image
+                          src={selectedMatch.team1?.[0]?.userData?.profilePic !== null ? getImageClientS3URL(selectedMatch.team1?.[0]?.userData?.profilePic) : UserProfile2}
+                          alt="Avatar"
+                          className="rounded-full object-cover"
+                          fill
+                          unoptimized
+                        />
                       </div>
-                    ))}
-                    <p className="text-sm font-bold">VS</p>
-                    {selectedMatch.team2?.length > 0 ? (
-                      selectedMatch.team2.map((player, idx) => (
+                      <p className="text-right text-[#1b2229] text-xs font-medium">
+                        {selectedMatch.team1?.[0]?.userData?.fullName || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-[10px]">
+                    <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Players</p>
+                    <p className="text-right text-[#1b2229] text-xs font-medium">
+                      {selectedMatch.team1?.length + (selectedMatch.team2?.length || 0) || 0}
+                    </p>
+                    <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Equipment Rented</p>
+                    <p className="text-right text-[#1b2229] text-xs font-medium">
+                      {/* {selectedMatch.team1?.[0]?.racketA ||
+                    selectedMatch.team1?.[0]?.racketB ||
+                    selectedMatch.team1?.[0]?.racketC ||
+                    selectedMatch.team1?.[0]?.balls
+                      ? "Yes"
+                      : "None"} */}
+                      {getTotalEquipmentRented(selectedMatch)}
+                    </p>
+                    {/* <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Paid for</p>
+                  <p className="text-right text-[#1b2229] text-xs font-medium">
+                    {selectedMatch.team1?.[0]?.paidBy || "N/A"}
+                  </p> */}
+                  </div>
+                </div>
+              )}
+              {selectedMatch.isMaintenance === false &&
+                <div className="bg-[#f2f2f4] rounded-[20px] mt-[15px]">
+                  <div className="flex flex-col items-center mt-[15px] bg-white px-[17px] py-[20px] gap-[20px] rounded-lg">
+                    <h4 className="text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">
+                      Players in the Game
+                    </h4>
+                    <div className="flex items-center gap-[15px]">
+                      {selectedMatch.team1?.map((player, idx) => (
                         <div key={idx} className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
                             <Image
@@ -305,44 +292,61 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                               alt="Player"
                               className="rounded-full object-cover"
                               fill
-                            // unoptimized
+                              unoptimized
                             />
                           </div>
                           <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
                         </div>
-                      ))
-                    ) : (
-                      <>
-                        <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 relative">
-                            <Image
-                              src={UserProfile2}
-                              alt="Player"
-                              className="rounded-full object-cover"
-                              fill
-                            // unoptimized
-                            />
+                      ))}
+                      <p className="text-sm font-bold">VS</p>
+                      {selectedMatch.team2?.length > 0 ? (
+                        selectedMatch.team2.map((player, idx) => (
+                          <div key={idx} className="flex flex-col items-center">
+                            <div className="w-16 h-16 relative">
+                              <Image
+                                src={player.userData?.profilePic !== null ? getImageClientS3URL(player.userData?.profilePic) : UserProfile2}
+                                alt="Player"
+                                className="rounded-full object-cover"
+                                fill
+                              // unoptimized
+                              />
+                            </div>
+                            <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
                           </div>
-                          <p className="text-xs mt-1 text-center">N/A</p>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 relative">
-                            <Image
-                              src={UserProfile2}
-                              alt="Player"
-                              className="rounded-full object-cover"
-                              fill
-                            // unoptimized
-                            />
+                        ))
+                      ) : (
+                        <>
+                          <div className="flex flex-col items-center">
+                            <div className="w-16 h-16 relative">
+                              <Image
+                                src={UserProfile2}
+                                alt="Player"
+                                className="rounded-full object-cover"
+                                fill
+                              // unoptimized
+                              />
+                            </div>
+                            <p className="text-xs mt-1 text-center">N/A</p>
                           </div>
-                          <p className="text-xs mt-1 text-center">N/A</p>
-                        </div>
-                      </>
-                    )}
+                          <div className="flex flex-col items-center">
+                            <div className="w-16 h-16 relative">
+                              <Image
+                                src={UserProfile2}
+                                alt="Player"
+                                className="rounded-full object-cover"
+                                fill
+                              // unoptimized
+                              />
+                            </div>
+                            <p className="text-xs mt-1 text-center">N/A</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <button className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[10%]">Edit Game</button>
+              }
+              {/* <button className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[10%]">Edit Game</button> */}
             </div>
           ) : (
             <p className="text-center text-gray-500">Select a match to see details</p>

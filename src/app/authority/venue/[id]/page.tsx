@@ -677,13 +677,26 @@ const Page = () => {
                 <label className="text-xs font-medium text-[#1b2229]">
                   Contact Number
                 </label>
-                <input
+                {/* <input
                   type="tel"
                   value={contactNumber}
                   onChange={(e) => setContactNumber(e.target.value)}
                   className="w-full mt-2 p-3 bg-white rounded-full text-xs border border-gray-300"
                   placeholder="Enter Contact Number"
-                />
+                /> */}
+                <input
+  type="tel"
+  value={contactNumber}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, ""); // remove non-digits
+    if (value.length <= 10) {
+      setContactNumber(value);
+    }
+  }}
+  className="w-full mt-2 p-3 bg-white rounded-full text-xs border border-gray-300"
+  placeholder="Enter Contact Number"
+/>
+
               </div>
               <div className="relative" ref={stateDropdownRef}>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">
