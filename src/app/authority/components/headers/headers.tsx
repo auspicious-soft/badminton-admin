@@ -65,11 +65,11 @@ export default function Headers() {
     <div className="sticky top-0 w-full py-4 px-4 md:px-6 z-50 bg-[#fbfaff] pb-1">
       <div className="max-w-[1920px] mx-auto">
         <div className="flex items-center justify-between w-full">
-          <Link href="/authority/dashboard" className="flex items-center rounded-[44px] border-[#10375C] border px-3 py-2 md:px-4 lg:px-6 hover:bg-gray-50 transition-colors">
+          <Link href="/authority/dashboard" className="flex items-center   hover:bg-gray-50 transition-colors">
             <span className="text-orange-500 font-semibold">
               <AppLogoIcon />
             </span>
-            <span className="ml-2 text-gray-900 text-base md:text-lg lg:text-2xl font-semibold">Tennis</span>
+            {/* <span className="ml-2 text-gray-900 text-base md:text-lg lg:text-2xl font-semibold">Tennis</span> */}
           </Link>
 
           <div className="flex items-center gap-2">

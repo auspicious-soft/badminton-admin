@@ -556,11 +556,11 @@ const Page = () => {
                   value={contactNumber}
                   // onChange={(e) => setContactNumber(e.target.value)}
                   onChange={(e) => {
-    const value = e.target.value.replace(/\D/g, ""); // remove non-digits
-    if (value.length <= 10) {
-      setContactNumber(value);
-    }
-  }}
+                    const value = e.target.value.replace(/\D/g, ""); // remove non-digits
+                    if (value.length <= 10) {
+                      setContactNumber(value);
+                    }
+                  }}
                   className="w-full mt-2 p-3 bg-white rounded-full text-xs border border-gray-300"
                   placeholder="Enter Contact Number"
                 />
