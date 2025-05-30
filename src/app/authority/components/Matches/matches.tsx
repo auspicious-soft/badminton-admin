@@ -14,7 +14,7 @@ import useSWR from "swr";
 import { getAllMatches } from "@/services/admin-services";
 import { getImageClientS3URL } from "@/config/axios";
 
-export default function MatchesComponent({ name,selectedGame,selectedCity, selectedDate }: { name: string, selectedGame:string, selectedCity:string, selectedDate:string }) {
+export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }: { name: string, selectedGame: string, selectedCity: string, selectedDate: string }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [searchParams, setSearchParams] = useState("");
   const [page, setPage] = useState(1);
@@ -26,7 +26,7 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
     "Upcoming Matches": "upcoming",
   };
   useEffect(() => {
-    const mappedType = typeMapping[name] || "completed"; 
+    const mappedType = typeMapping[name] || "completed";
     setType(mappedType);
   }, [name]);
 
@@ -36,13 +36,13 @@ export default function MatchesComponent({ name,selectedGame,selectedCity, selec
   //   getAllMatches
   // );
   // &search=${searchParams}&game=${selectedGame}&date=${selectedDate}
-   const { data, mutate, isLoading, error } = useSWR(
+  const { data, mutate, isLoading, error } = useSWR(
     `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}`,
     getAllMatches
   );
   // // Fetch 
 
-const getTotalEquipmentRented = (match) => {
+  const getTotalEquipmentRented = (match) => {
     let total = 0;
 
     // Count equipment for team1
@@ -59,7 +59,7 @@ const getTotalEquipmentRented = (match) => {
       });
     }
 
-   return total === 0 ? "None" : total;
+    return total === 0 ? "None" : total;
   };
   // Extract match data and pagination metadata
   const matchData = data?.data?.data || [];
@@ -108,65 +108,69 @@ const getTotalEquipmentRented = (match) => {
               matchData.map((match, index) => (
                 <div
                   key={match._id}
-                  className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${
-                    selectedMatch?._id === match._id
-                      ? "bg-[#176dbf] text-white"
-                      : index % 2 === 0
+                  className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedMatch?._id === match._id
+                    ? "bg-[#176dbf] text-white"
+                    : index % 2 === 0
                       ? "bg-[#f2f2f4]"
                       : "bg-white"
-                  }`}
+                    }`}
                   onClick={() => setSelectedMatch(match)}
                 >
                   <div
-                    className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${
-                      selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
-                    }`}
+                    className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                      }`}
                   >
                     <div className="w-[25px] h-[25px] relative">
-                      <Image 
+                      <Image
                         src={
-  match.team1?.length > 0 && match.team1?.[0]?.userData?.profilePic
-    ? getImageClientS3URL(match.team1?.[0]?.userData?.profilePic)
-    : UserProfile2
-}
-                        alt="Avatar" 
-                        className="rounded-full object-cover" 
-                        fill 
+                          match.team1?.length > 0 && match.team1?.[0]?.userData?.profilePic
+                            ? getImageClientS3URL(match.team1?.[0]?.userData?.profilePic)
+                            : UserProfile2
+                        }
+                        alt="Avatar"
+                        className="rounded-full object-cover"
+                        fill
                         unoptimized
                       />
                     </div>
-                    {match.team1?.[0]?.userData?.fullName || "N/A"}
-                  </div>
+                    {match.isMaintenance === true
+                      ? "Maintenance"
+                      : match.team1?.[0]?.userData
+                        ? match.team1?.[0]?.userData?.fullName
+                        : "N/A"}                  </div>
                   <div
-                    className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${
-                      selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
-                    }`}
+                    className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                      }`}
                   >
                     <div className="w-[25px] h-[25px] relative">
-                      <Image 
-src={
-  match.team2?.length > 0 && match.team2[0]?.userData?.profilePic
-    ? getImageClientS3URL(match.team2[0].userData.profilePic)
-    : UserProfile2
-}                        alt="Avatar" 
-                        className="rounded-full object-cover" 
-                        fill 
+                      {match.isMaintenance === false && <Image
+                        src={
+                          match.team2?.length > 0 && match.team2[0]?.userData?.profilePic
+                            ? getImageClientS3URL(match.team2[0].userData.profilePic)
+                            : UserProfile2
+                        } alt="Avatar"
+                        className="rounded-full object-cover"
+                        fill
                         unoptimized
                       />
+}
                     </div>
-                    {match.team2?.[0]?.userData?.fullName || "N/A"}
+                    {match.isMaintenance === true
+                      ? ""
+                      : match.team2?.[0]?.userData
+                        ? match.team2?.[0]?.userData?.fullName
+                        : "N/A"}  
+                    {/* {match.team2?.[0]?.userData?.fullName || "N/A"} */}
                   </div>
                   <div
-                    className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${
-                      selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
-                    }`}
+                    className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                      }`}
                   >
                     {match.court?.games || "N/A"}
                   </div>
                   <div
-                    className={`w-[18%] text-[#1b2229] text-center break-words text-xs font-medium ${
-                      selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
-                    }`}
+                    className={`w-[18%] text-[#1b2229] text-center break-words text-xs font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                      }`}
                   >
                     {new Date(match.bookingDate).toLocaleDateString("en-GB", {
                       day: "2-digit",
@@ -184,19 +188,19 @@ src={
 
           {/* Pagination */}
           {matchData.length !== 0 && (
-          
-          <div className="mt-4 flex justify-end gap-2">
-            <TablePagination
-              setPage={handlePageChange}
-              page={page}
-              totalData={total}
-              itemsPerPage={itemsPerPage}
+
+            <div className="mt-4 flex justify-end gap-2">
+              <TablePagination
+                setPage={handlePageChange}
+                page={page}
+                totalData={total}
+                itemsPerPage={itemsPerPage}
               // totalPages={totalPages}
               // hasNextPage={hasNextPage}
               // hasPreviousPage={hasPreviousPage}
-            />
-          </div>
-            
+              />
+            </div>
+
           )}
         </div>
       </div>
@@ -237,11 +241,11 @@ src={
                 <h4 className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Created By</h4>
                 <div className="flex items-center gap-2">
                   <div className="w-[25px] h-[25px] relative">
-                    <Image 
-                      src={selectedMatch.team1?.[0]?.userData?.profilePic !== null ? getImageClientS3URL(selectedMatch.team1?.[0]?.userData?.profilePic) : UserProfile2  } 
-                      alt="Avatar" 
-                      className="rounded-full object-cover" 
-                      fill 
+                    <Image
+                      src={selectedMatch.team1?.[0]?.userData?.profilePic !== null ? getImageClientS3URL(selectedMatch.team1?.[0]?.userData?.profilePic) : UserProfile2}
+                      alt="Avatar"
+                      className="rounded-full object-cover"
+                      fill
                       unoptimized
                     />
                   </div>
@@ -263,7 +267,7 @@ src={
                   selectedMatch.team1?.[0]?.balls
                     ? "Yes"
                     : "None"} */}
-                    {getTotalEquipmentRented(selectedMatch)}
+                  {getTotalEquipmentRented(selectedMatch)}
                 </p>
                 {/* <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Paid for</p>
                 <p className="text-right text-[#1b2229] text-xs font-medium">
@@ -301,7 +305,7 @@ src={
                               alt="Player"
                               className="rounded-full object-cover"
                               fill
-                              // unoptimized
+                            // unoptimized
                             />
                           </div>
                           <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
@@ -311,24 +315,24 @@ src={
                       <>
                         <div className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
-                            <Image 
-                              src={UserProfile2} 
-                              alt="Player" 
-                              className="rounded-full object-cover" 
-                              fill 
-                              // unoptimized
+                            <Image
+                              src={UserProfile2}
+                              alt="Player"
+                              className="rounded-full object-cover"
+                              fill
+                            // unoptimized
                             />
                           </div>
                           <p className="text-xs mt-1 text-center">N/A</p>
                         </div>
                         <div className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
-                            <Image 
-                              src={UserProfile2} 
-                              alt="Player" 
-                              className="rounded-full object-cover" 
-                              fill 
-                              // unoptimized
+                            <Image
+                              src={UserProfile2}
+                              alt="Player"
+                              className="rounded-full object-cover"
+                              fill
+                            // unoptimized
                             />
                           </div>
                           <p className="text-xs mt-1 text-center">N/A</p>

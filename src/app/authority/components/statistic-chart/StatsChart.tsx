@@ -15,9 +15,8 @@ const yAxisTickFormatter = (value: number) => {
 };
 
 const SalesChart = ({ selectedYear, data, onYearChange }: Props) => {
-  console.log("graphD",data)
 
- const currentYear = new Date().getFullYear(); // 2025
+const currentYear = new Date().getFullYear(); // 2025
 const minYear = 2025; // Minimum year
 const startYear = Math.max(currentYear, minYear); // Start from currentYear or minYear, whichever is greater
 const years = Array.from({ length: startYear - minYear + 1 }, (_, i) => startYear - i);

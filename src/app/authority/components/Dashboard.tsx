@@ -9,6 +9,7 @@ import LoyaltyCard from "./loyaltyMatches";
 import ScheduleCalender from "./dashboard-calender/dashboard-calender";
 import useSWR from "swr";
 import { getDashboard } from "@/services/admin-services";
+import { useRouter } from "next/navigation";
 
 const StatCard = ({ value, label, Icon }) => (
   <div className="flex items-center gap-3 rounded-lg">
@@ -23,15 +24,15 @@ const StatCard = ({ value, label, Icon }) => (
 );
 
 
-const BookingRow = ({ fullName, game, city, date, image, index }) => {
+const BookingRow = ({ fullName, game, city, date, image, index,isMaintenance }) => {
   const bgColor = index % 2 === 0 ? "bg-[#f2f2f4]" : "bg-white";
 
   return (
     <div className={` rounded-[10px] justify-start items-center inline-flex ${bgColor} w-full ring-offset-purple-950  py-3`}>
       <div className=" w-[30%] grow shrink basis-0 self-stretch justify-start items-center gap-1 flex">
         {/* <div className="w-1/5"> */}
-        <Image className=" rounded-full"  src={Profile} alt={fullName} width={23} height={23} />
-        <div className=" text-[#1b2229] text-xs font-medium ">{fullName}</div>
+        <Image className=" rounded-full"  src={Profile} alt="user" width={23} height={23} />
+        <div className=" text-[#1b2229] text-xs font-medium ">{isMaintenance===true? "Maintenance":fullName}</div>
       </div>
       <div className="w-[20%] h-3.5 text-[#1b2229] text-xs font-medium ">
         {/* <div className="w-1/5"> */}
@@ -50,12 +51,13 @@ const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const handleYearChange = (year) => setSelectedYear(year);
   const [openPanelIndex, setOpenPanelIndex] = useState(0);
+    const router = useRouter();
+
   const handleViewClick = (index) => {
     setOpenPanelIndex(openPanelIndex === index ? -1 : index);
   };
   const {data, mutate, isLoading} = useSWR("/admin/dashboard",getDashboard)
   const data1 = data?.data?.data
-  console.log("data",data1)
 
   // const bookingsData = [
   //   {
@@ -127,7 +129,7 @@ const Dashboard = () => {
               {/* Left Section: Recent Bookings */}
               <div className="w-full p-4 md:w-[55%] md:p-2">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="text-[#10375c] text-xl font-medium font-['Raleway']">Recent Bookings</div>
+                  <div onClick={() => router.push('/authority/matches')} className="text-[#10375c] text-xl font-medium font-['Raleway']">Recent Bookings</div>
                   <div className="rounded-[50px] bg-white">
                     <TiltedArrowIcon />
                   </div>

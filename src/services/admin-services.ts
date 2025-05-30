@@ -235,4 +235,23 @@ export const getDashboard = async (route: any) => {
     return axiosInstance.get(route)
 }
 
+//--------------Reward Settings ---------------
+export const updateLoyaltyPoints = async (payload: any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.put('/admin/reward-settings/loyaltyPoints', payload)
+}
+export const getLoyaltyPoints = async () => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get('/admin/reward-settings/loyaltyPoints')
+}
+
+export const updateReferralSettings = async (payload: any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.put('/admin/reward-settings/referral', payload)
+}
+export const getReferralSettings = async () => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get('/admin/reward-settings/referral')
+}
+
 

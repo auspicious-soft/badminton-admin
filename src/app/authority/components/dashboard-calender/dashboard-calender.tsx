@@ -46,8 +46,6 @@ const ScheduleCalender = ({ data }: any) => {
   // Map the data to add the highlighted property dynamically
   const updatedData = data?.map((item: any) => {
     const highlighted = isCurrentTimeInSlot(item.time, currentTime);
-    // Console log to check if the slot is highlighted
-    console.log(`Time slot ${item.time} - Highlighted: ${highlighted}`);
     return {
       ...item,
       highlighted,

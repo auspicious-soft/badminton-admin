@@ -210,31 +210,34 @@ const ProductDetailForm = () => {
   };
 
   const removeImage = async (indexToRemove: number) => {
+    // Get the preview to remove before updating state
+    const removedPreview = imagePreviews[indexToRemove];
+    console.log("Removing image:", removedPreview);
+
+    // Update state first
     setImagePreviews((prev) => {
       const updatedPreviews = prev.filter(
         (_, index) => index !== indexToRemove
       );
-      const removedPreview = prev[indexToRemove];
-      console.log("Removing image:", removedPreview);
-
-      // Delete from S3 if the image has a key
-      if (removedPreview.key) {
-        deleteFileFromS3(removedPreview.key).catch((_) => {
-          toast.error("Failed to delete image from S3");
-        });
-      }
 
       // Revoke object URL if it was a local file
       if (removedPreview.file) {
         URL.revokeObjectURL(removedPreview.url);
       }
 
-      // Update form value for images
-      // Images field is not in the form schema, so we don't set it
-      // If you need to track images, consider adding it to the schema or use local state only
       console.log("Updated imagePreviews after removal:", updatedPreviews);
       return updatedPreviews;
     });
+
+    // Handle S3 deletion outside of state setter
+    if (removedPreview.key) {
+      try {
+        await deleteFileFromS3(removedPreview.key);
+      } catch (error) {
+        console.error("Failed to delete image from S3:", error);
+        toast.error("Failed to delete image from S3");
+      }
+    }
   };
 
   useEffect(() => {
