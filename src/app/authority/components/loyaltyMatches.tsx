@@ -310,7 +310,7 @@ const LoyaltyCard = () => {
               {loyaltyPoints.rewardType === "freeGame" && (
                 <>
                   {/* Play Coin Amount */}
-                  <div>
+                  {/* <div>
                     <label className="block text-gray-700 mb-2">Play Coin Amount</label>
                     <input
                       type="text"
@@ -322,7 +322,7 @@ const LoyaltyCard = () => {
                       placeholder="50"
                       className="w-full h-[50px] px-4 py-2 bg-[#f4f5f7] rounded-[50px] border focus:border-[#176dbf] focus:ring-blue-400 text-gray-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
-                  </div>
+                  </div> */}
 
                   {/* Enabled Dropdown */}
                   <div>

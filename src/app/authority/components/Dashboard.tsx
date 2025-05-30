@@ -129,8 +129,8 @@ const Dashboard = () => {
               {/* Left Section: Recent Bookings */}
               <div className="w-full p-4 md:w-[55%] md:p-2">
                 <div className="flex items-center justify-between mb-6">
-                  <div onClick={() => router.push('/authority/matches')} className="text-[#10375c] text-xl font-medium font-['Raleway']">Recent Bookings</div>
-                  <div className="rounded-[50px] bg-white">
+                  <div  className="text-[#10375c] text-xl font-medium font-['Raleway']">Recent Bookings</div>
+                  <div onClick={() => router.push('/authority/matches')} className="rounded-[50px] bg-white">
                     <TiltedArrowIcon />
                   </div>
                 </div>
