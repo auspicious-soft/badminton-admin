@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { generateSignedUrlForVenue, generateSignedUrlForCourt, deleteFileFromS3 } from "@/actions";
 import UserProfile2 from "@/assets/images/images.png";
 import { getImageClientS3URL } from "@/config/axios";
+import { validateImageFile } from "@/utils/fileValidation";
 
 // Custom Modal Component
 const Modal: React.FC<{ open: boolean; onClose?: () => void; children: React.ReactNode }> = ({
@@ -274,6 +275,15 @@ const Page = () => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate the file
+      const validation = validateImageFile(file, 5); // 5MB limit
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        // Reset the input
+        event.target.value = '';
+        return;
+      }
+
       // If there's an existing local image URL, revoke it
       if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
         URL.revokeObjectURL(selectedImage);

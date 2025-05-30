@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { createImageFileValidation, validateImageFile } from "@/utils/fileValidation";
+import { toast } from "sonner";
 import { CrossIcon, DeleteIcon1, EditIcon, PlusIcon } from "@/utils/svgicons";
 import NoImage from "@/assets/images/nofile.png";
 import CourtManagement from "./AddVenueModal";
@@ -35,12 +37,8 @@ const schema = yup.object().shape({
  images: yup
   .mixed()
   .required("An image is required")
-  .test("fileSize", "File size is too large", (value: any) => {
-   return value && value.size <= 2000000; // 2MB
-  })
-  .test("fileType", "Unsupported file format", (value: any) => {
-   return value && ["image/jpeg", "image/png", "image/gif"].includes(value.type);
-  }),
+  .test(createImageFileValidation(2).fileSize)
+  .test(createImageFileValidation(2).fileType),
 });
 
 // Options for the Select component
@@ -75,6 +73,15 @@ const AddVenueForm = () => {
  const handleImageChange = (e) => {
   const file = e.target.files[0];
   if (file) {
+   // Validate the file
+   const validation = validateImageFile(file, 5); // 5MB limit
+   if (!validation.isValid) {
+    toast.error(validation.error);
+    // Reset the input
+    e.target.value = '';
+    return;
+   }
+
    if (imagePreview) {
     URL.revokeObjectURL(imagePreview.url);
    }

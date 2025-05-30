@@ -7,6 +7,7 @@ import { updateCourt } from "@/services/admin-services";
 import { toast } from "sonner";
 import { getImageClientS3URL } from "@/config/axios";
 import { generateSignedUrlForCourt, deleteFileFromS3 } from "@/actions";
+import { validateImageFile } from "@/utils/fileValidation";
 
 interface Court {
   id: string;
@@ -207,6 +208,15 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate the file
+      const validation = validateImageFile(file, 5); // 5MB limit
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        // Reset the input
+        event.target.value = '';
+        return;
+      }
+
       // If the current image is a local object URL, revoke it
       if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
         URL.revokeObjectURL(selectedImage);

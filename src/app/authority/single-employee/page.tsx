@@ -7,6 +7,8 @@ import Select, { MultiValue } from "react-select";
 import AlexParker from "@/assets/images/AlexParker.png";
 import Ball from "@/assets/images/Ball.png";
 import { UpArrowIcon, DownArrowIcon } from "@/utils/svgicons";
+import { validateImageFile } from "@/utils/fileValidation";
+import { toast } from "sonner";
 
 interface Employee {
   id: number;
@@ -76,6 +78,15 @@ const AllEmployeeComponent = () => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate the file
+      const validation = validateImageFile(file, 5); // 5MB limit
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        // Reset the input
+        event.target.value = '';
+        return;
+      }
+
       if (selectedImage) {
         URL.revokeObjectURL(selectedImage);
       }

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { getAdminDetails, updateAdminDetails, getDynamicPricing, deleteMaintenance } from '@/services/admin-services';
 import { generateSignedUrlForProfile, deleteFileFromS3 } from '@/actions';
 import { getImageClientS3URL } from '@/config/axios';
+import { validateImageFile } from '@/utils/fileValidation';
 import { PricingBlock, mapApiDataToPricingData } from '../pricing';
 import MaintenanceModal from './MaintenanceModal';
 import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
@@ -157,6 +158,15 @@ const ProfileForm = () => {
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files[0];
         if (file) {
+            // Validate the file
+            const validation = validateImageFile(file, 5); // 5MB limit
+            if (!validation.isValid) {
+                toast.error(validation.error);
+                // Reset the input
+                e.target.value = '';
+                return;
+            }
+
             if (imagePreview && imagePreview.url.startsWith('blob:')) {
                 URL.revokeObjectURL(imagePreview.url);
             }
@@ -290,7 +300,7 @@ const ProfileForm = () => {
 
     // Maintenance form logic
     const onMaintenanceSubmit = () => {
-       
+
         maintenanceMutate();
         setIsModalOpen(false);
         toast.success("Maintenance schedule added successfully");

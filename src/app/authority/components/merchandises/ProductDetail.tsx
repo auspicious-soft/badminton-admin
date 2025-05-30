@@ -13,6 +13,7 @@ import { getMerchandise, updateMerchandise } from "@/services/admin-services";
 import { deleteFileFromS3, generateSignedUrlToUploadOn } from "@/actions";
 import { toast } from "sonner";
 import { getImageClientS3URL } from "@/config/axios";
+import { validateImageFile } from "@/utils/fileValidation";
 
 // Placeholder deleteFileFromS3 function (implement on your backend)
 // const deleteFileFromS3 = async (key) => {
@@ -193,7 +194,25 @@ const ProductDetailForm = () => {
     if (!e.target.files || e.target.files.length === 0) return;
 
     const files = Array.from(e.target.files);
-    const newPreviews = files.map((file) => ({
+
+    // Validate each file
+    const validFiles: File[] = [];
+    for (const file of files) {
+      const validation = validateImageFile(file, 2); // 2MB limit
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) {
+      // Reset the input
+      e.target.value = '';
+      return;
+    }
+
+    const newPreviews = validFiles.map((file) => ({
       file,
       url: URL.createObjectURL(file),
       key: null,
@@ -204,9 +223,9 @@ const ProductDetailForm = () => {
       console.log("Updated imagePreviews:", updatedPreviews);
       return updatedPreviews;
     });
-    // Update form value for images (for validation, though not used in schema)
-    // Images field is not in the form schema, so we don't set it
-    // If you need to track images, consider adding it to the schema or use local state only
+
+    // Reset the input to allow selecting the same file again if needed
+    e.target.value = '';
   };
 
   const removeImage = async (indexToRemove: number) => {

@@ -7,6 +7,7 @@ import Modal from "@mui/material/Modal";
 import { v4 as uuidv4 } from "uuid";
 import { getImageClientS3URL } from "@/config/axios";
 import { toast } from "sonner";
+import { validateImageFile } from "@/utils/fileValidation";
 
 
 interface Court {
@@ -98,6 +99,15 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate the file
+      const validation = validateImageFile(file, 5); // 5MB limit
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        // Reset the input
+        event.target.value = '';
+        return;
+      }
+
       // If the current image is a local object URL, revoke it
       if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
         URL.revokeObjectURL(selectedImage);

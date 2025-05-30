@@ -11,6 +11,7 @@ import { generateSignedUrlToUploadOn } from "@/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
+import { createImageFileValidation } from "@/utils/fileValidation";
 // Validation schema using Yup
 const schema = yup.object().shape({
   productName: yup.string().required("Product name is required"),
@@ -33,20 +34,8 @@ const schema = yup.object().shape({
   images: yup
     .mixed()
     .required("At least one image is required")
-    .test("fileSize", "File size is too large", (value) => {
-      return (
-        value instanceof FileList &&
-        Array.from(value).every((file) => file.size <= 2000000)
-      ); // 2MB
-    })
-    .test("fileType", "Unsupported file format", (value) => {
-      return (
-        value instanceof FileList &&
-        Array.from(value).every((file) =>
-          ["image/jpeg", "image/png", "image/gif"].includes(file.type)
-        )
-      );
-    }),
+    .test(createImageFileValidation(2).fileSize)
+    .test(createImageFileValidation(2).fileType),
   venueAndQuantity: yup
     .array()
     .of(

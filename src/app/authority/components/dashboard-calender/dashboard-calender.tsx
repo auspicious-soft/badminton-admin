@@ -32,6 +32,7 @@ const isCurrentTimeInSlot = (slotTime: string, currentTime: Date) => {
 };
 
 const ScheduleCalender = ({ data }: any) => {
+                console.log('data: ', data);
 
   const [weekDays, setWeekDays] = useState(getCurrentWeekDays());
   const router = useRouter();
@@ -51,6 +52,8 @@ const ScheduleCalender = ({ data }: any) => {
       highlighted,
     };
   });
+                  console.log('updatedData: ', updatedData);
+
 
   return (
     <div className="bg-[#f2f2f4] p-3 sm:p-5 rounded-[20px] w-full">
@@ -117,7 +120,7 @@ const ScheduleCalender = ({ data }: any) => {
                 item.highlighted ? "bg-[#1c2329] text-white" : "bg-white"
               }`}
             >
-              <h3 className="text-sm font-semibold mb-[10px]">{item.player}</h3>
+              <h3 className="text-sm font-semibold mb-[10px]">{item?.isMaintenance === true ? "Maintenance" : item.player}</h3>
               <div className="flex justify-between">
               <p className="text-xs text-gray-400">{item.game} Match</p>
               <p className="text-xs text-gray-400">{item.duration}</p>

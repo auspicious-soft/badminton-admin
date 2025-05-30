@@ -5,7 +5,9 @@
   import { yupResolver } from "@hookform/resolvers/yup";
   import Image, { StaticImageData } from "next/image";
   import { PlusIcon } from "@/utils/svgicons";
-  import sumImg from '@/assets/images/Summary.png'
+  import sumImg from '@/assets/images/Summary.png';
+  import { validateImageFile } from "@/utils/fileValidation";
+  import { toast } from "sonner";
 
   type Language = "eng" | "kaz" | "rus";
 
@@ -64,6 +66,15 @@
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (file) {
+        // Validate the file
+        const validation = validateImageFile(file, 5); // 5MB limit
+        if (!validation.isValid) {
+          toast.error(validation.error);
+          // Reset the input
+          event.target.value = '';
+          return;
+        }
+
         const reader = new FileReader();
         reader.onloadend = () => {
           setPreviewImage(reader.result as string);
@@ -81,7 +92,7 @@
       <Modal open={open} onClose={onClose} aria-labelledby="child-modal-title" className="grid place-items-center">
         <div className="modal bg-white py-[30px] px-5 max-w-[620px] mx-auto rounded-[20px] w-full h-auto  ">
           <div className="max-h-[80vh] overflow-auto overflo-custom">
-          <Image src={image} alt="imgg" width={244} height={194} className="mx-auto" />          
+          <Image src={image} alt="imgg" width={244} height={194} className="mx-auto" />
             <h2 className="text-[32px] text-darkBlack mb-5 mt-[27px]">{title}</h2>
             <FormProvider {...methods}>
               <form onSubmit={handleSubmit(handleFormSubmit)}>
@@ -90,9 +101,9 @@
               <p className="mb-1 text-sm text-darkBlack">Upload Image</p>
               <div className="flex items-center gap-2.5">
                 {previewImage ? (
-                  <Image 
-                    src={previewImage} 
-                    alt="Preview" 
+                  <Image
+                    src={previewImage}
+                    alt="Preview"
                     className="w-[43px] h-[43px] rounded-full object-contain"
                     width={43}
                     height={43}

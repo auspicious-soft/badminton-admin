@@ -7,6 +7,7 @@ import { CrossIcon, EditIcon } from '@/utils/svgicons';
 import { generateSignedUrlForBanners, deleteFileFromS3 } from '@/actions';
 import { getImageClientS3URL } from '@/config/axios';
 import { toast } from 'sonner';
+import { validateImageFile } from '@/utils/fileValidation';
 import { updateAdminSettings, getAdminSettings } from '@/services/admin-services';
 import useSWR from 'swr';
 
@@ -123,15 +124,12 @@ const NotificationForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
+    // Validate the file using our centralized validation
+    const validation = validateImageFile(file, 5); // 5MB limit
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      // Reset the input
+      e.target.value = '';
       return;
     }
 
