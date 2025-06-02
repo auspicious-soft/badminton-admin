@@ -3,12 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import MatchImage from "@/assets/images/padelImage.png";
-import UserProfile from "@/assets/images/userprofile.png";
 import UserProfile2 from "@/assets/images/images.png";
-import UserProfile3 from "@/assets/images/userProfile3.png";
-import UserProfile4 from "@/assets/images/userProfile4.png";
 import { EyeIcon, ClockIcon, CalenderIcon } from "@/utils/svgicons";
-import SearchBar from "../SearchBar";
 import TablePagination from "../TablePagination";
 import useSWR from "swr";
 import { getAllMatches } from "@/services/admin-services";
@@ -20,6 +16,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
   const [type, setType] = useState("completed"); // State to store the mapped type
+  const [isTabSwitching, setIsTabSwitching] = useState(false); // Track tab switching state
   const typeMapping: { [key: string]: string } = {
     "Cancelled Matches": "cancelled",
     "Previous Matches": "completed",
@@ -28,6 +25,10 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   useEffect(() => {
     const mappedType = typeMapping[name] || "completed";
     setType(mappedType);
+    // Reset page and selection when tab changes
+    setPage(1);
+    setSelectedMatch(null);
+    setIsTabSwitching(true); // Set tab switching state
   }, [name]);
 
   // Fetch matches with SWR, using the dynamic type
@@ -40,21 +41,21 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
     `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}`,
     getAllMatches
   );
-  // // Fetch 
+  // // Fetch
 
   const getTotalEquipmentRented = (match) => {
     let total = 0;
 
     // Count equipment for team1
-    if (match.team1 && Array.isArray(match.team1)) {
-      match.team1.forEach(player => {
+    if (match?.team1 && Array.isArray(match?.team1)) {
+      match?.team1.forEach(player => {
         total += (player.racketA || 0) + (player.racketB || 0) + (player.racketC || 0) + (player.balls || 0);
       });
     }
 
     // Count equipment for team2
-    if (match.team2 && Array.isArray(match.team2)) {
-      match.team2.forEach(player => {
+    if (match?.team2 && Array.isArray(match?.team2)) {
+      match?.team2.forEach(player => {
         total += (player.racketA || 0) + (player.racketB || 0) + (player.racketC || 0) + (player.balls || 0);
       });
     }
@@ -68,16 +69,42 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const hasNextPage = data?.data?.meta?.hasNextPage ?? page < totalPages;
   const hasPreviousPage = data?.data?.meta?.hasPreviousPage ?? page > 1;
 
+  // Immediate fallback selection - if we have data but no selection, use first item immediately
+  const currentSelectedMatch = selectedMatch || (matchData.length > 0 ? matchData[0] : null);
 
-  // Set the first match as selected when matchData is loaded
-  if (matchData.length > 0 && !selectedMatch) {
-    setSelectedMatch(matchData[0]);
-  }
+  // Clear tab switching state as soon as data is available (regardless of loading state)
+  useEffect(() => {
+    if (!isLoading) {
+      setIsTabSwitching(false); // Clear tab switching state as soon as data request completes
+    }
+  }, [isLoading]);
+
+  // Set the first match as selected when matchData is loaded and auto-select immediately for better UX
+  useEffect(() => {
+    if (matchData.length > 0 && !selectedMatch) {
+      console.log(`Selecting first match for ${name}:`, matchData[0]);
+      setSelectedMatch(matchData[0]);
+      setIsTabSwitching(false); // Ensure loading state is cleared when selection is made
+    } else if (matchData.length === 0) {
+      console.log(`No matches found for ${name}, clearing selection`);
+      setSelectedMatch(null);
+      setIsTabSwitching(false); // Clear loading state even when no data
+    }
+  }, [matchData, name, selectedMatch]);
+
+  // Reset selection when filters change
+  useEffect(() => {
+    setSelectedMatch(null);
+    setPage(1); // Reset to first page when filters change
+    setIsTabSwitching(true); // Set loading state for filters
+  }, [selectedGame, selectedCity, selectedDate, searchParams]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       console.log("Changing to page:", newPage);
       setPage(newPage);
+      setSelectedMatch(null); // Reset selection so first item of new page gets selected
+      // Don't set isTabSwitching for pagination - let normal loading state handle it
     }
   };
 
@@ -108,7 +135,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
               matchData.map((match, index) => (
                 <div
                   key={match._id}
-                  className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedMatch?._id === match._id
+                  className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${currentSelectedMatch?._id === match._id
                     ? "bg-[#176dbf] text-white"
                     : index % 2 === 0
                       ? "bg-[#f2f2f4]"
@@ -117,14 +144,14 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                   onClick={() => setSelectedMatch(match)}
                 >
                   <div
-                    className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                    className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
                       }`}
                   >
                     <div className="w-[25px] h-[25px] relative">
                       <Image
                         src={
-                          match.team1?.length > 0 && match.team1?.[0]?.userData?.profilePic
-                            ? getImageClientS3URL(match.team1?.[0]?.userData?.profilePic)
+                          match?.team1?.length > 0 && match?.team1?.[0]?.userData?.profilePic
+                            ? getImageClientS3URL(match?.team1?.[0]?.userData?.profilePic)
                             : UserProfile2
                         }
                         alt="Avatar"
@@ -135,18 +162,18 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                     </div>
                     {match.isMaintenance === true
                       ? "Maintenance"
-                      : match.team1?.[0]?.userData
-                        ? match.team1?.[0]?.userData?.fullName
+                      : match?.team1?.[0]?.userData
+                        ? match?.team1?.[0]?.userData?.fullName
                         : "N/A"}                  </div>
                   <div
-                    className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                    className={`w-[30%] flex items-center gap-2 break-words text-[#1b2229] text-xs font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
                       }`}
                   >
                     <div className="w-[25px] h-[25px] relative">
                       {match.isMaintenance === false && <Image
                         src={
-                          match.team2?.length > 0 && match.team2[0]?.userData?.profilePic
-                            ? getImageClientS3URL(match.team2[0].userData.profilePic)
+                          match?.team2?.length > 0 && match?.team2[0]?.userData?.profilePic
+                            ? getImageClientS3URL(match?.team2[0].userData.profilePic)
                             : UserProfile2
                         } alt="Avatar"
                         className="rounded-full object-cover"
@@ -157,13 +184,13 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                     </div>
                     {match.isMaintenance === true
                       ? ""
-                      : match.team2?.[0]?.userData
-                        ? match.team2?.[0]?.userData?.fullName
+                      : match?.team2?.[0]?.userData
+                        ? match?.team2?.[0]?.userData?.fullName
                         : "N/A"}
                     {/* {match.team2?.[0]?.userData?.fullName || "N/A"} */}
                   </div>
                   <div
-                    className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                    className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
                       }`}
                   >
                     {match.court?.games || "N/A"}
@@ -205,45 +232,61 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
         </div>
       </div>
 
-      {matchData.length > 0 && (
+      {(matchData.length > 0 || isLoading || isTabSwitching) && (
         <div className="w-full lg:w-1/3 h-fit bg-[#f2f2f4] shadow-md rounded-[20px] px-[15px] pt-[14px] pb-[19px]">
-          {selectedMatch ? (
+          {(isLoading && !matchData.length) || (isTabSwitching && !currentSelectedMatch) ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#10375c]"></div>
+              <p className="text-center text-[#10375c] mt-4">
+                {isTabSwitching ? "Loading matches..." : "Loading match details..."}
+              </p>
+            </div>
+          ) : !currentSelectedMatch && matchData.length > 0 ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <div className="animate-pulse">
+                <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                <div className="h-4 bg-gray-300 rounded w-32 mx-auto mb-2"></div>
+                <div className="h-3 bg-gray-300 rounded w-24 mx-auto"></div>
+              </div>
+              <p className="text-center text-[#10375c] mt-4">Preparing match details...</p>
+            </div>
+          ) : currentSelectedMatch ? (
             <div className="bg-[#f2f2f4] rounded-[20px]">
               <div className="w-full h-40 relative">
                 <Image src={MatchImage} alt="Match" className="rounded-md object-cover" fill unoptimized />
               </div>
               <h3 className="text-xl font-bold mt-4 flex justify-between mb-[8px]">
-                {selectedMatch.court?.games || "N/A"} Game{" "}
+                {currentSelectedMatch.court?.games || "N/A"} Game{" "}
                 <span className="text-right text-[#1b2229] text-sm font-semibold leading-[16.80px]">
                   60 Mins
                 </span>
               </h3>
               <div className="flex justify-between">
                 <p className="text-[#1b2229] text-sm font-medium leading-[16.80px] flex items-center gap-2">
-                  {selectedMatch.venue?.city || "N/A"}, {selectedMatch.venue?.state || "N/A"}
+                  {currentSelectedMatch.venue?.city || "N/A"}, {currentSelectedMatch.venue?.state || "N/A"}
                 </p>
                 <div className="flex gap-[20px]">
                   <div className="flex gap-[10px] text-[#5f6a7c] text-xs font-medium leading-[14.40px]">
                     <CalenderIcon />{" "}
-                    {new Date(selectedMatch.bookingDate).toLocaleDateString("en-GB", {
+                    {new Date(currentSelectedMatch.bookingDate).toLocaleDateString("en-GB", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
                     })}
                   </div>
                   <div className="flex gap-[10px] text-[#5f6a7c] text-xs font-medium leading-[14.40px]">
-                    <ClockIcon /> {selectedMatch.bookingSlots || "N/A"}
+                    <ClockIcon /> {currentSelectedMatch.bookingSlots || "N/A"}
                   </div>
                 </div>
               </div>
-              {selectedMatch.isMaintenance === false && (
+              {currentSelectedMatch?.isMaintenance === false && (
                 <div>
                   <div className="flex justify-between items-center mt-4">
                     <h4 className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Created By</h4>
                     <div className="flex items-center gap-2">
                       <div className="w-[25px] h-[25px] relative">
                         <Image
-                          src={selectedMatch.team1?.[0]?.userData?.profilePic !== null ? getImageClientS3URL(selectedMatch.team1?.[0]?.userData?.profilePic) : UserProfile2}
+                          src={selectedMatch?.team1?.[0]?.userData?.profilePic !== null ? getImageClientS3URL(selectedMatch?.team1?.[0]?.userData?.profilePic) : UserProfile2}
                           alt="Avatar"
                           className="rounded-full object-cover"
                           fill
@@ -251,14 +294,14 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                         />
                       </div>
                       <p className="text-right text-[#1b2229] text-xs font-medium">
-                        {selectedMatch.team1?.[0]?.userData?.fullName || "N/A"}
+                        {selectedMatch?.team1?.[0]?.userData?.fullName || "N/A"}
                       </p>
                     </div>
                   </div>
                   <div className="mt-2 grid grid-cols-2 gap-[10px]">
                     <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Players</p>
                     <p className="text-right text-[#1b2229] text-xs font-medium">
-                      {selectedMatch.team1?.length + (selectedMatch.team2?.length || 0) || 0}
+                      {selectedMatch?.team1?.length + (selectedMatch?.team2?.length || 0) || 0}
                     </p>
                     <p className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Equipment Rented</p>
                     <p className="text-right text-[#1b2229] text-xs font-medium">
@@ -277,14 +320,14 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                   </div>
                 </div>
               )}
-              {selectedMatch.isMaintenance === false &&
+              {selectedMatch?.isMaintenance === false &&
                 <div className="bg-[#f2f2f4] rounded-[20px] mt-[15px]">
                   <div className="flex flex-col items-center mt-[15px] bg-white px-[17px] py-[20px] gap-[20px] rounded-lg">
                     <h4 className="text-center text-[#1b2229] text-sm font-semibold leading-[16.80px]">
                       Players in the Game
                     </h4>
                     <div className="flex items-center gap-[15px]">
-                      {selectedMatch.team1?.map((player, idx) => (
+                      {selectedMatch?.team1?.map((player, idx) => (
                         <div key={idx} className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
                             <Image
@@ -299,8 +342,8 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                         </div>
                       ))}
                       <p className="text-sm font-bold">VS</p>
-                      {selectedMatch.team2?.length > 0 ? (
-                        selectedMatch.team2.map((player, idx) => (
+                      {selectedMatch?.team2?.length > 0 ? (
+                        selectedMatch?.team2.map((player, idx) => (
                           <div key={idx} className="flex flex-col items-center">
                             <div className="w-16 h-16 relative">
                               <Image

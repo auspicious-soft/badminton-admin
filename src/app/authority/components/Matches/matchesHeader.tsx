@@ -56,7 +56,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
   return (
     <div className="space-y-[10px] relative">
       <p className="text-[#10375c] text-3xl font-semibold">Matches</p>
-      <div className="flex w-[65%] justify-between flex-wrap gap-[15px]">
+      <div className="flex w-[65%] flex-col md:flex-row justify-between  flex-wrap gap-[15px]">
         {/* Tabs */}
         <div className="bg-white rounded-[44px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)] justify-start items-start inline-flex">
           {tabs.map((tab) => (
@@ -123,9 +123,9 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
             </button>
             {cityDropdown && (
 
-              <div className="z-50 flex flex-col gap-[5px] h-[250px] overflow-y-auto overflow-custom absolute top-12 right-2 p-[20px] w-[160px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+              <div className="z-50 w-[220px] flex flex-col gap-[5px] h-[250px] overflow-y-auto overflo-custom absolute top-12 right-2 p-[20px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
                 {["All", ...cities.filter(city => city !== "All")].map((city) => (
-                  <label key={city} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
+                  <label key={city} className="w-full flex gap-[5px] cursor-pointer text-[#1b2229] text-sm font-medium">
                     <input
                       type="radio"
                       name="city"

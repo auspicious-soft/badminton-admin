@@ -73,7 +73,7 @@ export default function UsersComponent() {
   };
 
   const handleClick = () => {
-    router.push(`/admin/users/${selectedUser?._id}`);
+    router.push(`/authority/users/${selectedUser?._id}`);
   };
 
   if (error) return <p>Error loading users: {error.message}</p>;

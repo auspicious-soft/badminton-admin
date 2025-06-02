@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef, startTransition } from "react";
 import Image from "next/image";
-import { Add, BottomArrow, Edit1, UpArrowIcon } from "@/utils/svgicons";
+import { Add, BottomArrow, Edit1, UpArrowIcon, Loading } from "@/utils/svgicons";
+
 import Court from "@/assets/images/courtsmallImg.png";
 import CourtManagement from "../../components/headers/AddVenueModal";
 import AddEmployeeModal from "../../components/headers/AddEmployeesModal";
@@ -587,7 +588,7 @@ const Page = () => {
                   <span>{stateDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
                 </button>
                 {stateDropdown && (
-                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto overflow-custom z-50">
+                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto overflo-custom z-50">
                     {states.map((state) => (
                       <label key={state} className="flex gap-2 cursor-pointer text-xs py-1">
                         <input
@@ -725,11 +726,12 @@ const Page = () => {
 
             <button
               onClick={handleSave}
-              className={`w-full p-3 rounded-full text-white text-sm font-medium ${isSaveDisabled || isUploading ? "bg-gray-400 cursor-not-allowed" : "bg-[#10375c]"
+              className={`flex items-center justify-center gap-2 w-full p-3 rounded-full text-white text-sm font-medium ${isSaveDisabled || isUploading ? "bg-gray-400 cursor-not-allowed" : "bg-[#10375c]"
                 }`}
               disabled={isSaveDisabled || isUploading}
             >
-              {isUploading ? "Uploading..." : "Save"}
+              {isUploading && <Loading />}
+              {isUploading ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
@@ -806,7 +808,7 @@ const Page = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-[#f2f2f4] rounded-2xl p-4">
               <h2 className="text-xl font-medium text-[#172554] mb-4">Select Facilities</h2>
-              <div className="space-y-2 max-h-48 overflow-y-auto overflow-custom">
+              <div className="space-y-2 max-h-48 overflow-y-auto overflo-custom">
                 {option.map((opt) => (
                   <div
                     key={opt.id}
@@ -840,7 +842,7 @@ const Page = () => {
                 </button>
               </div>
 
-              <div className="space-y-2 max-h-48 overflow-y-auto overflow-custom">
+              <div className="space-y-2 max-h-48 overflow-y-auto overflo-custom">
                 {employees.map((employee) => (
                   <div key={employee.id}>
                     <div className="flex justify-between items-center py-1">
@@ -883,7 +885,7 @@ const Page = () => {
               <div>Opening Hours</div>
               <div>Closing Hours</div>
             </div>
-            <div className="space-y-2 max-h-48 overflow-y-auto overflow-custom">
+            <div className="space-y-2 max-h-48 overflow-y-auto overflo-custom">
               {openingHours.map((entry) => (
                 <div key={entry.day} className="grid grid-cols-3 gap-4 items-center text-sm">
                   <div className="text-[#10375C]">{entry.day}</div>

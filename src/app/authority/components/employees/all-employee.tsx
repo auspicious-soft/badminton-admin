@@ -1,6 +1,6 @@
 "use client";
-import { WhiteDownArrow, BottomArrow, Edit1, Add, EyeIcon, UpArrowIcon } from "@/utils/svgicons";
-import React, { useState, useEffect, useRef } from "react";
+import { WhiteDownArrow, BottomArrow, Edit1, Add, EyeIcon, UpArrowIcon, Loading } from "@/utils/svgicons";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import SearchBar from "../SearchBar";
 import Image from "next/image";
 import AlexParker from "@/assets/images/AlexParker.png";
@@ -13,6 +13,7 @@ import { generateSignedUrlForEmployee, deleteFileFromS3 } from "@/actions";
 import { getImageClientS3URL } from "@/config/axios";
 import UserProfile from "@/assets/images/employeeProfile.jpg";
 import UserProfile2 from "@/assets/images/images.png";
+import { validateImageFile } from "@/utils/fileValidation";
 
 const games = ["Working", "Ex-Employee"];
 const sortOptions = [
@@ -78,7 +79,7 @@ const AllEmployeeComponent = () => {
     getAllEmployees
   );
 
-  const employees = data?.data.data || [];
+  const employees = useMemo(() => data?.data.data || [], [data?.data.data]);
   const totalEmployees = searchParams ? employees.length : data?.data.meta.total || 0;
   const router = useRouter();
 
@@ -88,23 +89,28 @@ const AllEmployeeComponent = () => {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+    setIsInitialLoad(true); // Reset to select first employee on new page
+    setSelectedEmployee(null); // Clear current selection
   };
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previousImageKey, setPreviousImageKey] = useState<string | null>(null);
-  const [dropdownStates, setDropdownStates] = useState<{ [key: string]: boolean }>({});
+  // Add a state to track if we're currently changing an image
+  const [isChangingImage, setIsChangingImage] = useState(false);
+  // Add a state to track if this is the initial load
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    if (employees.length > 0 && !selectedEmployee) {
+    if (employees.length > 0 && !selectedEmployee && isInitialLoad) {
       const firstEmployee = employees[0];
       setSelectedEmployee(firstEmployee);
       setEditFormData({
         ...firstEmployee,
         image: firstEmployee.image || "",
       });
-      
+
       // Handle S3 image URLs properly on initial load
       if (firstEmployee.profilePic && firstEmployee.profilePic.startsWith('employees/')) {
         setPreviousImageKey(firstEmployee.profilePic);
@@ -114,10 +120,11 @@ const AllEmployeeComponent = () => {
         setPreviousImageKey(null);
         setSelectedImage(firstEmployee.profilePic || null);
       }
-      
+
       setOriginalFormData({ ...firstEmployee, image: firstEmployee.profilePic || "" });
+      setIsInitialLoad(false);
     }
-  }, [employees, selectedEmployee]);
+  }, [employees, selectedEmployee, isInitialLoad]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -179,6 +186,18 @@ const AllEmployeeComponent = () => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate the file
+      const validation = validateImageFile(file, 5); // 5MB limit
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        // Reset the input
+        event.target.value = '';
+        return;
+      }
+
+      // Set flag that we're changing an image
+      setIsChangingImage(true);
+
       // If the current image is a local object URL, revoke it
       if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
         URL.revokeObjectURL(selectedImage);
@@ -195,31 +214,34 @@ const AllEmployeeComponent = () => {
     }
   };
 
-  const toggleDropdown = (id: string) => {
-    setDropdownStates((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
   const handleEmployeeSelect = (employee: Employee) => {
+    // If we're in the middle of changing an image and selecting the same employee, don't reset
+    if (isChangingImage && selectedEmployee?._id === employee._id) {
+      return;
+    }
+
+    // If we're selecting a different employee, reset the image file
+    if (selectedEmployee?._id !== employee._id) {
+      setImageFile(null);
+    }
+
     setSelectedEmployee(employee);
     setEditFormData({
       ...employee,
       image: employee.profilePic || "",
     });
 
-    // Reset image file and previous image key
-    setImageFile(null);
-
-    // Handle S3 image URLs
-    if (employee.profilePic && employee.profilePic.startsWith('employees/')) {
-      setPreviousImageKey(employee.profilePic);
-      const imageUrl = getImageClientS3URL(employee.profilePic);
-      setSelectedImage(imageUrl);
-    } else {
-      setPreviousImageKey(null);
-      setSelectedImage(employee.profilePic || null);
+    // Only update the image if we're not in the middle of changing it
+    if (!imageFile || selectedEmployee?._id !== employee._id) {
+      // Handle S3 image URLs
+      if (employee.profilePic && employee.profilePic.startsWith('employees/')) {
+        setPreviousImageKey(employee.profilePic);
+        const imageUrl = getImageClientS3URL(employee.profilePic);
+        setSelectedImage(imageUrl);
+      } else {
+        setPreviousImageKey(null);
+        setSelectedImage(employee.profilePic || null);
+      }
     }
 
     setOriginalFormData({ ...employee, image: employee.profilePic || "" });
@@ -340,16 +362,21 @@ const AllEmployeeComponent = () => {
           displayImage = getImageClientS3URL(finalImageKey);
         }
 
-        mutate();
-        setSelectedEmployee({
+        // Update the selected employee with new data before mutating
+        const updatedEmployee = {
           ...selectedEmployee,
           ...payload,
           profilePic: finalImageKey || undefined,
-        });
+        };
+        setSelectedEmployee(updatedEmployee);
         setSelectedImage(displayImage);
         setImageFile(null);
         setPreviousImageKey(finalImageKey);
         setOriginalFormData({ ...editFormData, image: finalImageKey || undefined });
+        setIsChangingImage(false); // Reset the changing image flag
+
+        // Mutate to refresh the list data
+        mutate();
       } else {
         toast.error("Failed to update employee");
 
@@ -372,29 +399,49 @@ const AllEmployeeComponent = () => {
     }
   };
 
-  // Reset selection and select first employee when page changes
+  // Handle data refreshes and preserve current selection
   useEffect(() => {
-    if (employees.length > 0) {
-      const firstEmployee = employees[0];
-      setSelectedEmployee(firstEmployee);
-      setEditFormData({
-        ...firstEmployee,
-        image: firstEmployee.profilePic || "",
-      });
-      
-      // Handle S3 image URLs properly
-      if (firstEmployee.profilePic && firstEmployee.profilePic.startsWith('employees/')) {
-        setPreviousImageKey(firstEmployee.profilePic);
-        const imageUrl = getImageClientS3URL(firstEmployee.profilePic);
-        setSelectedImage(imageUrl);
-      } else {
-        setPreviousImageKey(null);
-        setSelectedImage(firstEmployee.profilePic || null);
+    if (employees.length > 0 && selectedEmployee) {
+      // Skip updating the image if we're in the middle of changing it
+      if (isChangingImage) {
+        setIsChangingImage(false);
+        return;
       }
-      
-      setOriginalFormData({ ...firstEmployee, image: firstEmployee.profilePic || "" });
+
+      // Try to find the currently selected employee in the refreshed data
+      const currentEmployee = employees.find(emp => emp._id === selectedEmployee._id);
+      if (currentEmployee) {
+        // Employee still exists in the list, update with fresh data
+        setSelectedEmployee(currentEmployee);
+        setEditFormData({
+          ...currentEmployee,
+          image: currentEmployee.profilePic || "",
+        });
+
+        // Only update the image if we're not in the middle of changing it
+        if (!imageFile) {
+          // Handle S3 image URLs properly
+          if (currentEmployee.profilePic && currentEmployee.profilePic.startsWith('employees/')) {
+            setPreviousImageKey(currentEmployee.profilePic);
+            const imageUrl = getImageClientS3URL(currentEmployee.profilePic);
+            setSelectedImage(imageUrl);
+          } else {
+            setPreviousImageKey(null);
+            setSelectedImage(currentEmployee.profilePic || null);
+          }
+        }
+
+        setOriginalFormData({ ...currentEmployee, image: currentEmployee.profilePic || "" });
+      }
     }
-  }, [page, employees]);
+  }, [employees, selectedEmployee, isChangingImage, imageFile]);
+
+  // Reset selection when search parameters change
+  useEffect(() => {
+    setIsInitialLoad(true);
+    setSelectedEmployee(null);
+    setPage(1);
+  }, [searchParams]);
 
   return (
     <div>
@@ -408,16 +455,21 @@ const AllEmployeeComponent = () => {
             <div className="relative items-center">
               <button
                 className="h-10 px-5 py-3 border border-[#e6e6e6] rounded-full bg-[#1b2229] text-white flex justify-between items-center text-xs font-medium"
-                onClick={() => setSortDropdown(!sortDropdown)}
+                onClick={() => {
+                  setSortDropdown(!sortDropdown);
+                  // Close other dropdowns
+                  setGameDropdown(false);
+                  setSelectedStatus(false);
+                }}
               >
                 {selectedSort ? sortOptions.find(opt => opt.value === selectedSort)?.label || "Sort" : "Sort"}
                 <span>{!sortDropdown ? <WhiteDownArrow /> : <UpArrowIcon />}</span>
               </button>
               {sortDropdown && (
-                <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
+                <div className="w-[150px] z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
 
                   {[{ value: null, label: "All" }, ...sortOptions.filter(option => option.label !== "All")].map((option) => (
-                    <label key={option.value ?? "all"} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
+                    <label key={option.value ?? "all"} className=" w-full flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
                       <input
                         type="radio"
                         name="Sort"
@@ -428,6 +480,8 @@ const AllEmployeeComponent = () => {
                           setSelectedSort(value);
                           setSortDropdown(false);
                           setPage(1);
+                          setIsInitialLoad(true);
+                          setSelectedEmployee(null);
                         }}
                         className="accent-[#1b2229]"
                       />
@@ -444,16 +498,21 @@ const AllEmployeeComponent = () => {
             <div className="relative items-center">
               <button
                 className="h-10 px-5 py-3 border border-[#e6e6e6] rounded-full bg-[#1b2229] text-white flex justify-between items-center text-xs font-medium"
-                onClick={() => setGameDropdown(!gameDropdown)}
+                onClick={() => {
+                  setGameDropdown(!gameDropdown);
+                  // Close other dropdowns
+                  setSortDropdown(false);
+                  setSelectedStatus(false);
+                }}
               >
                 {selectedGame || "Select Status"}
                 <span>{!gameDropdown ? <WhiteDownArrow /> : <UpArrowIcon />}</span>
               </button>
 
               {gameDropdown && (
-                <div className="z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
+                <div className="w-[130px] z-50 flex flex-col gap-2 absolute top-14 left-0 p-4 bg-white rounded-[10px] shadow-lg">
                   {["All", ...games.filter(status => status !== "All")].map((status) => (
-                    <label key={status} className="flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
+                    <label key={status} className="w-full flex gap-2 cursor-pointer text-[#1b2229] text-xs font-medium">
                       <input
                         type="radio"
                         name="Select Status"
@@ -464,6 +523,8 @@ const AllEmployeeComponent = () => {
                           setSelectedGame(value);
                           setGameDropdown(false);
                           setPage(1);
+                          setIsInitialLoad(true);
+                          setSelectedEmployee(null);
                         }}
                         className="accent-[#1b2229]"
                       />
@@ -597,7 +658,7 @@ const AllEmployeeComponent = () => {
               <Image
                 className="w-full h-full rounded-[10px] object-cover"
                 src={UserProfile}
-                alt="Ball Image"
+                alt="Employee Profile"
                 width={300}
                 height={262}
                 unoptimized
@@ -664,7 +725,12 @@ const AllEmployeeComponent = () => {
               <label className="text-[#1b2229] text-xs font-medium block mb-2">Status</label>
               <div className="relative">
                 <button
-                  onClick={() => setSelectedStatus(!selectedStatus)}
+                  onClick={() => {
+                    setSelectedStatus(!selectedStatus);
+                    // Close other dropdowns
+                    setSortDropdown(false);
+                    setGameDropdown(false);
+                  }}
                   className="w-full h-12 px-5 py-3 border border-[#e6e6e6] rounded-full bg-white text-[#1b2229] flex justify-between items-center text-xs font-medium"
                 >
                   {editFormData.status || "Select Status"}
@@ -702,21 +768,10 @@ const AllEmployeeComponent = () => {
               disabled={!selectedEmployee || loading || isUploading || !hasChanges()}
             >
               {loading || isUploading ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-white mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  ></path>
-                </svg>
-              ) : null}
-              {isUploading ? "Uploading..." : loading ? "Saving..." : "Save"}
+                  "Saving Changes..."
+              ) : (
+                "Save Changes"
+              )}
             </button>
           </div>
         </div>

@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useTransition } from "react";
 import Modal from "@mui/material/Modal";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "sonner";
 import { saveDynamicPricing } from "@/services/admin-services";
+import {  Loading } from "@/utils/svgicons";
 
 // Define the validation schema
 const pricingSchema = yup.object({
@@ -59,6 +60,9 @@ const WeekdayPricingModal: React.FC<WeekdayPricingModalProps> = ({
   type,
   isEditing = false,
 }) => {
+  // Add loading state using useTransition hook
+  const [isPending, startTransition] = useTransition();
+
   // Default values for new pricing - memoized to prevent re-renders
   const defaultValues: PricingFormValues = useMemo(() => ({
     name: "Mon - Fri",
@@ -126,36 +130,37 @@ const WeekdayPricingModal: React.FC<WeekdayPricingModalProps> = ({
 
   // Handle form submission
   const handleFormSubmit = (data: PricingFormValues) => {
-    // Convert the data to the required API format
-    const apiPayload: any = {
-      name: data.name,
-      description: data.description,
-      dayType: type,
-      slotPricing: data.timeSlots.map(slot => ({
-        slot: slot.time,
-        price: slot.price
-      }))
-    };
+    startTransition(async () => {
+      try {
+        // Convert the data to the required API format
+        const apiPayload: any = {
+          name: data.name,
+          description: data.description,
+          dayType: type,
+          slotPricing: data.timeSlots.map(slot => ({
+            slot: slot.time,
+            price: slot.price
+          }))
+        };
 
-    // Add ID if editing existing pricing
-    if (isEditing && initialData?.id) {
-      apiPayload.id = initialData.id;
-    }
+        // Add ID if editing existing pricing
+        if (isEditing && initialData?.id) {
+          apiPayload.id = initialData.id;
+        }
 
-    // Call the API endpoint using the admin service
-    saveDynamicPricing(apiPayload)
-      .then((response: any) => {
+        // Call the API endpoint using the admin service
+        const response = await saveDynamicPricing(apiPayload);
         console.log('Pricing saved successfully:', response.data);
         const successMessage = isEditing ? "Pricing updated successfully" : "Pricing created successfully";
         toast.success(successMessage);
         onSubmit(data); // Pass the original form data to maintain type compatibility
         onClose();
-      })
-      .catch((error: any) => {
+      } catch (error: any) {
         console.error('Error saving pricing:', error);
         const errorMessage = isEditing ? "Failed to update pricing" : "Failed to create pricing";
         toast.error(errorMessage);
-      });
+      }
+    });
   };
 
   // List of reasons for select dropdown
@@ -164,7 +169,7 @@ const WeekdayPricingModal: React.FC<WeekdayPricingModalProps> = ({
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      // onClose={onClose}
       aria-labelledby="pricing-modal"
       className="flex items-center justify-center"
     >
@@ -252,9 +257,12 @@ const WeekdayPricingModal: React.FC<WeekdayPricingModalProps> = ({
             </button>
             <button
               type="submit"
-              className="w-full px-8 py-2 bg-[#10375c] rounded-full text-white text-sm font-medium"
+              className="w-full flex flex-row justify-center gap-2 px-8 py-2 bg-[#10375c] rounded-full text-white text-sm font-medium"
             >
-              Save
+{isPending && (
+                  <div className="text-center items-center mt-[4px] w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
+             {isPending  ? "Saving..." : "Save"}
             </button>
           </div>
         </form>

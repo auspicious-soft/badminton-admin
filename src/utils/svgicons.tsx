@@ -945,7 +945,15 @@ export const Eye = () => (
 </svg> 
 );
 export const EyeOff = () => (
-<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 17" fill="none" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round" ><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
+  <>
+    {/* <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 17" fill="none" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '15px',marginBottom:'10px' }} ><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg> */}
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13 10.6667L11.3499 8.40259" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M8 11.6666V9.33325" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 10.6666L4.64597 8.4082" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M2 5.33325C4.4 10.6666 11.6 10.6666 14 5.33325" stroke="#FD5602" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  </>
 );
 export const Loading = () => (
 <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

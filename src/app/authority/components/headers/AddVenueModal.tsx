@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import MatchImage from "@/assets/images/courtImage.png";
 import Image from "next/image";
 import Modal from "@mui/material/Modal";
@@ -37,10 +37,11 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
   const [imageKey, setImageKey] = useState<string | null>(null);
   // No longer uploading in the modal
   const [selectedGame, setSelectedGame] = useState(gamesAvailableOptions[0]); // Default to first game
+  const [isPending, startTransition] = useTransition();
 
   // Initialize form with court data if editing
   useEffect(() => {
-    if (court) {
+      if (court) {
       setCourtName(court.name);
       setStatus(court.status);
       setImageKey(court.imageKey || null);
@@ -67,31 +68,45 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
   }, [court]);
 
   const handleDelete = () => {
+      setCourtName("");
+      setStatus("Active");
+      setSelectedImage(null);
+      setImageKey(null);
+      setImageFile(null);
+      setSelectedGame(gamesAvailableOptions[0]);
     onClose();
   };
 
   const handleSave = () => {
-    try {
-      // Create court data with local image preview and file for later upload
-      const courtData: Court = {
-        id: court ? court.id : uuidv4(),
-        name: courtName,
-        status,
-        // For UI display purposes
-        image: selectedImage || MatchImage.src,
-        // Store the existing S3 key if we're editing and not changing the image
-        imageKey: imageKey || undefined,
-        // Store the image file for later upload when venue is saved
-        imageFile: imageFile,
-        game: selectedGame,
-      };
+    startTransition(() => {
+      try {
+        // Create court data with local image preview and file for later upload
+        const courtData: Court = {
+          id: court ? court.id : uuidv4(),
+          name: courtName,
+          status,
+          // For UI display purposes
+          image: selectedImage || MatchImage.src,
+          // Store the existing S3 key if we're editing and not changing the image
+          imageKey: imageKey || undefined,
+          // Store the image file for later upload when venue is saved
+          imageFile: imageFile,
+          game: selectedGame,
+        };
 
-      onSave(courtData);
-      onClose();
-    } catch (error) {
-      console.error("Error in save process:", error);
-      toast.error("Failed to save court");
-    }
+        onSave(courtData);
+        setCourtName("");
+        setStatus("Active");
+        setSelectedImage(null);
+        setImageKey(null);
+        setImageFile(null);
+        setSelectedGame(gamesAvailableOptions[0]);
+        onClose();
+      } catch (error) {
+        console.error("Error in save process:", error);
+        toast.error("Failed to save court");
+      }
+    });
   };
 
 
@@ -221,7 +236,10 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
                 onClick={handleSave}
                 className="w-full text-white text-sm font-medium h-12 py-2 bg-[#10375c] rounded-[28px] flex items-center justify-center"
               >
-                {court ? 'Update' : 'Save'}
+                    {isPending && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
+                {isPending ? (court ? "Updating..." : "Saving...") : (court ? "Update" : "Save")}
               </button>
             </div>
           </form>

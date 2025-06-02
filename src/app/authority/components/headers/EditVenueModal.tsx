@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import MatchImage from "@/assets/images/courtImage.png";
 import Image from "next/image";
 import Modal from "@mui/material/Modal";
@@ -37,6 +37,7 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageKey, setImageKey] = useState<string | null>(null);
   const [selectedGame, setSelectedGame] = useState(gamesAvailableOptions[0]);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (court) {
@@ -100,109 +101,107 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
     }
   };
 
-  const handleSave = async () => {
-    try {
-      // If we have a new image file, upload it to S3 first
-      let finalImageKey = imageKey || court?.imageKey;
-      let isUploading = false;
+  const handleSave = () => {
+    startTransition(async () => {
+      try {
+        // If we have a new image file, upload it to S3 first
+        let finalImageKey = imageKey || court?.imageKey;
 
-      if (imageFile) {
-        isUploading = true;
-        try {
-          // Upload the new image
-          finalImageKey = await uploadCourtImageToS3(imageFile);
-          console.log("Uploaded new court image, key:", finalImageKey);
+        if (imageFile) {
+          try {
+            // Upload the new image
+            finalImageKey = await uploadCourtImageToS3(imageFile);
+            console.log("Uploaded new court image, key:", finalImageKey);
 
-          // Delete the previous image if it exists
-          if (court?.imageKey && court.imageKey.startsWith('courts/')) {
-            try {
-              await deleteFileFromS3(court.imageKey);
-              console.log("Previous court image deleted:", court.imageKey);
-            } catch (deleteError) {
-              console.error("Error deleting previous court image:", deleteError);
-              // Continue with the save process even if deletion fails
+            // Delete the previous image if it exists
+            if (court?.imageKey && court.imageKey.startsWith('courts/')) {
+              try {
+                await deleteFileFromS3(court.imageKey);
+                console.log("Previous court image deleted:", court.imageKey);
+              } catch (deleteError) {
+                console.error("Error deleting previous court image:", deleteError);
+                // Continue with the save process even if deletion fails
+              }
             }
+          } catch (uploadError) {
+            console.error("Error uploading court image:", uploadError);
+            toast.error("Failed to upload court image");
+            // Continue with saving the court without the image
+            finalImageKey = court?.imageKey || null;
           }
-        } catch (uploadError) {
-          console.error("Error uploading court image:", uploadError);
-          toast.error("Failed to upload court image");
-          // Continue with saving the court without the image
-          finalImageKey = court?.imageKey || null;
-        } finally {
-          isUploading = false;
         }
-      }
 
-      // Create court data with the new image key
-      const courtData: Court = {
-        id: court ? court.id : crypto.randomUUID(),
-        name: courtName,
-        status,
-        // For UI display purposes - use the S3 URL if we have an image key
-        image: finalImageKey ? getImageClientS3URL(finalImageKey) : (selectedImage || MatchImage.src),
-        // Store the S3 image key
-        imageKey: finalImageKey || undefined,
-        // No need to store the image file anymore since we've already uploaded it
-        imageFile: null,
-        game: selectedGame,
-        venueId,
-      };
-
-      console.log("Court data being saved:", {
-        id: courtData.id,
-        name: courtData.name,
-        imageKey: courtData.imageKey
-      });
-
-      if (court) {
-        // Update existing court in the backend with the new image key
-        const payload = {
-          id: court.id,
+        // Create court data with the new image key
+        const courtData: Court = {
+          id: court ? court.id : crypto.randomUUID(),
+          name: courtName,
+          status,
+          // For UI display purposes - use the S3 URL if we have an image key
+          image: finalImageKey ? getImageClientS3URL(finalImageKey) : (selectedImage || MatchImage.src),
+          // Store the S3 image key
+          imageKey: finalImageKey || undefined,
+          // No need to store the image file anymore since we've already uploaded it
+          imageFile: null,
+          game: selectedGame,
           venueId,
-          name: courtName,
-          isActive: status === "Active",
-          games: selectedGame,
-          // Include the new image key
-          image: finalImageKey || null,
         };
 
-        const response = await updateCourt("/admin/court", payload);
-        if (response?.status === 200 || response?.status === 201) {
-          toast.success("Court updated successfully");
-          // Pass the court data to the parent component
-          onSave(courtData);
-        } else {
-          toast.error("Failed to update court");
-        }
-      } else {
-        // Add new court to the backend with the image key
-        const payload = {
-          venueId: venueId,
-          name: courtName,
-          isActive: status === "Active",
-          games: selectedGame,
-          // Include the image key
-          image: finalImageKey || null,
-        };
+        console.log("Court data being saved:", {
+          id: courtData.id,
+          name: courtData.name,
+          imageKey: courtData.imageKey
+        });
 
-        const response = await updateCourt("/admin/court", payload);
-        if (response?.status === 200 || response?.status === 201) {
-          toast.success("Court added successfully");
-          // Pass the court data to the parent component
-          onSave({
-            ...courtData,
-            id: response.data.data._id,
-          });
+        if (court) {
+          // Update existing court in the backend with the new image key
+          const payload = {
+            id: court.id,
+            venueId,
+            name: courtName,
+            isActive: status === "Active",
+            games: selectedGame,
+            // Include the new image key
+            image: finalImageKey || null,
+          };
+
+          const response = await updateCourt("/admin/court", payload);
+          if (response?.status === 200 || response?.status === 201) {
+            toast.success("Court updated successfully");
+            // Pass the court data to the parent component
+            onSave(courtData);
+          } else {
+            toast.error("Failed to update court");
+          }
         } else {
-          toast.error("Failed to add court");
+          // Add new court to the backend with the image key
+          const payload = {
+            venueId: venueId,
+            name: courtName,
+            isActive: status === "Active",
+            games: selectedGame,
+            // Include the image key
+            image: finalImageKey || null,
+          };
+
+          const response = await updateCourt("/admin/court", payload);
+          if (response?.status === 200 || response?.status === 201) {
+            toast.success("Court added successfully");
+            // Pass the court data to the parent component
+            onSave({
+              ...courtData,
+              id: response.data.data._id,
+            });
+          } else {
+            toast.error("Failed to add court");
+          }
         }
+      } catch (error) {
+        console.error("Error in save process:", error);
+        toast.error("Something went wrong");
       }
-    } catch (error) {
-      console.error("Error in save process:", error);
-      toast.error("Something went wrong");
-    }
 
-    onClose();
+      onClose();
+    });
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,7 +236,7 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      // onClose={onClose}
       aria-labelledby="court-management-modal"
       aria-describedby="court-management-form"
     >
@@ -322,9 +321,17 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
               <button
                 type="button"
                 onClick={handleSave}
-                className="w-full text-white text-sm font-medium h-12 py-2 bg-[#10375c] rounded-[28px]"
+                disabled={isPending}
+                className={`w-full text-white text-sm font-medium h-12 py-2 rounded-[28px] flex items-center justify-center gap-2 ${
+                  isPending
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#10375c] hover:bg-[#0d2d47]"
+                }`}
               >
-                {court ? "Update" : "Save"}
+                {isPending && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
+                {isPending ? (court ? "Updating..." : "Saving...") : (court ? "Update" : "Save")}
               </button>
             </div>
           </form>

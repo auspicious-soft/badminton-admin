@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, startTransition } from "react";
 import Image from "next/image";
-import { BottomArrow, Edit1, UpArrowIcon, EyeIcon, Add } from "@/utils/svgicons";
+import { BottomArrow, Edit1, UpArrowIcon, EyeIcon, Add, Loading } from "@/utils/svgicons";
 import Court from "@/assets/images/courtsmallImg.png";
 import UserProfile2 from "@/assets/images/images.png";
 import CourtManagement from "../../components/headers/EditVenueModal";
@@ -15,8 +15,6 @@ import useSWR from "swr";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getImageClientS3URL } from "@/config/axios";
-import SearchBar from "../../components/SearchBar";
-import JordanLee from "@/assets/images/JordanLee.png";
 import { deleteFileFromS3, generateSignedUrlForVenue } from "@/actions";
 
 // Custom Modal Component
@@ -712,7 +710,7 @@ const Page = () => {
                   <span>{stateDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
                 </button>
                 {stateDropdown && (
-                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto overflow-custom z-50">
+                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto overflo-custom z-50">
                     {states.map((state) => (
                       <label
                         key={state}
@@ -870,14 +868,18 @@ const Page = () => {
 
             <button
               onClick={handleSave}
-              className={`w-full p-3 rounded-full text-white text-sm font-medium ${
+              className={`flex items-center justify-center w-full p-3 rounded-full text-white text-sm font-medium ${
                 isSaveDisabled || isUploading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#10375c]"
               }`}
               disabled={isSaveDisabled || isUploading}
             >
-              {isUploading ? "Uploading..." : "Save"}
+              {/* {isUploading ? "Uploading..." : "Save"} */}
+              { isUploading ? (
+              <Loading />
+            ) : null}
+            {isUploading ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
@@ -985,7 +987,7 @@ const Page = () => {
               <h2 className="text-xl font-medium text-[#172554] mb-4">
                 Select Facilities
               </h2>
-              <div className="space-y-2 max-h-48 overflow-y-auto overflow-custom">
+              <div className="space-y-2 max-h-48 overflow-y-auto overflo-custom">
                 {option.map((opt) => (
                   <div
                     key={opt.id}
@@ -1033,7 +1035,7 @@ const Page = () => {
                 </button>
               </div>
 
-              <div className="space-y-2 max-h-48 overflow-y-auto overflow-custom">
+              <div className="space-y-2 max-h-48 overflow-y-auto overflo-custom">
                 {employees.map((employee) => (
                   <div key={employee.id}>
                     <div className="flex justify-between items-center py-1">
@@ -1082,7 +1084,7 @@ const Page = () => {
               <div>Opening Hours</div>
               <div>Closing Hours</div>
             </div>
-            <div className="space-y-2 max-h-48 overflow-y-auto overflow-custom">
+            <div className="space-y-2 max-h-48 overflow-y-auto overflo-custom">
               {openingHours.map((entry) => (
                 <div key={entry.day} className="grid grid-cols-3 gap-4 items-center text-sm">
                   <div className="text-[#10375C]">{entry.day}</div>

@@ -4,8 +4,9 @@ import {
   DownArrowIcon,
   UpArrowIcon,
   WhiteDownArrow,
+  Loading
 } from "@/utils/svgicons";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useTransition } from "react";
 import Image from "next/image";
 import DeleteConfirmationModal from "../components/common/DeleteConfirmationModal";
 import {
@@ -45,6 +46,12 @@ const Page = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
+  // useTransition hooks for loading states
+  const [editStockPending, startEditStockTransition] = useTransition();
+  const [addStockPending, startAddStockTransition] = useTransition();
+  const [newItemPending, startNewItemTransition] = useTransition();
+  const [deletePending, startDeleteTransition] = useTransition();
+console.log("newItemPending", newItemPending)
   const apiRoute = selectedVenue
   ? `/admin/inventory?venueId=${selectedVenue}&page=${page}&limit=${itemsPerPage}`
   : `/admin/inventory?page=${page}&limit=${itemsPerPage}`;
@@ -124,29 +131,33 @@ const Page = () => {
       quantity: tempQuantity,
     };
 
-    try {
-      const response = await updateInventory("/admin/inventory", payload);
+    const transitionFunction = type === "stockInUse" ? startEditStockTransition : startAddStockTransition;
 
-      if (response.status === 200 || response.status === 201) {
-        toast.success("Stock updated successfully");
-        setInventoryItems((prevItems) =>
-          prevItems.map((item, i) =>
-            i === index ? { ...item, [type]: tempQuantity } : item
-          )
-        );
-        mutate();
-        if (type === "stockInUse") {
-          setOpenEditStock(false);
+    transitionFunction(async () => {
+      try {
+        const response = await updateInventory("/admin/inventory", payload);
+
+        if (response.status === 200 || response.status === 201) {
+          toast.success("Stock updated successfully");
+          setInventoryItems((prevItems) =>
+            prevItems.map((item, i) =>
+              i === index ? { ...item, [type]: tempQuantity } : item
+            )
+          );
+          mutate();
+          if (type === "stockInUse") {
+            setOpenEditStock(false);
+          } else {
+            setOpenAddToStock(false);
+          }
         } else {
-          setOpenAddToStock(false);
+          toast.error("Failed to update stock");
         }
-      } else {
-        toast.error("Failed to update stock");
+      } catch (error) {
+        console.error("Error updating stock:", error?.response?.data?.message);
+        toast.error(error?.response?.data?.message);
       }
-    } catch (error) {
-      console.error("Error updating stock:", error);
-      toast.error("An error occurred while updating the stock");
-    }
+    });
   };
 
   const defaultFormValues = {
@@ -170,28 +181,30 @@ const Page = () => {
       inStock: Number(item.quantity),
     }));
 
-    try {
-      const response = await createInventory("/admin/inventory", payload);
+    startNewItemTransition(async () => {
+      try {
+        const response = await createInventory("/admin/inventory", payload);
 
-      if (response.status === 200 || response.status === 201) {
-        toast.success("Inventory created successfully");
-        const newItems = payload.map((item, index) => ({
-          id: `new-${inventoryItems.length + index}`,
-          name: item.productName,
-          stockInUse: 0,
-          freshStock: item.inStock,
-        }));
-        setInventoryItems((prev) => [...prev, ...newItems]);
-        setOpenNewItem(false);
-        reset(defaultFormValues);
-        mutate();
-      } else {
-        toast.error("Failed to add new item");
+        if (response.status === 200 || response.status === 201) {
+          toast.success("Inventory created successfully");
+          const newItems = payload.map((item, index) => ({
+            id: `new-${inventoryItems.length + index}`,
+            name: item.productName,
+            stockInUse: 0,
+            freshStock: item.inStock,
+          }));
+          setInventoryItems((prev) => [...prev, ...newItems]);
+          setOpenNewItem(false);
+          reset(defaultFormValues);
+          mutate();
+        } else {
+          toast.error("Failed to add new item");
+        }
+      } catch (error) {
+        console.error("Error adding new item:", error);
+        toast.error("An error occurred while adding the new item");
       }
-    } catch (error) {
-      console.error("Error adding new item:", error);
-      toast.error("An error occurred while adding the new item");
-    }
+    });
   };
 
   const handleCloseNewItemDialog = () => {
@@ -210,32 +223,34 @@ const Page = () => {
     if (!itemToDelete) return;
     console.log('itemToDelete: ', itemToDelete);
 
-    try {
-      const response = await deleteInventory(`/admin/inventory?id=${itemToDelete.id}`);
-      console.log('response: ', response);
+    startDeleteTransition(async () => {
+      try {
+        const response = await deleteInventory(`/admin/inventory?id=${itemToDelete.id}`);
+        console.log('response: ', response);
 
-      if (response.status === 200 || response.status === 204) {
-        // Remove the item from the local state
-        setInventoryItems(prevItems =>
-          prevItems.filter(item => item.id !== itemToDelete.id)
-        );
+        if (response.status === 200 || response.status === 204) {
+          // Remove the item from the local state
+          setInventoryItems(prevItems =>
+            prevItems.filter(item => item.id !== itemToDelete.id)
+          );
 
-        // Show success message
-        toast.success("Item removed successfully");
+          // Show success message
+          toast.success("Item removed successfully");
 
-        // Refresh data
-        mutate();
-      } else {
-        toast.error("Failed to remove item");
+          // Refresh data
+          mutate();
+        } else {
+          toast.error("Failed to remove item");
+        }
+      } catch (error) {
+        console.error("Error removing item:", error);
+        toast.error("An error occurred while removing the item");
       }
-    } catch (error) {
-      console.error("Error removing item:", error);
-      toast.error("An error occurred while removing the item");
-    }
 
-    // Close modal and reset state
-    setIsDeleteModalOpen(false);
-    setItemToDelete(null);
+      // Close modal and reset state
+      setIsDeleteModalOpen(false);
+      setItemToDelete(null);
+    });
   };
 
   return (
@@ -268,8 +283,7 @@ const Page = () => {
           display: flex;
           flex-direction: column;
           gap: 5px;
-          padding: 20px;
-          width: 168px;
+          padding: 15px;
           background-color: white;
           border-radius: 10px;
           box-shadow: 0px 4px 20px rgba(92, 138, 255, 0.1);
@@ -286,7 +300,8 @@ const Page = () => {
         .venue-option input[type="radio"] {
           accent-color: #1b2229;
           width: 16px;
-          height: 16px;
+          maxHeight: 25px;
+          minHeight: 25px;
           cursor: pointer;
         }
         .loading-spinner {
@@ -339,7 +354,7 @@ const Page = () => {
               </span>
             </button>
             {venueDropdown && (
-              <div className="venue-options space-y-2 h-[300px] overflow-y-auto overflo-custom">
+              <div className="venue-options space-y-2 w-[220px] h-[300px] overflow-y-auto overflo-custom">
                 <label className="venue-option ">
                   <input
                     type="radio"
@@ -541,6 +556,7 @@ const Page = () => {
             <Button
               variant="contained"
               onClick={() => handleUpdateStock(selectedItemIndex, "stockInUse")}
+              disabled={editStockPending}
               style={{
                 textTransform: "none",
                 backgroundColor: "#10375c",
@@ -552,7 +568,10 @@ const Page = () => {
               }}
               className="text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px]"
             >
-              Update Details
+              {editStockPending ? (
+                           <Loading />
+                         ) : null}
+              {editStockPending ? "Updating..." : "Update Details"}
             </Button>
           </DialogActions>
         </div>
@@ -584,7 +603,7 @@ const Page = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-1">
+                  <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-2">
                     Quantity
                   </label>
                   <div className="flex items-center justify-between bg-white rounded-full px-4 py-1.5  shadow">
@@ -635,6 +654,7 @@ const Page = () => {
             <Button
               variant="contained"
               onClick={() => handleUpdateStock(selectedItemIndex, "freshStock")}
+              disabled={addStockPending}
               style={{
                 textTransform: "none",
                 backgroundColor: "#10375c",
@@ -645,7 +665,10 @@ const Page = () => {
               }}
               className="text-white text-sm sm:text-base font-medium bg-[#10375c] rounded-[28px]"
             >
-              Update Details
+                 {addStockPending ? (
+                           <Loading />
+                         ) : null}
+                          {addStockPending ? "Updating..." : "Update Details"}
             </Button>
           </DialogActions>
         </div>
@@ -792,6 +815,7 @@ const Page = () => {
             type="submit"
             fullWidth
             variant="contained"
+            disabled={newItemPending}
             style={{
               textTransform: "none",
               backgroundColor: "#10375c",
@@ -802,7 +826,7 @@ const Page = () => {
             }}
             className="w-full sm:w-auto text-sm sm:text-base font-medium rounded-[28px]"
           >
-            Update Details
+            {newItemPending ? "Creating..." : "Update Details"}
           </Button>
         </DialogActions>
       </form>
@@ -954,6 +978,7 @@ const Page = () => {
             type="submit"
             fullWidth
             variant="contained"
+            disabled={newItemPending}
             style={{
               textTransform: "none",
               backgroundColor: "#10375c",
@@ -964,7 +989,7 @@ const Page = () => {
             }}
             className="w-full sm:w-auto text-sm sm:text-base font-medium rounded-[28px]"
           >
-            Update Details
+            {newItemPending ? "Creating..." : "Update Details"}
           </Button>
         </DialogActions>
       </form>

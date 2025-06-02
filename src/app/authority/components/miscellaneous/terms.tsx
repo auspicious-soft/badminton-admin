@@ -37,7 +37,7 @@ const TermsPage = ({ name }: { name: string }) => {
       const response = await postTermsSettings("/admin/admin-settings", payload);
       
       if (response?.status === 200 || response?.status === 201) {
-        toast.success(`${name} updated successfully`);
+        toast.success(`${name === "privacyPolicy" ? "Privacy Policy" :"Terms and Conditions"} updated successfully`);
         mutate();
       } else {
         throw new Error(response?.data?.message || "Failed to update settings");

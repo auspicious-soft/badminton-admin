@@ -7,36 +7,41 @@ interface DeleteConfirmationModalProps {
    * Whether the modal is open
    */
   open: boolean;
-  
+
   /**
    * Function to close the modal
    */
   onClose: () => void;
-  
+
   /**
    * Function to call when delete is confirmed
    */
   onDelete: () => void;
-  
+
   /**
    * Optional title text (defaults to "Delete?")
    */
   title?: string;
-  
+
   /**
    * Optional confirmation message (defaults to "Are you sure you want to delete this item?")
    */
   message?: string;
-  
+
   /**
    * Optional cancel button text (defaults to "Cancel")
    */
   cancelText?: string;
-  
+
   /**
    * Optional delete button text (defaults to "Delete")
    */
   deleteText?: string;
+
+  /**
+   * Optional loading state for delete button
+   */
+  isLoading?: boolean;
 }
 
 /**

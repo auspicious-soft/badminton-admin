@@ -18,9 +18,9 @@ const MatchesPage = () => {
       </div>
       {/* Render Content Based on Selected Tab */}
       <div className="mt-6 mb-6">
-        {selectedTab === "Upcoming" && <MatchesComponent name="Upcoming Matches" selectedDate={selectedDate} selectedCity={selectedCity} selectedGame={selectedGame} />}
-        {selectedTab === "Previous" && <MatchesComponent name="Previous Matches" selectedDate={selectedDate} selectedCity={selectedCity} selectedGame={selectedGame}/>}
-        {selectedTab === "Cancelled" && <MatchesComponent name="Cancelled Matches" selectedDate={selectedDate} selectedCity={selectedCity} selectedGame={selectedGame}/>}
+        {selectedTab === "Upcoming" && <MatchesComponent key="upcoming" name="Upcoming Matches" selectedDate={selectedDate} selectedCity={selectedCity} selectedGame={selectedGame} />}
+        {selectedTab === "Previous" && <MatchesComponent key="previous" name="Previous Matches" selectedDate={selectedDate} selectedCity={selectedCity} selectedGame={selectedGame}/>}
+        {selectedTab === "Cancelled" && <MatchesComponent key="cancelled" name="Cancelled Matches" selectedDate={selectedDate} selectedCity={selectedCity} selectedGame={selectedGame}/>}
       </div>
     </div>
   );

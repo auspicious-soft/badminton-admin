@@ -62,7 +62,7 @@ const ScheduleCalender = ({ data }: any) => {
         <h2 className="text-[#10375c] text-lg sm:text-xl font-medium">
           Today&apos;s Schedule
         </h2>
-        <div onClick={() => router.push('/authority/matches')} className="rounded-[50px] bg-white p-1">
+        <div onClick={() => router.push('/authority/matches')} className=" rounded-[50px] bg-white p-1 cursor-pointer">
           <TiltedArrowIcon />
         </div>
       </div>

@@ -8,6 +8,7 @@ import { loginAction } from "@/actions";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import {  Eye, EyeOff } from "@/utils/svgicons";
 
 export default function LoginPage() {
  const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ export default function LoginPage() {
  const [isPending, startTransition] = React.useTransition();
  const router = useRouter();
  const { data: session } = useSession();
+const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -95,7 +97,7 @@ export default function LoginPage() {
         placeholder="Enter your email" 
        />
       </div>
-      <div className="space-y-[10px]">
+      {/* <div className="space-y-[10px]">
        <label className="text-[#1b2229] text-base font-medium">Your Password</label>
        <input 
         type="password" 
@@ -104,7 +106,25 @@ export default function LoginPage() {
         className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" 
         placeholder="Enter your password" 
        />
-      </div>
+      </div> */}
+      <div className="space-y-[10px] relative">
+  <label className="text-[#1b2229] text-base font-medium">Your Password</label>
+  <input 
+    type={showPassword ? "text" : "password"}
+    value={password}
+    onChange={(e) => setPassword(e.target.value)} 
+    className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400 pr-12"
+    placeholder="Enter your password" 
+  />
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute top-[44px] right-4 text-[#176dbf] hover:text-[#104c8c]"
+    tabIndex={-1}
+  >
+                {showPassword ? <EyeOff /> : <Eye />}
+  </button>
+</div>
       <div className="flex justify-end items-right mb-4">
        <Link href="/forgot-password" className="items-right text-right text-[#176dbf] text-base font-medium hover:underline">
         Forgot Password?

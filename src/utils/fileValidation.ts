@@ -2,12 +2,52 @@
  * File validation utilities for image uploads
  */
 
+/**
+ * Text input validation utilities
+ */
+
+/**
+ * Sanitizes text input by preventing leading spaces and consecutive spaces
+ * @param value - The input value to sanitize
+ * @returns Sanitized string with no leading spaces and single spaces only
+ */
+export const sanitizeTextInput = (value: string): string => {
+  if (!value) return value;
+
+  // Remove leading spaces and replace consecutive spaces with single space
+  return value.replace(/^\s+/, '').replace(/\s{2,}/g, ' ');
+};
+
+/**
+ * Creates an onChange handler that sanitizes text input
+ * @param originalOnChange - The original onChange handler
+ * @returns Enhanced onChange handler with text sanitization
+ */
+export const createSanitizedInputHandler = (
+  originalOnChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
+) => {
+  return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const sanitizedValue = sanitizeTextInput(e.target.value);
+
+    // Create a new event with sanitized value
+    const sanitizedEvent = {
+      ...e,
+      target: {
+        ...e.target,
+        value: sanitizedValue,
+      },
+    };
+
+    originalOnChange(sanitizedEvent);
+  };
+};
+
 // Allowed image extensions and their corresponding MIME types
 export const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.tif', '.tiff', '.bmp', '.pdf', '.eps', '.webp'];
 
 export const ALLOWED_IMAGE_MIME_TYPES = [
   'image/jpeg',
-  'image/jpg', 
+  'image/jpg',
   'image/png',
   'image/gif',
   'image/tiff',
@@ -26,16 +66,16 @@ export const ALLOWED_IMAGE_MIME_TYPES = [
  */
 export const isValidImageFile = (file: File): boolean => {
   if (!file) return false;
-  
+
   // Check MIME type
   const isValidMimeType = ALLOWED_IMAGE_MIME_TYPES.includes(file.type.toLowerCase());
-  
+
   // Check file extension as fallback
   const fileName = file.name.toLowerCase();
-  const hasValidExtension = ALLOWED_IMAGE_EXTENSIONS.some(ext => 
+  const hasValidExtension = ALLOWED_IMAGE_EXTENSIONS.some(ext =>
     fileName.endsWith(ext.toLowerCase())
   );
-  
+
   return isValidMimeType || hasValidExtension;
 };
 
@@ -75,17 +115,17 @@ export const validateImageFile = (file: File, maxSizeInMB: number = 5): { isVali
   // Check file type/extension
   if (!isValidImageFile(file)) {
     const allowedExtensionsStr = ALLOWED_IMAGE_EXTENSIONS.join(', ');
-    return { 
-      isValid: false, 
-      error: `Invalid file type. Only ${allowedExtensionsStr} files are allowed.` 
+    return {
+      isValid: false,
+      error: `Invalid file type. Only ${allowedExtensionsStr} files are allowed.`
     };
   }
 
   // Check file size
   if (!isValidFileSize(file, maxSizeInMB)) {
-    return { 
-      isValid: false, 
-      error: `File size must be less than ${maxSizeInMB}MB` 
+    return {
+      isValid: false,
+      error: `File size must be less than ${maxSizeInMB}MB`
     };
   }
 
@@ -104,15 +144,15 @@ export const createImageFileValidation = (maxSizeInMB: number = 5) => {
       message: `Invalid file type. Only ${ALLOWED_IMAGE_EXTENSIONS.join(', ')} files are allowed.`,
       test: (value: any) => {
         if (!value) return true; // Let required validation handle empty values
-        
+
         if (value instanceof File) {
           return isValidImageFile(value);
         }
-        
+
         if (value instanceof FileList) {
           return Array.from(value).every((file: File) => isValidImageFile(file));
         }
-        
+
         return false;
       }
     },
@@ -121,15 +161,15 @@ export const createImageFileValidation = (maxSizeInMB: number = 5) => {
       message: `File size must be less than ${maxSizeInMB}MB`,
       test: (value: any) => {
         if (!value) return true; // Let required validation handle empty values
-        
+
         if (value instanceof File) {
           return isValidFileSize(value, maxSizeInMB);
         }
-        
+
         if (value instanceof FileList) {
           return Array.from(value).every((file: File) => isValidFileSize(file, maxSizeInMB));
         }
-        
+
         return false;
       }
     }

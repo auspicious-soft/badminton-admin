@@ -11,6 +11,7 @@ import { loginAction } from "@/actions";
 import InputField from "../components/InputField";
 import LoginImage from "../components/LoginImage";
 import { resetUserPassword } from "@/services/admin-services";
+import {  Eye, EyeOff } from "@/utils/svgicons";
 
 export default function ChangePasswordPage() {
  const [formData, setFormData] = useState({
@@ -25,7 +26,8 @@ export default function ChangePasswordPage() {
  const router = useRouter();
  const searchParams = useSearchParams();
  const [isPending, startTransition] = useTransition();
-
+const [showNewPassword, setShowNewPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
  useEffect(() => {
   const otp = searchParams.get("otp");
   if (!otp) {
@@ -86,29 +88,45 @@ export default function ChangePasswordPage() {
      </div>
 
      <form className="w-full space-y-[20px] max-w-sm mx-auto" onSubmit={handleSubmit}>
-      <div className="space-y-[10px]">
-       <label className="text-[#1b2229] text-base font-medium">New Password</label>
-       <input 
-        type="password" 
-        name="newPassword" 
-        value={formData.newPassword} 
-        onChange={handleChange} 
-        className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" 
-        placeholder="********" 
-       />
-      </div>
 
-      <div className="space-y-[10px]">
-       <label className="text-[#1b2229] text-base font-medium">Confirm Password</label>
-       <input 
-        type="password" 
-        name="confirmPassword" 
-        value={formData.confirmPassword} 
-        onChange={handleChange} 
-        className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" 
-        placeholder="********" 
-       />
-      </div>
+<div className="space-y-[10px] relative">
+  <label className="text-[#1b2229] text-base font-medium">New Password</label>
+  <input 
+    type={showNewPassword ? "text" : "password"} 
+    name="newPassword" 
+    value={formData.newPassword} 
+    onChange={handleChange} 
+    className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 pr-12 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" 
+    placeholder="********" 
+  />
+  <button
+    type="button"
+    onClick={() => setShowNewPassword(!showNewPassword)}
+    className="absolute top-[44px] right-4 text-[#176dbf] hover:text-[#104c8c]"
+    tabIndex={-1}
+  >
+    {showNewPassword ? <EyeOff  /> : <Eye  />}
+  </button>
+</div>
+<div className="space-y-[10px] relative">
+  <label className="text-[#1b2229] text-base font-medium">Confirm Password</label>
+  <input 
+    type={showConfirmPassword ? "text" : "password"} 
+    name="confirmPassword" 
+    value={formData.confirmPassword} 
+    onChange={handleChange} 
+    className="text-[#919191] text-base font-medium w-full h-[50px] px-5 py-4 pr-12 bg-[#f4f5f7] rounded-[49px] border focus:border-[#176dbf] focus:ring-blue-400" 
+    placeholder="********" 
+  />
+  <button
+    type="button"
+    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+    className="absolute top-[44px] right-4 text-[#176dbf] hover:text-[#104c8c]"
+    tabIndex={-1}
+  >
+    {showConfirmPassword ? <EyeOff  /> : <Eye  />}
+  </button>
+</div>
 
       <button 
         type="submit" 

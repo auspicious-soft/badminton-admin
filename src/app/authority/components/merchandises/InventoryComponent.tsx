@@ -38,7 +38,6 @@ export default function InventoryComponent() {
 
   // Fetch venue data (mocked for now; replace with actual API call)
   const { data: venueData } = useSWR("admin/get-venues", fetchVenues);
-  console.log('venueData: ', venueData);
   const venues = Array.isArray(venueData) ? venueData : ((venueData as any)?.data?.data || []);
 
   // Set the first product as the default selection when data loads
