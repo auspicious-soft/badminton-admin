@@ -52,7 +52,7 @@ const Dashboard = () => {
   const handleYearChange = (year) => setSelectedYear(year);
   const [openPanelIndex, setOpenPanelIndex] = useState(0);
     const router = useRouter();
-
+// console.log("data1?.stats?.incomeThisMonth", data1?.stats?.incomeThisMonth)
   const handleViewClick = (index) => {
     setOpenPanelIndex(openPanelIndex === index ? -1 : index);
   };
@@ -115,7 +115,12 @@ const Dashboard = () => {
         <StatCard value={data1?.stats?.totalMatchesThisMonth} label="Total matches this month" Icon={<DashbordStat1Icon />} />
         <StatCard value={data1?.stats?.pickleballMatchesThisMonth} label="Pickleball matches this month" Icon={<DashbordPickleBallIcon />} />
         <StatCard value={data1?.stats?.padelMatchesThisMonth} label="Padel matches this month" Icon={<DashbordPadelBallIcon />} />
-        <StatCard value={`₹${data1?.stats?.incomeThisMonth}`} label="Income this month" Icon={<DashbordRupeeIcon />} />
+<StatCard 
+          value={isLoading ? "" : `₹${data1?.stats?.incomeThisMonth || ""}`} 
+          label="Income this month" 
+          Icon={<DashbordRupeeIcon />} 
+        />
+        {/* <StatCard value={`₹${data1?.stats?.incomeThisMonth === null ? "" :`${data1?.stats?.incomeThisMonth}`}`} label="Income this month" Icon={<DashbordRupeeIcon />} /> */}
       </div>
       </div>
       <div className="flex flex-col md:flex-row gap-8 w-full">

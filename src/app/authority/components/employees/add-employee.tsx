@@ -203,7 +203,7 @@ const AddEmployee = () => {
             )}
             <label className="absolute bottom-2 right-2 h-12 px-4 py-2 flex bg-white rounded-full items-center gap-2 cursor-pointer">
               <Edit1 />
-              <span className="text-[#1C2329] text-sm font-medium">Change Image</span>
+              <span className="text-[#1C2329] text-sm font-medium">Upload Image</span>
               <input
                 type="file"
                 accept="image/*"

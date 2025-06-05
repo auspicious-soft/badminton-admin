@@ -887,7 +887,7 @@ const Page = () => {
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto overflo-custom">
               {openingHours.map((entry) => (
-                <div key={entry.day} className="grid grid-cols-3 gap-4 items-center text-sm">
+                <div key={entry.day} className="grid grid-cols-3 gap-4 items-center text-sm mt-1">
                   <div className="text-[#10375C]">{entry.day}</div>
                   <input
                     type="time"
