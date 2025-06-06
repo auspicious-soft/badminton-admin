@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { validateImageFile } from '@/utils/fileValidation';
 import { updateAdminSettings, getAdminSettings } from '@/services/admin-services';
 import useSWR from 'swr';
+import { useSession } from 'next-auth/react';
 
 const Select = dynamic(() => import('react-select'), { ssr: false });
 const MultiValue = dynamic(() => import('react-select'), { ssr: false });
@@ -38,7 +39,8 @@ const NotificationForm = () => {
     text: '',
     recipients: []
   });
-
+  const { data: session } = useSession();
+  console.log('session: ', session?.user);
   const [isUploading, setIsUploading] = useState(false);
 
   // Fetch existing admin settings including banners

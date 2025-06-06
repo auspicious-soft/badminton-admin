@@ -80,7 +80,7 @@ const AllEmployeeComponent = () => {
   );
 
   const employees = useMemo(() => data?.data.data || [], [data?.data.data]);
-  const totalEmployees = searchParams ? employees.length : data?.data.meta.total || 0;
+  const totalEmployees = searchParams ? employees.length : data?.data?.meta?.total || 0;
   const router = useRouter();
 
   const gameDropdownRef = useRef<HTMLDivElement>(null);
@@ -626,7 +626,13 @@ const AllEmployeeComponent = () => {
                   </div>
 
                   <div className="w-full md:w-[10%] md:text-right text-xs font-medium p-2 flex justify-start md:justify-end">
-                    <EyeIcon stroke={selectedEmployee?._id === employee._id ? "#FFFF" : "#fd5602"} />
+                    <button
+                     
+                      className="hover:scale-110 transition-transform"
+                      title="View Employee Details"
+                    >
+                      <EyeIcon stroke={selectedEmployee?._id === employee._id ? "#FFFF" : "#fd5602"} />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -664,7 +670,7 @@ const AllEmployeeComponent = () => {
                 unoptimized
               />
             )}
-            <label className="absolute bottom-2 right-2 h-12 px-4 py-2 flex bg-white rounded-full items-center gap-2 cursor-pointer">
+            {/* <label className="absolute bottom-2 right-2 h-12 px-4 py-2 flex bg-white rounded-full items-center gap-2 cursor-pointer">
               <Edit1 />
               <span className="text-black text-sm font-medium">Change Image</span>
               <input
@@ -674,7 +680,7 @@ const AllEmployeeComponent = () => {
                 onChange={handleImageChange}
                 disabled={!selectedEmployee || isUploading || loading}
               />
-            </label>
+            </label> */}
             {isUploading && (
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-[10px]">
                 <div className="text-white">Uploading...</div>
@@ -691,8 +697,9 @@ const AllEmployeeComponent = () => {
                 value={editFormData.fullName}
                 onChange={handleInputChange}
                 className="w-full h-12 px-4 py-2 bg-white border border-[#e6e6e6] rounded-full text-black/60 text-xs font-medium"
-                disabled={!selectedEmployee}
+                // disabled={!selectedEmployee}
                 placeholder="Employee Name"
+                disabled
               />
             </div>
             <div className="flex w-full gap-[15px]">
@@ -704,8 +711,9 @@ const AllEmployeeComponent = () => {
                   value={editFormData.email}
                   onChange={handleInputChange}
                   className="w-full h-12 px-4 py-2 bg-white border border-[#e6e6e6] rounded-full text-black/60 text-xs font-medium"
-                  disabled={!selectedEmployee}
+                  // disabled={!selectedEmployee}
                   placeholder="Employee email"
+                  disabled
                 />
               </div>
               <div className="mb-4 w-[50%]">
@@ -716,8 +724,8 @@ const AllEmployeeComponent = () => {
                   value={editFormData.phoneNumber}
                   onChange={handleInputChange}
                   className="w-full h-12 px-4 py-2 bg-white border border-[#e6e6e6] rounded-full text-black/60 text-xs font-medium"
-                  disabled={!selectedEmployee}
                   placeholder="Employee phone number"
+                  disabled
                 />
               </div>
             </div>
@@ -725,12 +733,8 @@ const AllEmployeeComponent = () => {
               <label className="text-[#1b2229] text-xs font-medium block mb-2">Status</label>
               <div className="relative">
                 <button
-                  onClick={() => {
-                    setSelectedStatus(!selectedStatus);
-                    // Close other dropdowns
-                    setSortDropdown(false);
-                    setGameDropdown(false);
-                  }}
+                disabled
+                  
                   className="w-full h-12 px-5 py-3 border border-[#e6e6e6] rounded-full bg-white text-[#1b2229] flex justify-between items-center text-xs font-medium"
                 >
                   {editFormData.status || "Select Status"}
@@ -764,14 +768,17 @@ const AllEmployeeComponent = () => {
 
             <button
               className="w-full h-12 bg-[#10375c] rounded-full text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              onClick={handleSave}
-              disabled={!selectedEmployee || loading || isUploading || !hasChanges()}
+               onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/authority/employees/edit/${editFormData._id}`);
+                      }}
+              // disabled={!selectedEmployee || loading || isUploading || !hasChanges()}
             >
-              {loading || isUploading ? (
+              {/* {loading || isUploading ? (
                   "Saving Changes..."
-              ) : (
-                "Save Changes"
-              )}
+              ) : ( */}
+                View Details
+              {/* )} */}
             </button>
           </div>
         </div>

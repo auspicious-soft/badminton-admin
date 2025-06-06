@@ -40,7 +40,7 @@ const Page = () => {
 
   // Handle dynamic venues data from API
   const venues = data?.data.data || [];
-  const totalVenues = searchParams ? venues.length : data?.data.meta.total || 0; // Use filtered count with search
+  const totalVenues = searchParams ? venues.length : data?.data?.meta?.total || 0; // Use filtered count with search
 
   useEffect(() => {
     setPage(1); // Reset to first page when search changes

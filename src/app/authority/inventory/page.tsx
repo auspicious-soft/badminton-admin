@@ -58,7 +58,7 @@ console.log("newItemPending", newItemPending)
 
   const { data, isLoading, mutate } = useSWR(apiRoute, getAllMerchandise);
 
-  const total = data?.data.meta.total || 0;
+  const total = data?.data?.meta?.total || 0;
 
 
   // Extract venues from data using useMemo to prevent unnecessary recalculations
