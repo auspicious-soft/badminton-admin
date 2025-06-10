@@ -16,10 +16,11 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const [searchParams, setSearchParams] = useState("");
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
-  const [type, setType] = useState("completed"); // State to store the mapped type
+  const [type, setType] = useState("upcoming"); // State to store the mapped type
   const [isTabSwitching, setIsTabSwitching] = useState(false); // Track tab switching state
   const { data: session } = useSession();
   const userRole = (session as any )?.user?.role; 
+  
   const typeMapping: { [key: string]: string } = {
     "Cancelled Matches": "cancelled",
     "Previous Matches": "completed",
@@ -75,10 +76,9 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   // Immediate fallback selection - if we have data but no selection, use first item immediately
   const currentSelectedMatch = selectedMatch || (matchData.length > 0 ? matchData[0] : null);
 
-  // Clear tab switching state as soon as data is available (regardless of loading state)
   useEffect(() => {
     if (!isLoading) {
-      setIsTabSwitching(false); // Clear tab switching state as soon as data request completes
+      setIsTabSwitching(false); 
     }
   }, [isLoading]);
 
@@ -235,13 +235,13 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
         </div>
       </div>
 
-      {(matchData.length > 0 || isLoading || isTabSwitching) && (
+      {(matchData.length !== 0 || isLoading ) && (
         <div className="w-full lg:w-1/3 h-fit bg-[#f2f2f4] shadow-md rounded-[20px] px-[15px] pt-[14px] pb-[19px]">
           {(isLoading && !matchData.length) || (isTabSwitching && !currentSelectedMatch) ? (
             <div className="flex flex-col items-center justify-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#10375c]"></div>
               <p className="text-center text-[#10375c] mt-4">
-                {isTabSwitching ? "Loading matches..." : "Loading match details..."}
+                {(isTabSwitching && matchData.length !== 0) ? "Loading matches..." : "Loading match details..."}
               </p>
             </div>
           ) : !currentSelectedMatch && matchData.length > 0 ? (

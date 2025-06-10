@@ -4,15 +4,13 @@ import { useState } from "react";
 import Dashboard from "./../Dashboard";
 import MatchesComponent from './matches';
 import MatchesHeader from "./matchesHeader";
-import { useSession } from "next-auth/react";
 
 const MatchesPage = () => {
   const [selectedTab, setSelectedTab] = useState("Upcoming");
   const [selectedGame, setSelectedGame] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
-  const { data: session } = useSession();
-  const userRole = (session as any )?.user?.role; 
+
   return (
     <div className="">
       {/* Header with Tabs & Filters */}

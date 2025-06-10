@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, User, Menu, X } from "lucide-react";
-import { AppLogoIcon } from "../../../../utils/svgicons";
+import { AppLogoIcon, Loading } from "../../../../utils/svgicons";
 import { signOut, useSession } from "next-auth/react";
 import NotificationDropdown from "../notifications/NotificationModal";
 import { logOutService } from "@/services/admin-services";
@@ -12,11 +12,11 @@ import { logOutService } from "@/services/admin-services";
 const navigationLinks = [
   { href: "/authority/dashboard", label: "Dashboard", routes: ["/authority/dashboard"] },
   { href: "/authority/matches", label: "Matches", routes: ["/authority/matches"] },
-  { href: "/authority/tournaments", label: "Tournaments", routes: ["/authority/tournaments"] },
+  // { href: "/authority/tournaments", label: "Tournaments", routes: ["/authority/tournaments"] },
   { href: "/authority/users", label: "Users", routes: ["/authority/users"] },
   { href: "/authority/notifications", label: "Notifications", routes: ["/authority/notifications"] },
   { href: "/authority/venue", label: "Venue", routes: ["/authority/venue"] },
-  { href: "/authority/merchandises", label: "Merchandise", routes: ["/authority/merchandises", "/authority/merchandises/[id]", "/authority/merchandises/add"] },
+  // { href: "/authority/merchandises", label: "Merchandise", routes: ["/authority/merchandises", "/authority/merchandises/[id]", "/authority/merchandises/add"] },
   { href: "/authority/inventory", label: "Inventory", routes: ["/authority/inventory"] },
   { href: "/authority/employees", label: "Employees", routes: ["/authority/employees"] },
   { href: "/authority/miscellaneous", label: "Misc", routes: ["/authority/miscellaneous"] },
@@ -40,7 +40,6 @@ const Headers = () => {
   const { data, status } = useSession();
   const userRole = (data as any )?.user?.role; 
   const name = data?.user?.name || "User";
-  console.log('logoutLoading: ', logoutLoading);
   const router = useRouter();
   const pathname = usePathname();
   const isProfileActive = pathname === "/authority/profile";
@@ -61,7 +60,6 @@ const Headers = () => {
 const handleLogout = async () => {
   setLogoutLoading(true);
   if (userRole === "employee") {
-    console.log('employee: ', userRole);
     await logOutService('admin/logout-employee');
   }
   signOut({ callbackUrl: "/" });
@@ -218,8 +216,9 @@ const handleLogout = async () => {
 
                 <button
                   onClick={() => handleLogout()}
-                  className="flex-1 h-12 bg-[#10375c] rounded-[28px] text-white text-sm font-medium"
+                  className="flex items-center justify-center flex-1 h-12 bg-[#10375c] rounded-[28px] text-white text-sm font-medium"
                 >
+                  {logoutLoading && <Loading />}
                   {logoutLoading ?  "Logging Out" :  "Log Out"}
                   {/* Log out */}
                 </button>

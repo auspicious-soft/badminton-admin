@@ -24,36 +24,40 @@ const isCurrentTimeInSlot = (slotTime: string, currentTime: Date) => {
   const [slotHour, slotMinute] = slotTime.split(":").map(Number);
   const slotStart = new Date(currentTime);
   slotStart.setHours(slotHour, slotMinute, 0, 0);
-
   const slotEnd = new Date(slotStart);
   slotEnd.setHours(slotHour + 1, slotMinute, 0, 0); // 60-minute slot
-
   return currentTime >= slotStart && currentTime < slotEnd;
 };
 
-const ScheduleCalender = ({ data }: any) => {
-                console.log('data: ', data);
-
+const ScheduleCalender = ({ data = [] }: any) => {
   const [weekDays, setWeekDays] = useState(getCurrentWeekDays());
   const router = useRouter();
-  // Current time: 06:02 PM IST (18:02 in 24-hour format)
-  const currentTime = new Date();
-  currentTime.setHours(18, 2, 0, 0); // Hardcoding to 18:02 as per system message
 
+  const currentTime = new Date();
   useEffect(() => {
     setWeekDays(getCurrentWeekDays());
   }, []);
 
-  // Map the data to add the highlighted property dynamically
-  const updatedData = data?.map((item: any) => {
+  // Group data by time and count matches, with default empty array
+  const groupedData = (data && data.length > 0) ? data.reduce((acc: any, item: any) => {
+    const key = item.time;
+    if (!acc[key]) {
+      acc[key] = { ...item, matches: 1, items: [item] };
+    } else {
+      acc[key].matches += 1;
+      acc[key].items.push(item);
+    }
+    return acc;
+  }, {}) : {};
+
+  // Map the grouped data to add the highlighted property dynamically
+  const updatedData = Object.values(groupedData)?.map((item: any) => {
     const highlighted = isCurrentTimeInSlot(item.time, currentTime);
     return {
       ...item,
       highlighted,
     };
-  });
-                  console.log('updatedData: ', updatedData);
-
+  }) || [];
 
   return (
     <div className="bg-[#f2f2f4] p-3 sm:p-5 rounded-[20px] w-full">
@@ -62,7 +66,7 @@ const ScheduleCalender = ({ data }: any) => {
         <h2 className="text-[#10375c] text-lg sm:text-xl font-medium">
           Today&apos;s Schedule
         </h2>
-        <div onClick={() => router.push('/authority/matches')} className=" rounded-[50px] bg-white p-1 cursor-pointer">
+        <div onClick={() => router.push('/authority/matches')} className="rounded-[50px] bg-white p-1 cursor-pointer">
           <TiltedArrowIcon />
         </div>
       </div>
@@ -104,7 +108,7 @@ const ScheduleCalender = ({ data }: any) => {
                 className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
                   item.highlighted
                     ? "bg-[#1c2329] text-white"
-                    : "rounded-[19px] border border-[#1b2229]"
+                    : "bg-white rounded-[19px] border border-[#1b2229]"
                 }`}
               >
                 {item.time}
@@ -116,15 +120,24 @@ const ScheduleCalender = ({ data }: any) => {
 
             {/* Match Details */}
             <div
-              className={`p-3 rounded-lg w-full gap-[10px] text-sm ${
-                item.highlighted ? "bg-[#1c2329] text-white" : "bg-white"
-              }`}
+            className="w-full"
+              // className={`p-3 rounded-lg w-full gap-[10px] text-sm ${
+              //   item.highlighted ? "bg-[#1c2329] text-white" : "bg-white"
+              // }`}
             >
-              <h3 className="text-sm font-semibold mb-[10px]">{item?.isMaintenance === true ? "Maintenance" : item.player}</h3>
-              <div className="flex justify-between">
-              <p className="text-xs text-gray-400">{item.game} Match</p>
-              <p className="text-xs text-gray-400">{item.duration}</p>
-            </div>
+              {item.items.map((match: any, matchIndex: number) => (
+                <div key={matchIndex} className={`mb-2 last:mb-0 p-3 rounded-lg w-full gap-[10px] text-sm ${
+                item.highlighted ? "bg-[#1c2329] text-white" : "bg-white"
+              }`}>
+                  <h3 className="text-sm font-semibold mb-[10px]">
+                    {match?.isMaintenance === true ? "Maintenance" : match.player}
+                  </h3>
+                  <div className="flex justify-between">
+                    <p className="text-xs text-gray-400">{match.game} Match</p>
+                    <p className="text-xs text-gray-400">{match.duration}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}
@@ -134,3 +147,4 @@ const ScheduleCalender = ({ data }: any) => {
 };
 
 export default ScheduleCalender;
+

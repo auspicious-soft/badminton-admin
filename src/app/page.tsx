@@ -56,7 +56,8 @@ const [showPassword, setShowPassword] = useState(false);
           router.push("/publisher/dashboard");
         } 
           else {
-          router.push("/authority/dashboard");
+            window.location.href = "/authority/dashboard";
+
         }
       }
       else if (response?.message === "Invalid password") {

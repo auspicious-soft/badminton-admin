@@ -125,8 +125,7 @@ const Dashboard = () => {
       </div>
       <div className="flex flex-col md:flex-row gap-8 w-full">
         <div className="w-full md:w-1/4">
-
-          <ScheduleCalender data={data1?.todaySchedule} />
+         <ScheduleCalender data={data1?.todaySchedule} />
         </div>
         <div className="w-full md:w-3/4">
           <div className=" rounded-[20px] w-full ">
@@ -167,7 +166,7 @@ const Dashboard = () => {
             <div className="w-full md:w-2/3">
               <SalesChart selectedYear={selectedYear} data={data1?.monthlyGameGraph} onYearChange={handleYearChange} />
             </div>
-            <div className="w-full md:w-2/4">
+            <div className="w-full md:w-2/4">   
               <LoyaltyCard />
               <div className="bg-[#f2f2f4] rounded-[20px]  mt-[20px] pb-[20px] w-full">
                 <h2 className="text-[#10375c] text-xl font-medium pt-[16px] pl-[16px]">Game Booking Composition</h2>

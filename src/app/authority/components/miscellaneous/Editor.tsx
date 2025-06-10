@@ -19,7 +19,6 @@ const TextEditor = ({ value = "", setDescription }: TextEditorProps) => {
 
   // Simple direct handler for editor changes
   const handleEditorChange = (content: string) => {
-    console.log("Editor content changed:", content);
     setDescription(content);
   };
 
@@ -38,7 +37,8 @@ const TextEditor = ({ value = "", setDescription }: TextEditorProps) => {
         height: 300,
         menubar: false,
         statusbar: false,
-        toolbar: 'fontfamily fontsizeinput blocks forecolor bold italic underline alignleft aligncenter alignright undo redo',
+        plugins: 'table', // Add the table plugin
+        toolbar: 'fontfamily fontsizeinput blocks forecolor bold italic underline alignleft aligncenter alignright undo redo | table', // Add table to toolbar
         toolbar_location: 'top',
         content_css: 'default',
         font_family_formats:
@@ -52,6 +52,17 @@ const TextEditor = ({ value = "", setDescription }: TextEditorProps) => {
             font-size: 14px;
             margin: 0;
             padding: 16px;
+          }
+          table {
+            border-collapse: collapse;
+            width: 100%;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+          }
+          th {
+            background-color: #f2f2f2;
           }
         `,
         browser_spellcheck: true,
