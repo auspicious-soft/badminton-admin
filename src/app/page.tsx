@@ -49,7 +49,6 @@ const [showPassword, setShowPassword] = useState(false);
   startTransition(async () => {
     try {
       const response = await loginAction({ email, password });
-      console.log('response: ', response);
   
       if (response?.success) {
         toast.success("Logged in successfully");

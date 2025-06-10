@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { UpArrowIcon, DownArrowIcon, PlusIcon } from "@/utils/svgicons";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const tabs = ["Orders", "Products", "Inventory"];
 const games = ["All","Newest", "Oldest"];
@@ -40,7 +41,8 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
   const gameDropdownRef = useRef<HTMLDivElement>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
+  const { data, status } = useSession();
+  const userRole = (data as any )?.user?.role; 
   // Click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -84,7 +86,7 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
           <div className="relative" ref={gameDropdownRef}>
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
               {/* {getDisplayValueFromApiValue(selectedGame, true) || "Sort"} */}
-{selectedGame === "" ? "Sort" : getDisplayValueFromApiValue(selectedGame, true)}
+              {selectedGame === "" ? "Sort" : getDisplayValueFromApiValue(selectedGame, true)}
               <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
             </button>
             {gameDropdown && (
@@ -154,7 +156,7 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
         </div>
 }
         {/* {selectedTab==="Orders" && <button className="flex items-center h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Record A New Sale</button>} */}
-        {selectedTab==="Inventory" &&<button onClick={()=>{handleAddProduct()}} className="flex items-center h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Add New Product</button>}
+        {(selectedTab==="Inventory" && userRole !== "employee") && <button onClick={()=>{handleAddProduct()}} className="flex items-center h-10 gap-[10px] px-5 py-3 bg-[#1b2229] rounded-[28px] text-white text-sm font-medium "><PlusIcon /> Add New Product</button>}
       </div>
     </div>
   );

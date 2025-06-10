@@ -7,7 +7,7 @@ import { CrossIcon, EditIcon, DeleteIcon1, DeleteMaintenanceIcon } from '@/utils
 import NoImage from "@/assets/images/nofile.png";
 import Image from 'next/image';
 import useSWR from 'swr';
-
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import { getAdminDetails, updateAdminDetails, getDynamicPricing, deleteMaintenance } from '@/services/admin-services';
@@ -46,7 +46,8 @@ const ProfileForm = () => {
     const [imagePreview, setImagePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
+ const { data: session } = useSession();
+  const userRole = (session as any )?.user?.role; 
     const [imageKey, setImageKey] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<any>(null);
@@ -558,6 +559,7 @@ const ProfileForm = () => {
                     cancelText="Cancel"
                     deleteText="Delete"
                 />
+                {userRole !== "employee" &&
                 <div className="mt-5">
                     {priceLoading ? (
                         <div className="flex justify-center items-center h-32">
@@ -583,6 +585,7 @@ const ProfileForm = () => {
                         />
                     )}
                 </div>
+}
             </div>
         </div>
     );

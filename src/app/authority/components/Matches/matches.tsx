@@ -9,6 +9,7 @@ import TablePagination from "../TablePagination";
 import useSWR from "swr";
 import { getAllMatches } from "@/services/admin-services";
 import { getImageClientS3URL } from "@/config/axios";
+import { useSession } from "next-auth/react";
 
 export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }: { name: string, selectedGame: string, selectedCity: string, selectedDate: string }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -17,6 +18,8 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const itemsPerPage = 10;
   const [type, setType] = useState("completed"); // State to store the mapped type
   const [isTabSwitching, setIsTabSwitching] = useState(false); // Track tab switching state
+  const { data: session } = useSession();
+  const userRole = (session as any )?.user?.role; 
   const typeMapping: { [key: string]: string } = {
     "Cancelled Matches": "cancelled",
     "Previous Matches": "completed",
@@ -38,7 +41,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   // );
   // &search=${searchParams}&game=${selectedGame}&date=${selectedDate}
   const { data, mutate, isLoading, error } = useSWR(
-    `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}`,
+    `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}${userRole=== "employee" ? `&venueId=${(session as any)?.user?.venueId}` : ''}`,
     getAllMatches
   );
   // // Fetch

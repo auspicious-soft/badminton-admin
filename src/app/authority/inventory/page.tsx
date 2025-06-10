@@ -27,6 +27,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { toast } from "sonner";
 import shuttle from "@/assets/images/shuttle.png";
 import TablePagination from "../components/TablePagination";
+import { useSession } from "next-auth/react";
 
 const Page = () => {
   const [openEditStock, setOpenEditStock] = useState(false);
@@ -51,7 +52,8 @@ const Page = () => {
   const [addStockPending, startAddStockTransition] = useTransition();
   const [newItemPending, startNewItemTransition] = useTransition();
   const [deletePending, startDeleteTransition] = useTransition();
-console.log("newItemPending", newItemPending)
+    const { data: session } = useSession();
+  const userRole = (session as any )?.user?.role; 
   const apiRoute = selectedVenue
   ? `/admin/inventory?venueId=${selectedVenue}&page=${page}&limit=${itemsPerPage}`
   : `/admin/inventory?page=${page}&limit=${itemsPerPage}`;
@@ -60,7 +62,11 @@ console.log("newItemPending", newItemPending)
 
   const total = data?.data?.meta?.total || 0;
 
-
+useEffect(() => {
+  if (userRole === "employee" && (session as any)?.user?.venueId) {
+    setSelectedVenue((session as any)?.user?.venueId);
+  }
+}, [userRole, session]);
   // Extract venues from data using useMemo to prevent unnecessary recalculations
   const venues = React.useMemo(() => {
     return data?.data?.data?.venues || [];
@@ -343,6 +349,7 @@ console.log("newItemPending", newItemPending)
         </div>
         <div className="flex  mt-4 md:mt-0">
           {/* Venue Filter Dropdown */}
+          {userRole !== "employee" &&
           <div className="venue-dropdown" ref={venueDropdownRef}>
             <button
               className="venue-button h-full"
@@ -388,6 +395,7 @@ console.log("newItemPending", newItemPending)
               </div>
             )}
           </div>
+          }
           <div className="px-5 py-2 bg-[#1b2229] rounded-[28px] flex justify-center items-center gap-[5px]">
             <div
               onClick={() => setOpenNewItem(true)}
@@ -674,165 +682,6 @@ console.log("newItemPending", newItemPending)
         </div>
       </Dialog>
 
-{/* <Dialog
-  open={openNewItem}
-  fullWidth
-  maxWidth="sm"
-  PaperProps={{
-    style: { borderRadius: '30px',margin:'0px' }
-  }}
->
-  <div className="relative bg-[#f2f2f4] rounded-2xl">
-    <div className="flex justify-center">
-      <div className="bg-zinc-100 flex items-center justify-center py-2">
-        <Image
-          src={shuttle}
-          alt="shuttle image"
-          height={138}
-          width={136}
-        />
-      </div>
-    </div>
-    <DialogTitle className="text-center text-[#10375c] text-[22px] sm:text-[28px] font-extrabold mb-[30px] sm:mb-[30px]">
-      Add New Item
-    </DialogTitle>
-    <DialogContent className="p-0">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex flex-col gap-6 mb-4">
-          <div className="flex-1">
-            <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
-              Name of The Item
-            </label>
-            <input
-              {...register("productName", { required: true })}
-              className="w-full bg-white rounded-[10px] px-4 py-2 sm:py-3 text-black/60 text-xs sm:text-sm font-medium border-none outline-none"
-              placeholder="Name of the Item"
-            />
-          </div>
-          <div className="border border-[#e6e6e6] border-[2px] p-[16px] rounded-[10px] max-h-60 overflow-y-auto overflo-custom">
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex gap-4 mb-[10px] h-20">
-                <div className="flex-1">
-                  <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-2">
-                    Select Venue
-                  </label>
-                  <div className="relative">
-                    <select
-                      {...register(`items.${index}.venueId`, {
-                        required: true,
-                      })}
-                      className="w-full bg-white rounded-[10px] px-4 py-2 sm:py-3 text-black/60 text-xs sm:text-sm font-medium border-none outline-none appearance-none"
-                    >
-                      <option value="" disabled>
-                        Select
-                      </option>
-                      {venues.map((venue) => (
-                        <option key={venue._id} value={venue._id}>
-                          {venue.name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                      <svg
-                        className="w-4 h-4 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 9l-7 7-7-7"
-                        ></path>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-[#1C2329] text-xs sm:text-sm font-medium mb-2">
-                    Quantity
-                  </label>
-                  <input
-                    type="number"
-                    {...register(`items.${index}.quantity`, {
-                      required: true,
-                      min: 0,
-                      valueAsNumber: true,
-                    })}
-                    className="w-full bg-white rounded-[10px] px-4 py-2 sm:py-3 text-black/60 text-xs sm:text-sm font-medium border-none outline-none"
-                    placeholder="0"
-                    onChange={(e) => {
-                      const value = Number(e.target.value);
-                      if (value < 0) {
-                        e.target.value = "0";
-                      }
-                    }}
-                  />
-                </div>
-                {fields.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="text-red-500 text-sm font-medium mt-6"
-                  >
-                    <DeleteProductIcon />
-                  </button>
-                )}
-              </div>
-            ))}
-            <div className="flex justify-start">
-              <button
-                type="button"
-                onClick={() => append({ venueId: "", quantity: 0 })}
-                className="text-[#10375C] text-sm font-medium flex items-center gap-1"
-              >
-                <span className="text-lg text-[#10375C]">+</span> Add More
-              </button>
-            </div>
-          </div>
-        </div>
-        <DialogActions className="p-0 flex justify-between gap-4 w-full">
-          <Button
-            type="button"
-            fullWidth
-            variant="outlined"
-            onClick={handleCloseNewItemDialog}
-            style={{
-              textTransform: "none",
-              borderColor: "#10375c",
-              color: "#10375c",
-              borderRadius: "28px",
-              padding: "12px 24px",
-              width: "100%",
-            }}
-            className="w-full sm:w-auto text-sm sm:text-base font-medium rounded-[28px]"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={newItemPending}
-            style={{
-              textTransform: "none",
-              backgroundColor: "#10375c",
-              color: "#fff",
-              borderRadius: "28px",
-              padding: "12px 24px",
-              width: "100%",
-            }}
-            className="w-full sm:w-auto text-sm sm:text-base font-medium rounded-[28px]"
-          >
-            {newItemPending ? "Creating..." : "Update Details"}
-          </Button>
-        </DialogActions>
-      </form>
-    </DialogContent>
-  </div>
-</Dialog> */}
 
 
 <Dialog
@@ -840,7 +689,7 @@ console.log("newItemPending", newItemPending)
   fullWidth
   maxWidth="sm"
   PaperProps={{
-    style: { borderRadius: '30px',height:"90vh" }
+    style: { borderRadius: '30px',height:"auto" }
   }}
   // Prevent the dialog from having a scrollbar
   sx={{ '& .MuiDialog-paper': { overflowY: 'hidden' } }}
@@ -872,7 +721,7 @@ console.log("newItemPending", newItemPending)
               placeholder="Name of the Item"
             />
           </div>
-          <div className="border border-[#e6e6e6] border-[2px] p-[16px] rounded-[10px] h-[26vh] overflow-y-auto">
+          <div className={`border border-[#e6e6e6] border-[2px] p-[16px] rounded-[10px] ${userRole=== "employee" ? "h-fit":"h-[26vh]"} overflow-y-auto`}>
             {fields.map((field, index) => (
               <div key={field.id} className="flex gap-4 mb-[10px] h-20">
                 <div className="flex-1">
@@ -880,7 +729,7 @@ console.log("newItemPending", newItemPending)
                     Select Venue
                   </label>
                   <div className="relative">
-                    <select
+                    {/* <select
                       {...register(`items.${index}.venueId`, {
                         required: true,
                       })}
@@ -894,6 +743,32 @@ console.log("newItemPending", newItemPending)
                           {venue.name}
                         </option>
                       ))}
+                    </select> */}
+                    <select
+                      {...register(`items.${index}.venueId`, {
+                        required: true,
+                      })}
+                      className="w-full bg-white rounded-[10px] px-4 py-2 sm:py-3 text-black/60 text-xs sm:text-sm font-medium border-none outline-none appearance-none"
+                    >
+                      <option value="" disabled>
+                        Select
+                      </option>
+                      {
+                        // Filter venues based on userRole
+                        userRole === "employee" && (session as any)?.user?.venueId
+                          ? venues
+                              .filter((venue) => venue._id === (session as any)?.user?.venueId)
+                              .map((venue) => (
+                                <option key={venue._id} value={venue._id}>
+                                  {venue.name}
+                                </option>
+                              ))
+                          : venues.map((venue) => (
+                              <option key={venue._id} value={venue._id}>
+                                {venue.name}
+                              </option>
+                            ))
+                      }
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                       <svg
@@ -945,6 +820,7 @@ console.log("newItemPending", newItemPending)
                 )}
               </div>
             ))}
+            {userRole !== "employee" && 
             <div className="flex justify-start">
               <button
                 type="button"
@@ -954,6 +830,7 @@ console.log("newItemPending", newItemPending)
                 <span className="text-lg text-[#10375C]">+</span> Add More
               </button>
             </div>
+}
           </div>
         </div>
         <DialogActions className="p-0 flex justify-between gap-4 w-full">

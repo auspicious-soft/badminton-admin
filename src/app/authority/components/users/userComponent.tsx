@@ -117,12 +117,12 @@ export default function UsersComponent() {
       </div>
       <div className="flex flex-col lg:flex-row w-full rounded-[20px] gap-6 mb-[40px]">
         {/* Left Panel: User List */}
-        <div className={`w-full ${users.length === 0 ? 'lg:w-full' : 'lg:w-2/3'} bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto`}>
+        <div className={`w-full h-fit ${users.length === 0 ? 'lg:w-full' : 'lg:w-2/3'} bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto`}>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-[#10375c] text-xl font-semibold">Users</h2>
             <SearchBar setQuery={setSearchParams} query={searchParams} />
           </div>
-          <div className="overflow-x-auto max-w-full">
+          <div className="overflow-x-auto max-w-full overflo-custom h-fit">
             <div className="w-full min-w-[600px] rounded-[10px] bg-[#f2f2f4] flex text-sm font-semibold text-[#7e7e8a]">
               <div className="w-1/4 h-3.5 text-[#7e7e8a] text-xs font-medium">Name</div>
               <div className="w-[14%] h-3.5 text-[#7e7e8a] text-center text-xs font-medium">Level</div>

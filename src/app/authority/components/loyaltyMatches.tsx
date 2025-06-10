@@ -5,6 +5,7 @@ import Coins from "@/assets/images/coins.png";
 import { TiltedArrowIcon } from "@/utils/svgicons";
 import { toast } from "sonner";
 import { updateLoyaltyPoints, updateReferralSettings, getLoyaltyPoints, getReferralSettings } from "@/services/admin-services";
+import { useSession } from "next-auth/react";
 
 // Define the loyalty points interface
 interface LoyaltyPoints {
@@ -30,6 +31,9 @@ const ENABLED_OPTIONS = [
 ];
 
 const LoyaltyCard = () => {
+  const { data: session } = useSession();
+  const userRole = (session as any )?.user?.role; 
+
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loyaltyPoints, setLoyaltyPoints] = useState<LoyaltyPoints>({
@@ -41,7 +45,6 @@ const LoyaltyCard = () => {
     perMatch: 0,
     freeGameAmount: 0
   });
-
   const handleOpen = () => {
     setOpen(true);
     // Prevent background scrolling
@@ -62,7 +65,34 @@ const LoyaltyCard = () => {
       freeGameAmount: 0
     });
   };
+const fetchAllLoyaltyData = async () => {
+  try {
+    const [referralRes, freeGameRes] = await Promise.all([
+      getReferralSettings(),
+      getLoyaltyPoints()
+    ]);
 
+    const referralData = referralRes?.data?.data?.data || referralRes?.data?.data || referralRes?.data || {};
+    const freeGameData = freeGameRes?.data?.data?.data || freeGameRes?.data?.data || freeGameRes?.data || {};
+
+    const mergedData: LoyaltyPoints = {
+      rewardType: '', // You can leave this blank initially or update it when user selects
+      enabled: referralData.enabled ? 'yes' : (freeGameData.enabled ? 'yes' : 'no'),
+      bonusAmount: referralData.bonusAmount || 0,
+      playCoinAmount: 0, // not used currently
+      limit: freeGameData.limit || 0,
+      perMatch: freeGameData.perMatch || 0,
+      freeGameAmount: freeGameData.freeGameAmount || 0
+    };
+
+    setLoyaltyPoints(mergedData);
+  } catch (error) {
+    console.error("Failed to fetch loyalty settings:", error);
+  }
+};
+useEffect(() => {
+  fetchAllLoyaltyData();
+}, []);
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
@@ -88,13 +118,11 @@ const LoyaltyCard = () => {
             response = await getReferralSettings();
           }
 
-          console.log('API Response:', response);
-          console.log('Response data:', response?.data);
+          
 
           if (response?.status === 200) {
             // Try different possible data structures
             const data = response?.data?.data?.data || response?.data?.data || response?.data;
-            console.log('Mapped data:', data);
 
             if (data && value === 'freeGame') {
               setLoyaltyPoints(prev => ({
@@ -180,7 +208,7 @@ const LoyaltyCard = () => {
 
   return (
     <>
-      <div className="bg-[#1c2329] text-white p-3 sm:p-4 md:p-5 rounded-xl flex flex-col xs:flex-row items-center gap-2 sm:gap-4 shadow-lg w-full min-w-0">
+      <div className="bg-[#1c2329] text-white p-3 py-[20px] sm:p-4 md:p-5 rounded-xl flex flex-col xs:flex-row items-center gap-2 sm:gap-4 shadow-lg w-full min-w-0">
         <div className="w-[60px] xs:w-[80px] sm:w-[100px] md:w-[117px] flex-shrink-0">
           <Image
             src={Coins}
@@ -191,13 +219,28 @@ const LoyaltyCard = () => {
           />
         </div>
 
-        <div className="flex flex-col flex-1 items-center xs:items-start text-center xs:text-left min-w-0">
+        <div className="w-full flex flex-col flex-1 items-center xs:items-start text-center xs:text-left min-w-0">
           <h3 className="text-sm xs:text-base sm:text-lg font-semibold truncate w-full">
-            Manage Loyalty Points
+           {userRole === "employee" ? "Loyalty Points" : "Manage Loyalty Points"}
           </h3>
+          {userRole === "employee" ? 
+          <div className="w-[80%] mt-[12px]">
+          <div className="flex justify-between">
+            <h6 className="text-xs font-medium " >Bonus Referral</h6>
+            <h6 className="text-xs font-medium ">{loyaltyPoints.bonusAmount || "0"} Points</h6>
+          </div>
+          <div className="flex justify-between mt-[8px]">
+            <h6 className="text-xs font-medium ">Free Game on</h6>
+            <h6 className="text-xs font-medium ">{loyaltyPoints.limit || "0"} Points</h6>
+          </div>
+          </div>
+          
+          :
           <p className="text-xs sm:text-sm text-gray-400 w-full">
             Manage what reward is being given to the users.
           </p>
+}
+           {userRole !== "employee" &&
           <Button
             variant="contained"
             onClick={handleOpen}
@@ -226,6 +269,7 @@ const LoyaltyCard = () => {
               <TiltedArrowIcon stroke={"white"} />
             </div>
           </Button>
+}
         </div>
       </div>
 

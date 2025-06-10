@@ -17,6 +17,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             id: credentials._id,
             role: credentials.role,
             profilePic: credentials.profilePic,
+            venueId : credentials.venueId,
+            venueName : credentials.venueName,
           };
         } else {
           throw new CredentialsSignin("Invalid credentials");
@@ -32,6 +34,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.fullName = (user as any).fullName;
         token.picture = (user as any).profilePic;
         token.role = (user as any).role;
+        token.venueId = (user as any).venueId;
+        token.venueName = (user as any).venueName;
       }
       return token;
     },
@@ -42,6 +46,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         (session as any).user.email = token.email;
         session.user.image = token.picture;
         (session as any).user.role = token.role;
+        (session as any).user.venueId = token.venueId;
+        (session as any).user.venueName = token.venueName;
       }
       return session;
     },

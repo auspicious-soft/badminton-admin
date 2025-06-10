@@ -40,7 +40,7 @@ const NotificationForm = () => {
     recipients: []
   });
   const { data: session } = useSession();
-  console.log('session: ', session?.user);
+  const userRole = (session as any)?.user?.role;
   const [isUploading, setIsUploading] = useState(false);
 
   // Fetch existing admin settings including banners
@@ -194,7 +194,7 @@ const NotificationForm = () => {
 
       <div className="flex flex-col md:flex-row gap-[20px]">
         {/* Left Side - Notification Form */}
-        <div className="w-full md:w-[60%]">
+        <div className={`w-full ${userRole === 'employee' ? 'md:w-full' : 'md:w-[60%]'}`}>
       <h1 className="text-[#10375c] text-3xl font-semibold mb-[20px]">Notifications</h1>
           <div className="bg-white rounded-lg shadow-md px-[20px] pt-[20px] pb-[30px] mb-[15px]">
 
@@ -312,6 +312,7 @@ const NotificationForm = () => {
         </div>
 
         {/* Right Side - Promotional Banners */}
+        {userRole !== 'employee' && (
         <div className="w-full md:w-[40%]">
             <h2 className="text-[#10375c] text-3xl font-semibold mb-[20px]">Promotional Banners</h2>
           <div className="bg-white rounded-lg shadow-md p-[20px]">
@@ -375,6 +376,7 @@ const NotificationForm = () => {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

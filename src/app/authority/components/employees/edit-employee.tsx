@@ -19,6 +19,7 @@ interface AttendanceRecord {
   date: string;
   status: string;
   checkInTime: string;
+  checkOutTime: string; // Added to match usage in code
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -420,8 +421,7 @@ const EditEmployee = ({ employeeId }: EditEmployeeProps) => {
                 return paginatedRecords.map((record, index) => {
                   const date = new Date(record.date);
                   const checkInTime = new Date(record.checkInTime);
-
-                  return (
+                  const checkOutTime = record.checkOutTime ? new Date(record.checkOutTime) : null; return (
                     <div
                       key={record._id}
                       className={`w-full px-4 py-3 border-b rounded-[10px] border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4] '}`}
@@ -439,13 +439,13 @@ const EditEmployee = ({ employeeId }: EditEmployeeProps) => {
                             })}
                           </div>
                           <div className="text-xs font-medium text-[#1b2229]">
-                            {/* Assuming logout time would be provided in future or calculated */}
-                            --:-- --
-                            {/* {checkOutTime.toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true
-                          })} */}
+                            {checkOutTime
+                              ? checkOutTime.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true,
+                              })
+                              : <p className="text-red-600 text-xs font-medium ">Not Recorded</p>}
                           </div>
                         </div>
                         {/* <div className={`font-medium ${

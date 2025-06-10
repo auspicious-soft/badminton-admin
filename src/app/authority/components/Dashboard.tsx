@@ -24,15 +24,15 @@ const StatCard = ({ value, label, Icon }) => (
 );
 
 
-const BookingRow = ({ fullName, game, city, date, image, index,isMaintenance }) => {
+const BookingRow = ({ fullName, game, city, date, image, index, isMaintenance }) => {
   const bgColor = index % 2 === 0 ? "bg-[#f2f2f4]" : "bg-white";
 
   return (
     <div className={` rounded-[10px] justify-start items-center inline-flex ${bgColor} w-full ring-offset-purple-950  py-3`}>
       <div className=" w-[30%] grow shrink basis-0 self-stretch justify-start items-center gap-1 flex">
         {/* <div className="w-1/5"> */}
-        <Image className=" rounded-full"  src={Profile} alt="user" width={23} height={23} />
-        <div className=" text-[#1b2229] text-xs font-medium ">{isMaintenance===true? "Maintenance":fullName}</div>
+        <Image className=" rounded-full" src={Profile} alt="user" width={23} height={23} />
+        <div className=" text-[#1b2229] text-xs font-medium ">{isMaintenance === true ? "Maintenance" : fullName}</div>
       </div>
       <div className="w-[20%] h-3.5 text-[#1b2229] text-xs font-medium ">
         {/* <div className="w-1/5"> */}
@@ -51,12 +51,12 @@ const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const handleYearChange = (year) => setSelectedYear(year);
   const [openPanelIndex, setOpenPanelIndex] = useState(0);
-    const router = useRouter();
-// console.log("data1?.stats?.incomeThisMonth", data1?.stats?.incomeThisMonth)
+  const router = useRouter();
+  // console.log("data1?.stats?.incomeThisMonth", data1?.stats?.incomeThisMonth)
   const handleViewClick = (index) => {
     setOpenPanelIndex(openPanelIndex === index ? -1 : index);
   };
-  const {data, mutate, isLoading} = useSWR("/admin/dashboard",getDashboard)
+  const { data, mutate, isLoading } = useSWR("/admin/dashboard", getDashboard)
   const data1 = data?.data?.data
 
   // const bookingsData = [
@@ -109,32 +109,32 @@ const Dashboard = () => {
     <div className="bg-[#fbfaff]  ">
       <div className="flex flex-wrap justify-between mb-4 pt-6 p-2">
         <h1 className="text-[#10375c] text-2xl md:text-3xl font-semibold">Welcome to Barnton Park LTC</h1>
-      
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard value={data1?.stats?.totalMatchesThisMonth} label="Total matches this month" Icon={<DashbordStat1Icon />} />
-        <StatCard value={data1?.stats?.pickleballMatchesThisMonth} label="Pickleball matches this month" Icon={<DashbordPickleBallIcon />} />
-        <StatCard value={data1?.stats?.padelMatchesThisMonth} label="Padel matches this month" Icon={<DashbordPadelBallIcon />} />
-<StatCard 
-          value={isLoading ? "" : `₹${data1?.stats?.incomeThisMonth || ""}`} 
-          label="Income this month" 
-          Icon={<DashbordRupeeIcon />} 
-        />
-        {/* <StatCard value={`₹${data1?.stats?.incomeThisMonth === null ? "" :`${data1?.stats?.incomeThisMonth}`}`} label="Income this month" Icon={<DashbordRupeeIcon />} /> */}
-      </div>
+
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard value={data1?.stats?.totalMatchesThisMonth} label="Total matches this month" Icon={<DashbordStat1Icon />} />
+          <StatCard value={data1?.stats?.pickleballMatchesThisMonth} label="Pickleball matches this month" Icon={<DashbordPickleBallIcon />} />
+          <StatCard value={data1?.stats?.padelMatchesThisMonth} label="Padel matches this month" Icon={<DashbordPadelBallIcon />} />
+          <StatCard
+            value={isLoading ? "" : `₹${data1?.stats?.incomeThisMonth || "0"}`}
+            label="Income this month"
+            Icon={<DashbordRupeeIcon />}
+          />
+          {/* <StatCard value={`₹${data1?.stats?.incomeThisMonth === null ? "" :`${data1?.stats?.incomeThisMonth}`}`} label="Income this month" Icon={<DashbordRupeeIcon />} /> */}
+        </div>
       </div>
       <div className="flex flex-col md:flex-row gap-8 w-full">
         <div className="w-full md:w-1/4">
 
-        <ScheduleCalender data={data1?.todaySchedule} />
+          <ScheduleCalender data={data1?.todaySchedule} />
         </div>
         <div className="w-full md:w-3/4">
-                    <div className=" rounded-[20px] w-full ">
+          <div className=" rounded-[20px] w-full ">
             <div className=" bg-[#f2f2f4] p-2 rounded-[20px] flex flex-col md:flex-row w-full gap-4">
               {/* Left Section: Recent Bookings */}
               <div className="w-full p-4 md:w-[55%] md:p-2">
                 <div className="flex items-center justify-between mb-6">
-                  <div  className="text-[#10375c] text-xl font-medium font-['Raleway']">Recent Bookings</div>
+                  <div className="text-[#10375c] text-xl font-medium font-['Raleway']">Recent Bookings</div>
                   <div onClick={() => router.push('/authority/matches')} className="cursor-pointer rounded-[50px] bg-white">
                     <TiltedArrowIcon />
                   </div>
@@ -152,10 +152,10 @@ const Dashboard = () => {
 
                   {/* Bookings List */}
                   <div className="">
-                     {data1?.recentBookings?.map((booking, index) => (
-                       <BookingRow key={index} {...booking} index={index} />
-                     ))}
-                   </div>
+                    {data1?.recentBookings?.map((booking, index) => (
+                      <BookingRow key={index} {...booking} index={index} />
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -170,25 +170,25 @@ const Dashboard = () => {
             <div className="w-full md:w-2/4">
               <LoyaltyCard />
               <div className="bg-[#f2f2f4] rounded-[20px]  mt-[20px] pb-[20px] w-full">
-                  <h2 className="text-[#10375c] text-xl font-medium pt-[16px] pl-[16px]">Game Booking Composition</h2>
-                  <div className="flex justify-center gap-8  mt-[30px]">
-                    <div className="text-center">
-                      <div className="text-[#10375c] text-3xl font-medium ">{data1?.stats?.gameComposition?.Padel}%</div>
-                      <div className="h-3.5 justify-start items-center gap-[5px] inline-flex">
-                        <div className="w-2.5 h-2.5 bg-[#fd5602] rounded-[7px]" />
-                        <div className="text-[#7e7e8a] text-xs font-medium font-['Raleway']">Padel</div>
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-[#10375c] text-3xl font-medium ">{data1?.stats?.gameComposition?.Pickleball}%</div>
-                      <div className="h-3.5 justify-start items-center gap-[5px] inline-flex">
-                        <div className="w-2.5 h-2.5 bg-[#1b2229] rounded-[7px]" />
-                        <div className="text-[#7e7e8a] text-xs font-medium font-['Raleway']">Pickleball</div>
-                      </div>
+                <h2 className="text-[#10375c] text-xl font-medium pt-[16px] pl-[16px]">Game Booking Composition</h2>
+                <div className="flex justify-center gap-8  mt-[30px]">
+                  <div className="text-center">
+                    <div className="text-[#10375c] text-3xl font-medium ">{data1?.stats?.gameComposition?.Padel}%</div>
+                    <div className="h-3.5 justify-start items-center gap-[5px] inline-flex">
+                      <div className="w-2.5 h-2.5 bg-[#fd5602] rounded-[7px]" />
+                      <div className="text-[#7e7e8a] text-xs font-medium font-['Raleway']">Padel</div>
                     </div>
                   </div>
-                  <div className="mt-[20px] mx-[20px] w-[85%] px-[26px] py-3.5 bg-white rounded-[39px] text-center text-[#7e7e8a] text-xs font-medium">People love to play Padel at your court!</div>
+                  <div className="text-center">
+                    <div className="text-[#10375c] text-3xl font-medium ">{data1?.stats?.gameComposition?.Pickleball}%</div>
+                    <div className="h-3.5 justify-start items-center gap-[5px] inline-flex">
+                      <div className="w-2.5 h-2.5 bg-[#1b2229] rounded-[7px]" />
+                      <div className="text-[#7e7e8a] text-xs font-medium font-['Raleway']">Pickleball</div>
+                    </div>
+                  </div>
                 </div>
+                <div className="mt-[20px] mx-[20px] w-[85%] px-[26px] py-3.5 bg-white rounded-[39px] text-center text-[#7e7e8a] text-xs font-medium">People love to play Padel at your court!</div>
+              </div>
             </div>
           </div>
         </div>

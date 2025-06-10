@@ -4,7 +4,10 @@ export const loginService = async (payload: any) => await axiosInstance.post(`/l
 export const forgotPasswordService = async (payload: any) => await axiosInstance.post(`/forgot-password`, payload)
 export const sendOtpService = async (payload: any) => await axiosInstance.post(`/verify-otp-reset-pass`, payload)
 export const resetUserPassword = async (payload: any) => await axiosInstance.patch(`/new-password-otp-verified`, payload)
-
+export const logOutService = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route)
+}
 
 //----------Profile Page--------------------------
 export const getAdminDetails = async (route: string) => {
