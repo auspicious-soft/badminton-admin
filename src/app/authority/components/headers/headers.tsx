@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -6,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { Bell, User, Menu, X } from "lucide-react";
 import { AppLogoIcon, Loading } from "../../../../utils/svgicons";
 import { signOut, useSession } from "next-auth/react";
-import NotificationDropdown from "../notifications/NotificationModal";
 import { logOutService } from "@/services/admin-services";
+import NotificationModal from "../notifications/NotificationModal";
 
 const navigationLinks = [
   { href: "/authority/dashboard", label: "Dashboard", routes: ["/authority/dashboard"] },
@@ -36,14 +35,13 @@ const Headers = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [logoutLoading,setLogoutLoading] = useState(false); 
+  const [logoutLoading, setLogoutLoading] = useState(false); 
   const { data, status } = useSession();
-  const userRole = (data as any )?.user?.role; 
+  const userRole = (data as any)?.user?.role; 
   const name = data?.user?.name || "User";
   const router = useRouter();
   const pathname = usePathname();
   const isProfileActive = pathname === "/authority/profile";
-
 
   // Filter navigation links based on userRole
   const filteredNavigationLinks = userRole?.toLowerCase() === "employee"
@@ -52,37 +50,62 @@ const Headers = () => {
       )
     : navigationLinks;
 
-  // Debugging: Log filtered links
-  
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
 
-const handleLogout = async () => {
-  setLogoutLoading(true);
-  if (userRole === "employee") {
-    await logOutService('admin/logout-employee');
+  const handleLogout = async () => {
+    setLogoutLoading(true);
+    if (userRole === "employee") {
+      await logOutService('admin/logout-employee');
+    }
+    signOut({ callbackUrl: "/" });
+    setLogoutLoading(false);
   }
-  signOut({ callbackUrl: "/" });
-  setLogoutLoading(false);
-}
+
   useEffect(() => {
     const handleClickOutside = (event) => {
+      
+      // Check if the click is outside the user dropdown
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
+      
+      // Check if the click is outside the notification area
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        // Don't close if the click is inside the notification modal content
+        const notificationModal = document.querySelector('[aria-labelledby="notifications-modal"]');
+        if (notificationModal && notificationModal.contains(event.target)) {
+          return;
+        }
         setShowNotificationDropdown(false);
       }
     };
 
     if (showDropdown || showNotificationDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
+      // Add a small delay to prevent immediate closing
+      const timer = setTimeout(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showDropdown, showNotificationDropdown]);
+
+  const handleNotificationClick = (e) => {
+    e.stopPropagation();
+    setShowNotificationDropdown(!showNotificationDropdown);
+  };
+
+  const handleNotificationClose = () => {
+    setShowNotificationDropdown(false);
+  };
 
   return (
     <div className="sticky top-0 w-full py-4 px-4 md:px-6 z-50 bg-[#fbfaff] pb-1">
@@ -122,18 +145,21 @@ const handleLogout = async () => {
                   <Menu className="w-5 h-5 md:w-6 md:h-6" />
                 )}
               </button>
+              
               <div className="relative" ref={notificationRef}>
                 <button
                   className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                  onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+                  onClick={handleNotificationClick}
                 >
                   <Bell className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
-                <NotificationDropdown
+                
+                <NotificationModal
                   open={showNotificationDropdown}
-                  onClose={() => setShowNotificationDropdown(false)}
+                  onClose={handleNotificationClose}
                 />
               </div>
+              
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
                 className={`p-2 md:p-3 rounded-full bg-[#FFF] transition-colors ${
@@ -219,8 +245,7 @@ const handleLogout = async () => {
                   className="flex items-center justify-center flex-1 h-12 bg-[#10375c] rounded-[28px] text-white text-sm font-medium"
                 >
                   {logoutLoading && <Loading />}
-                  {logoutLoading ?  "Logging Out" :  "Log Out"}
-                  {/* Log out */}
+                  {logoutLoading ? "Logging Out" : "Log Out"}
                 </button>
               </div>
             </div>

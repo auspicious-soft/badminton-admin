@@ -44,7 +44,6 @@ export default function OtpPage() {
   e.preventDefault();
   const completeOtp = otp.join("");
 
-  console.log("OTP entered by user:", completeOtp); // Log OTP only on Login button click
 
   startTransition(async () => {
    try {

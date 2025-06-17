@@ -1,15 +1,23 @@
-
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Dashboard from "./../Dashboard";
 import MatchesComponent from './matches';
 import MatchesHeader from "./matchesHeader";
+import { useSearchParams } from "next/navigation";
 
 const MatchesPage = () => {
-  const [selectedTab, setSelectedTab] = useState("Upcoming");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [selectedTab, setSelectedTab] = useState(tabParam || "Upcoming");
   const [selectedGame, setSelectedGame] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
+
+  useEffect(() => {
+    if (tabParam && ["Upcoming", "Previous", "Cancelled"].includes(tabParam)) {
+      setSelectedTab(tabParam);
+    }
+  }, [tabParam]);
 
   return (
     <div className="">

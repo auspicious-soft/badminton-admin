@@ -1,373 +1,346 @@
-// "use client";
-// import React from "react";
-// import Modal from "@mui/material/Modal";
-// import { X, User, Bell } from "lucide-react";
-
-// interface NotificationItem {
-//   id: string;
-//   user: {
-//     name: string;
-//     avatar?: string;
-//   };
-//   action: string;
-//   timestamp: string;
-//   type: "game" | "purchase" | "general";
-// }
-
-// interface NotificationModalProps {
-//   open: boolean;
-//   onClose: () => void;
-// }
-
-// const NotificationModal: React.FC<NotificationModalProps> = ({
-//   open,
-//   onClose,
-// }) => {
-//   // Mock notification data - in a real app, this would come from an API
-//   const notifications: NotificationItem[] = [
-//     {
-//       id: "1",
-//       user: { name: "Joseph Quinn" },
-//       action: "created a new game",
-//       timestamp: "2 minutes ago",
-//       type: "game",
-//     },
-//     {
-//       id: "2",
-//       user: { name: "Joseph Quinn" },
-//       action: "purchased FULL SLEEVE HOODIE",
-//       timestamp: "5 minutes ago",
-//       type: "purchase",
-//     },
-//     {
-//       id: "3",
-//       user: { name: "Joseph Quinn" },
-//       action: "created a new game",
-//       timestamp: "10 minutes ago",
-//       type: "game",
-//     },
-//     {
-//       id: "4",
-//       user: { name: "Joseph Quinn" },
-//       action: "purchased FULL SLEEVE HOODIE",
-//       timestamp: "15 minutes ago",
-//       type: "purchase",
-//     },
-//     {
-//       id: "5",
-//       user: { name: "Joseph Quinn" },
-//       action: "created a new game",
-//       timestamp: "20 minutes ago",
-//       type: "game",
-//     },
-//     {
-//       id: "6",
-//       user: { name: "Joseph Quinn" },
-//       action: "purchased FULL SLEEVE HOODIE",
-//       timestamp: "25 minutes ago",
-//       type: "purchase",
-//     },
-//     {
-//       id: "7",
-//       user: { name: "Joseph Quinn" },
-//       action: "created a new game",
-//       timestamp: "30 minutes ago",
-//       type: "game",
-//     },
-//     {
-//       id: "8",
-//       user: { name: "Joseph Quinn" },
-//       action: "purchased FULL SLEEVE HOODIE",
-//       timestamp: "35 minutes ago",
-//       type: "purchase",
-//     },
-//     {
-//       id: "9",
-//       user: { name: "Joseph Quinn" },
-//       action: "created a new game",
-//       timestamp: "40 minutes ago",
-//       type: "game",
-//     },
-//   ];
-
-//   return (
-//     <Modal
-//       open={open}
-//       onClose={onClose}
-//       aria-labelledby="notifications-modal"
-//       className="flex items-start justify-center pt-16"
-//     >
-//       <div className="bg-white rounded-[20px] w-[95%] max-w-[400px] shadow-lg max-h-[80vh] overflow-hidden">
-//         {/* Header */}
-//         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-//           <h2 className="text-[#10375c] text-xl font-semibold">Notifications</h2>
-//           <button
-//             onClick={onClose}
-//             className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-//           >
-//             <X className="w-5 h-5 text-gray-500" />
-//           </button>
-//         </div>
-
-//         {/* Notifications List */}
-//         <div className="max-h-[60vh] overflow-y-auto">
-//           {notifications.length > 0 ? (
-//             <div className="divide-y divide-gray-100">
-//               {notifications.map((notification) => (
-//                 <div
-//                   key={notification.id}
-//                   className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-//                 >
-//                   <div className="flex items-start gap-3">
-//                     {/* User Avatar */}
-//                     <div className="flex-shrink-0">
-//                       {notification.user.avatar ? (
-//                         <img
-//                           src={notification.user.avatar}
-//                           alt={notification.user.name}
-//                           className="w-10 h-10 rounded-full object-cover"
-//                         />
-//                       ) : (
-//                         <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-//                           <User className="w-5 h-5 text-gray-500" />
-//                         </div>
-//                       )}
-//                     </div>
-
-//                     {/* Notification Content */}
-//                     <div className="flex-1 min-w-0">
-//                       <div className="text-sm text-gray-900">
-//                         <span className="font-medium">{notification.user.name}</span>
-//                         <span className="text-gray-600 ml-1">{notification.action}</span>
-//                       </div>
-//                       <div className="text-xs text-gray-500 mt-1">
-//                         {notification.timestamp}
-//                       </div>
-//                     </div>
-
-//                     {/* Notification Type Indicator */}
-//                     <div className="flex-shrink-0">
-//                       <div
-//                         className={`w-2 h-2 rounded-full ${
-//                           notification.type === "game"
-//                             ? "bg-blue-500"
-//                             : notification.type === "purchase"
-//                             ? "bg-green-500"
-//                             : "bg-gray-500"
-//                         }`}
-//                       />
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           ) : (
-//             <div className="p-8 text-center">
-//               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-//                 <Bell className="w-8 h-8 text-gray-400" />
-//               </div>
-//               <p className="text-gray-500 text-sm">No notifications yet</p>
-//             </div>
-//           )}
-//         </div>
-
-//         {/* Footer */}
-//         {notifications.length > 0 && (
-//           <div className="p-4 border-t border-gray-100">
-//             <button className="w-full text-center text-[#10375c] text-sm font-medium hover:underline">
-//               View All Notifications
-//             </button>
-//           </div>
-//         )}
-//       </div>
-//     </Modal>
-//   );
-// };
-
-// export default NotificationModal;
-
-
-
 "use client";
-import React from "react";
-import { User, Bell } from "lucide-react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import Modal from "@mui/material/Modal";
+import { X, Bell, Loader2 } from "lucide-react";
+import { getNotifications, markNotificationRead, markAllNotificationRead } from "@/services/admin-services";
+import useSWR from "swr";
+import Success from "@/assets/images/accepted.png";
+import Cancel from "@/assets/images/cancelled.png";
+import FreeGame from "@/assets/images/freeGame.png";
+import Player from "@/assets/images/player.png";
+import StarBadge from "@/assets/images/starBadge.png";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface NotificationItem {
-  id: string;
-  user: {
-    name: string;
-    avatar?: string;
-  };
-  action: string;
-  timestamp: string;
-  type: "game" | "purchase" | "general";
+  _id: string;
+  bookingData?: any;
+  user?: { name: string; avatar?: string };
+  action?: string;
+  timestamp?: string;
+  type?: string;
+  userData?: { fullName?: string };
+  isReadyByAdmin?: boolean;
+  title?: string;
 }
 
-interface NotificationDropdownProps {
+interface NotificationModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
-  open,
-  onClose,
-}) => {
-  // Mock notification data with updated timestamps relative to May 27, 2025, 01:15 PM IST
-  const notifications: NotificationItem[] = [
-    {
-      id: "1",
-      user: { name: "Joseph Quinn" },
-      action: "created a new game",
-      timestamp: "13 minutes ago", // 01:02 PM
-      type: "game",
-    },
-    {
-      id: "2",
-      user: { name: "Joseph Quinn" },
-      action: "purchased FULL SLEEVE HOODIE",
-      timestamp: "15 minutes ago", // 01:00 PM
-      type: "purchase",
-    },
-    {
-      id: "3",
-      user: { name: "Joseph Quinn" },
-      action: "created a new game",
-      timestamp: "20 minutes ago", // 12:55 PM
-      type: "game",
-    },
-    {
-      id: "4",
-      user: { name: "Joseph Quinn" },
-      action: "purchased FULL SLEEVE HOODIE",
-      timestamp: "25 minutes ago", // 12:50 PM
-      type: "purchase",
-    },
-    {
-      id: "5",
-      user: { name: "Joseph Quinn" },
-      action: "created a new game",
-      timestamp: "30 minutes ago", // 12:45 PM
-      type: "game",
-    },
-    {
-      id: "6",
-      user: { name: "Joseph Quinn" },
-      action: "purchased FULL SLEEVE HOODIE",
-      timestamp: "35 minutes ago", // 12:40 PM
-      type: "purchase",
-    },
-    {
-      id: "7",
-      user: { name: "Joseph Quinn" },
-      action: "created a new game",
-      timestamp: "40 minutes ago", // 12:35 PM
-      type: "game",
-    },
-    {
-      id: "8",
-      user: { name: "Joseph Quinn" },
-      action: "purchased FULL SLEEVE HOODIE",
-      timestamp: "45 minutes ago", // 12:30 PM
-      type: "purchase",
-    },
-    {
-      id: "9",
-      user: { name: "Joseph Quinn" },
-      action: "created a new game",
-      timestamp: "50 minutes ago", // 12:25 PM
-      type: "game",
-    },
-  ];
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
 
-  if (!open) return null;
+const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) => {
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const router = useRouter();
+  const lastNotificationRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
+  const userRole = (session as any)?.user?.role;
+  const venueId = (session as any)?.user?.venueId;
+
+  const endpoint =
+    userRole === "employee"
+      ? `/admin/notifications?page=${page}&limit=10&venueId=${venueId}`
+      : `/admin/notifications?page=${page}&limit=10`;
+
+  const {
+    data,
+    error: swrError,
+    isLoading,
+    mutate,
+  } = useSWR(open ? endpoint : null, getNotifications, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: false,
+    keepPreviousData: true,
+    dedupingInterval: 5000,
+  });
+
+  const notificationMessages = {
+    FREE_GAME_EARNED: (user) => `${user} has earned a free game.`,
+    PAYMENT_SUCCESSFUL: (user) => `${user} created a new game.`,
+    BOOKING_CANCELLED: (user) => `${user} has cancelled the game.`,
+    FREE_GAME_USED: (user) => `${user} has used a free game.`,
+    PLAYER_JOINED_GAME: (user) => `${user} has joined the game`,
+  };
+
+  const notificationTitle = {
+    FREE_GAME_EARNED: `Free Game Earned`,
+    PAYMENT_SUCCESSFUL: `Game Booked Successfully`,
+    BOOKING_CANCELLED: `Booking Cancelled`,
+    FREE_GAME_USED: `Free Game Used`,
+    PLAYER_JOINED_GAME: `New Player Joined`,
+  };
+
+  const notificationIcons = {
+    PAYMENT_SUCCESSFUL: { src: Success, alt: "Success", wrapper: false },
+    BOOKING_CANCELLED: { src: Cancel, alt: "Cancel", wrapper: true },
+    FREE_GAME_EARNED: { src: StarBadge, alt: "StarBadge", wrapper: false },
+    FREE_GAME_USED: { src: FreeGame, alt: "FreeGame", wrapper: false },
+    PLAYER_JOINED_GAME: { src: Player, alt: "player", wrapper: false },
+  };
+
+  useEffect(() => {
+    if (data?.data) {
+      const newNotifications = data.data.data || [];
+      const existingIds = new Set(notifications.map((n) => n._id));
+      const uniqueNewNotifications = newNotifications.filter((n) => !existingIds.has(n._id));
+
+      if (page === 1) {
+        setNotifications(uniqueNewNotifications);
+      } else {
+        setNotifications((prev) => [...prev, ...uniqueNewNotifications]);
+      }
+
+      setHasMore(data.data.meta?.hasNextPage || false);
+      setError(null);
+      setLoadingMore(false);
+    }
+  }, [data, page]);
+
+  useEffect(() => {
+    if (swrError) {
+      setError(swrError.message || "Failed to load notifications");
+      setLoadingMore(false);
+    }
+  }, [swrError]);
+
+  const loadMoreNotifications = useCallback(() => {
+    if (!isLoading && !loadingMore && hasMore) {
+      setLoadingMore(true);
+      setPage((prev) => prev + 1);
+    }
+  }, [isLoading, loadingMore, hasMore]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const lastEntry = entries[0];
+        if (lastEntry.isIntersecting && hasMore && !isLoading && !loadingMore) {
+          loadMoreNotifications();
+        }
+      },
+      { threshold: 0.1, rootMargin: "20px" }
+    );
+
+    if (lastNotificationRef.current && notifications.length > 0) {
+      observer.observe(lastNotificationRef.current);
+    }
+
+    return () => {
+      if (lastNotificationRef.current) {
+        observer.unobserve(lastNotificationRef.current);
+      }
+    };
+  }, [hasMore, isLoading, loadingMore, loadMoreNotifications, notifications.length]);
+
+  useEffect(() => {
+    if (!open) {
+      setNotifications([]);
+      setPage(1);
+      setHasMore(true);
+      setError(null);
+      setLoadingMore(false);
+    }
+  }, [open]);
+
+  const retryLoad = () => {
+    setError(null);
+    setPage(1);
+    setLoadingMore(false);
+    mutate();
+  };
+
+  const handleMarkAllReadClick = async (e: any) => {
+    e.stopPropagation();
+    e.preventDefault();
+    try {
+      await markAllNotificationRead("/admin/notifications");
+      mutate();
+      onClose();
+    } catch (error) {
+      console.error("❌ Error marking all notifications as read:", error);
+    }
+  };
+
+  const handleNotificationClick = async (notification: NotificationItem, e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    try {
+      await markNotificationRead("/admin/notifications", { notificationId: notification._id });
+      mutate();
+    } catch (error) {
+      console.error("❌ Error marking notification as read:", error);
+    }
+
+    setTimeout(() => {
+      mutate();
+      if (["PAYMENT_SUCCESSFUL", "BOOKING_CANCELLED"].includes(notification.type)) {
+        if (notification.type === "BOOKING_CANCELLED") {
+          router.push("/authority/matches?tab=Cancelled");
+        } else {
+          router.push("/authority/matches?tab=Upcoming");
+        }
+      }
+      onClose();
+    }, 10);
+  };
+
+  const handleModalContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
 
   return (
-    <div className="absolute z-20 top-[50px] right-0 w-80 bg-white rounded-lg shadow-xl max-h-[60vh] overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
-        <h2 className="text-[#10375c] text-lg font-semibold">Notifications</h2>
-        <button
-          onClick={onClose}
-          className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-        >
-          x
-          {/* <X className="w-5 h-5 text-gray-500" /> */}
-        </button>
-      </div>
-
-      {/* Notifications List */}
-      <div className="max-h-[40vh] overflow-y-auto overflo-custom">
-        {notifications.length > 0 ? (
-          <div className="divide-y divide-gray-100">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  {/* User Avatar */}
-                  <div className="flex-shrink-0">
-                    {notification.user.avatar ? (
-                      <Image
-                        src={notification.user.avatar}
-                        alt={notification.user.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="w-5 h-5 text-gray-500" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Notification Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-gray-900">
-                      <span className=" text-[#1C2329] text-sm font-bold">{notification.user.name}</span>
-                      <span className="text-gray-600 ml-1">{notification.action}</span>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {notification.timestamp}
-                    </div>
-                  </div>
-
-                  {/* Notification Type Indicator */}
-                  {/* <div className="flex-shrink-0">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        notification.type === "game"
-                          ? "bg-blue-500"
-                          : notification.type === "purchase"
-                          ? "bg-green-500"
-                          : "bg-gray-500"
-                      }`}
-                    />
-                  </div> */}
-                </div>
-              </div>
-            ))}
+    <Modal
+      open={open}
+      onClose={onClose}
+      aria-labelledby="notifications-modal"
+      className="flex items-start justify-center pt-16"
+      disableEnforceFocus
+    >
+      <div
+        className="bg-white rounded-[20px] w-[95%] max-w-[400px] shadow-lg max-h-[80vh] overflow-hidden"
+        onClick={handleModalContentClick}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h2 className="text-[#10375c] text-xl font-semibold">Notifications</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={handleMarkAllReadClick}
+              className="px-1 py-[2px] bg-green-500 text-white text-xs rounded"
+            >
+              Mark all read
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
           </div>
-        ) : (
-          <div className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <Bell className="w-8 h-8 text-gray-400" />
-            </div>
-            <p className="text-gray-500 text-sm">No notifications yet</p>
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      {/* {notifications.length > 0 && (
-        <div className="p-4 border-t border-gray-100">
-          <button className="w-full text-center text-[#10375c] text-sm font-medium hover:underline">
-            View All Notifications
-          </button>
         </div>
-      )} */}
-    </div>
+
+        <div className="max-h-[60vh] overflow-y-auto">
+          {notifications.length > 0 ? (
+            <div className="divide-y divide-gray-100">
+              {notifications.map((notification, index) => {
+                const { src, alt, wrapper } = notificationIcons[notification.type];
+
+                return (
+                  <div
+                    key={notification._id}
+                    ref={index === notifications.length - 1 ? lastNotificationRef : null}
+                    className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    tabIndex={0}
+                    onClick={(e) => handleNotificationClick(notification, e)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleNotificationClick(notification, e);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        {wrapper ? (
+                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                            <Image src={src} alt={alt} className="w-10 h-10 rounded-full object-cover" />
+                          </div>
+                        ) : (
+                          <Image src={src} alt={alt} className="w-10 h-10 rounded-full object-cover" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col text-sm text-gray-900">
+                          <span className="font-medium">
+                            {notificationTitle[notification.type] || "Notification"}
+                          </span>
+                          <span className="text-gray-600">
+                            {notificationMessages[notification.type]
+                              ? notificationMessages[notification.type](notification?.userData?.fullName)
+                              : `${notification?.userData?.fullName} performed an action.`}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">{notification.timestamp}</div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <div
+                          className={`w-2 h-2 rounded-full ${notification.isReadyByAdmin ? "bg-gray-500" : "bg-blue-500"
+                            }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {(loadingMore || (isLoading && page > 1)) && (
+                <div className="p-4 flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
+                  <span className="ml-2 text-sm text-gray-500">Loading more...</span>
+                </div>
+              )}
+
+              {error && (
+                <div className="p-4 text-center">
+                  <p className="text-red-500 text-sm mb-2">{error}</p>
+                  <button onClick={retryLoad} className="text-[#10375c] text-sm font-medium hover:underline">
+                    Try Again
+                  </button>
+                </div>
+              )}
+
+              {!hasMore && (
+                <div className="p-4 text-center">
+                  <p className="text-gray-500 text-sm">No more notifications</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              {isLoading ? (
+                <div className="flex flex-col items-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-400 mb-4" />
+                  <p className="text-gray-500 text-sm">Loading notifications...</p>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <X className="w-8 h-8 text-red-400" />
+                  </div>
+                  <p className="text-red-500 text-sm mb-2">{error}</p>
+                  <button onClick={retryLoad} className="text-[#10375c] text-sm font-medium hover:underline">
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Bell className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm">No notifications yet</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </Modal>
   );
 };
 
-export default NotificationDropdown;
+export default NotificationModal;

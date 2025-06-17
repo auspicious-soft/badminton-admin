@@ -85,7 +85,6 @@ export const generateSignedUrlForBlog = async (fileName: string, fileType: strin
     ContentType: fileType,
     acl: "public-read",
   };
-  console.log('process.env.AWS_BUCKET_NAME: ', process.env.AWS_BUCKET_NAME);
   try {
     const command = new PutObjectCommand(uploadParams);
     const signedUrl = await getSignedUrl(await createS3Client(), command);

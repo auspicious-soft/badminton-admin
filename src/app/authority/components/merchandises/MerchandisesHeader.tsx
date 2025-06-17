@@ -139,8 +139,6 @@ const MerchandiseHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelec
                         const displayValue = e.target.value;
                         const apiValue = cityValueMap[displayValue];
                         setSelectedCity(apiValue); // Set API value to state
-                        console.log("Selected Status Display:", displayValue);
-                        console.log("Selected Status API Value:", apiValue);
                         onStatusChange?.(apiValue);
                         setCityDropdown(false);
                       }}

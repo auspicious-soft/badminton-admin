@@ -217,10 +217,8 @@ const ProductDetailForm = () => {
       url: URL.createObjectURL(file),
       key: null,
     }));
-    console.log("Adding new images:", newPreviews);
     setImagePreviews((prev) => {
       const updatedPreviews = [...prev, ...newPreviews];
-      console.log("Updated imagePreviews:", updatedPreviews);
       return updatedPreviews;
     });
 
@@ -231,7 +229,6 @@ const ProductDetailForm = () => {
   const removeImage = async (indexToRemove: number) => {
     // Get the preview to remove before updating state
     const removedPreview = imagePreviews[indexToRemove];
-    console.log("Removing image:", removedPreview);
 
     // Update state first
     setImagePreviews((prev) => {

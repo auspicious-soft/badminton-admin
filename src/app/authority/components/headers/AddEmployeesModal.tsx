@@ -35,7 +35,6 @@ const AddEmployeeModal = ({ open, setOpen, onAddEmployees }: AddEmployeeModalPro
   );
 
   const employees = data?.data.data || [];
-  console.log('employees: ', employees);
 
   const handleClose = () => {
     setSelectedEmployeeIds([]);

@@ -10,6 +10,7 @@ import ScheduleCalender from "./dashboard-calender/dashboard-calender";
 import useSWR from "swr";
 import { getDashboard } from "@/services/admin-services";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const StatCard = ({ value, label, Icon }) => (
   <div className="flex items-center gap-3 rounded-lg">
@@ -52,26 +53,20 @@ const Dashboard = () => {
   const handleYearChange = (year) => setSelectedYear(year);
   const [openPanelIndex, setOpenPanelIndex] = useState(0);
   const router = useRouter();
-  // console.log("data1?.stats?.incomeThisMonth", data1?.stats?.incomeThisMonth)
   const handleViewClick = (index) => {
     setOpenPanelIndex(openPanelIndex === index ? -1 : index);
   };
-  const { data, mutate, isLoading } = useSWR("/admin/dashboard", getDashboard)
-  const data1 = data?.data?.data
+  const { data: session } = useSession();
+const userRole = (session as any )?.user?.role; 
+const venueId = (session as any )?.user?.venueId; 
+ const endpoint =
+    userRole === "employee"
+      ? `/admin/dashboard-emp?venueId=${venueId}`
+      : `/admin/dashboard`;
 
-  // const bookingsData = [
-  //   {
-  //     name: "Tracy Martin",
-  //     game: "Padel",
-  //     city: "Chandigarh",
-  //     date: "22-01-2024",
-  //     image:
-  //       "https://www.google.com/imgres?q=profile%20picture&imgurl=https%3A%2F%2Fi.pinimg.com%2F736x%2Fa3%2F42%2Fa5%2Fa342a5261e23a03fdfa88be4c793e27e.jpg&imgrefurl=https%3A%2F%2Fwww.pinterest.com%2Fpin%2F33333--10977592835419086%2F&docid=MlM14WN1Kk9PiM&tbnid=WzgbtV9yQ1JdrM&vet=12ahUKEwjT1KT7p8-LAxUPTmwGHa54OsMQM3oECCMQAA..i&w=736&h=736&hcb=2&ved=2ahUKEwjT1KT7p8-LAxUPTmwGHa54OsMQM3oECCMQAA",
-  //   },
-  //   { name: "Jordan Lee", game: "Pickleball", city: "ambala", date: "22-01-2024", image: "https://placehold.co/23x23" },
-  //   { name: "Alan Parker", game: "Padel", city: "Chandigarh", date: "22-01-2024", image: "https://placehold.co/23x23" },
-  //   { name: "Jordan Lee", game: "Pickleball", city: "ambala", date: "22-01-2024", image: "https://placehold.co/23x23" },
-  // ];
+  // Use SWR only once
+  const { data, mutate, isLoading } = useSWR(endpoint, getDashboard);
+  const data1 = data?.data?.data;
   const OngoingMatchesPanel = ({ open, data }) => {
     if (!open) return null;
 
@@ -186,7 +181,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-                <div className="mt-[20px] mx-[20px] w-[85%] px-[26px] py-3.5 bg-white rounded-[39px] text-center text-[#7e7e8a] text-xs font-medium">People love to play Padel at your court!</div>
+                <div className="mt-[20px] mx-[20px] w-[85%] px-[26px] py-3.5 bg-white rounded-[39px] text-center text-[#7e7e8a] text-xs font-medium">People love to play {data1?.stats?.gameComposition?.Pickleball > data1?.stats?.gameComposition?.Padel ? "Pickelball" : 'Padel'} at your court!</div>
               </div>
             </div>
           </div>

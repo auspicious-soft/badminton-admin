@@ -9,7 +9,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials: any) => {
-        console.log("credentials: ", credentials);
         if (credentials.email) { // Check for email instead of username
           return {
             email: credentials.email,

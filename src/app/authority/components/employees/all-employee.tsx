@@ -322,7 +322,6 @@ const AllEmployeeComponent = () => {
           if (previousImageKey) {
             try {
               await deleteFileFromS3(previousImageKey);
-              console.log("Previous image deleted:", previousImageKey);
             } catch (deleteError) {
               console.error("Error deleting previous image:", deleteError);
               // Continue with the save process even if deletion fails

@@ -184,7 +184,6 @@ const AddProductForm = () => {
           isActive: true,
         };
 
-        console.log("payload: ", payload);
         // Make API call to create merchandise
         const response = await createMerchandise("/admin/products", payload);
 

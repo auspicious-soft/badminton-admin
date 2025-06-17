@@ -260,5 +260,17 @@ export const getReferralSettings = async () => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get('/admin/reward-settings/referral')
 }
+export const getNotifications = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+export const markNotificationRead = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route,payload)
+}
+export const markAllNotificationRead = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route)
+}
 
 
