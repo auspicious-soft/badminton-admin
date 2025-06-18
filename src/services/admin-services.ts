@@ -268,9 +268,17 @@ export const markNotificationRead = async (route: string, payload?:any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route,payload)
 }
+export const postNotification = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route,payload)
+}
 export const markAllNotificationRead = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route)
+}
+export const getAllUsersForNotification = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
 }
 
 
