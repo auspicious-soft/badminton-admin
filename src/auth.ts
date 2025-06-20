@@ -9,6 +9,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials: any) => {
+        console.log('credentials: ', credentials);
         if (credentials.email) { // Check for email instead of username
           return {
             email: credentials.email,
@@ -17,7 +18,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             role: credentials.role,
             profilePic: credentials.profilePic,
             venueId : credentials.venueId,
-            venueName : credentials.venueName,
+            venueName : credentials.venueName, 
+            venueLong: credentials?.long,
+            venueLat: credentials?.lat
           };
         } else {
           throw new CredentialsSignin("Invalid credentials");
@@ -35,6 +38,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as any).role;
         token.venueId = (user as any).venueId;
         token.venueName = (user as any).venueName;
+        token.venueLong = (user as any).venueLong;
+        token.venueLat = (user as any).venueLat;
       }
       return token;
     },
@@ -47,6 +52,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         (session as any).user.role = token.role;
         (session as any).user.venueId = token.venueId;
         (session as any).user.venueName = token.venueName;
+        (session as any).user.venueLong = token.venueLong;
+        (session as any).user.venueLat = token.venueLat;
       }
       return session;
     },

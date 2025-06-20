@@ -29,6 +29,7 @@ interface VenuesResponse {
 const itemsPerPage = 10;
 
 const Page = () => {
+
   const [searchParams, setSearchParams] = useState("");
   const [page, setPage] = useState(1);
   const router = useRouter();

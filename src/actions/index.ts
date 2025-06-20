@@ -12,6 +12,7 @@ export const loginAction = async (payload: any) => {
   try {
     const res: any = await loginService(payload);
     const user = res?.data?.data?.user;
+    console.log('user: ', user);
     if (res && res?.data?.success) {
       await signIn("credentials", {
         fullName:  res?.data?.data?.user?.fullName,
@@ -21,6 +22,8 @@ export const loginAction = async (payload: any) => {
         venueId: res?.data?.data?.user?.venueId,
         venueName: res?.data?.data?.user?.venueName,
         // profilePic: res?.data?.data?.user?.image,
+        long: res?.data?.data?.user?.location?.coordinates[0],
+        lat: res?.data?.data?.user?.location?.coordinates[1],
         redirect: false,
       });
     }
