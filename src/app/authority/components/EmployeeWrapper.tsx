@@ -161,7 +161,7 @@ export default function EmployeeClientWrapper({
       {
         enableHighAccuracy: true,
         maximumAge: 10000, // max cached location age
-        timeout: 5000
+        timeout: 10000
       }
     );
   } else {
