@@ -10,6 +10,7 @@ import useSWR from "swr";
 import { getAllMatches } from "@/services/admin-services";
 import { getImageClientS3URL } from "@/config/axios";
 import { useSession } from "next-auth/react";
+import RefundConfirmation from "./refundConfirmationModal";
 
 export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }: { name: string, selectedGame: string, selectedCity: string, selectedDate: string }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -19,8 +20,8 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const [type, setType] = useState("upcoming"); // State to store the mapped type
   const [isTabSwitching, setIsTabSwitching] = useState(false); // Track tab switching state
   const { data: session } = useSession();
-  const userRole = (session as any )?.user?.role; 
-  
+  const userRole = (session as any)?.user?.role;
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   const typeMapping: { [key: string]: string } = {
     "Cancelled Matches": "cancelled",
     "Previous Matches": "completed",
@@ -42,7 +43,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   // );
   // &search=${searchParams}&game=${selectedGame}&date=${selectedDate}
   const { data, mutate, isLoading, error } = useSWR(
-    `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}${userRole=== "employee" ? `&venueId=${(session as any)?.user?.venueId}` : ''}`,
+    `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}${userRole === "employee" ? `&venueId=${(session as any)?.user?.venueId}` : ''}`,
     getAllMatches
   );
   // // Fetch
@@ -78,7 +79,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
 
   useEffect(() => {
     if (!isLoading) {
-      setIsTabSwitching(false); 
+      setIsTabSwitching(false);
     }
   }, [isLoading]);
 
@@ -235,7 +236,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
         </div>
       </div>
 
-      {(matchData.length !== 0 || isLoading ) && (
+      {(matchData.length !== 0 || isLoading) && (
         <div className="w-full lg:w-1/3 h-fit bg-[#f2f2f4] shadow-md rounded-[20px] px-[15px] pt-[14px] pb-[19px]">
           {(isLoading && !matchData.length) || (isTabSwitching && !currentSelectedMatch) ? (
             <div className="flex flex-col items-center justify-center h-64">
@@ -392,7 +393,14 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                   </div>
                 </div>
               }
-              {/* <button className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[10%]">Edit Game</button> */}
+              {type === "upcoming" && (
+                <>
+                <button onClick={() => setIsRefundModalOpen(true)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[10%]">
+                  Cancel Game
+                </button>              
+                <RefundConfirmation open={isRefundModalOpen} setOpen={setIsRefundModalOpen} id={selectedMatch?._id} />
+                </>
+              )}
             </div>
           ) : (
             <p className="text-center text-gray-500">Select a match to see details</p>

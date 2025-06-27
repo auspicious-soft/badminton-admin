@@ -281,4 +281,9 @@ export const getAllUsersForNotification = async (route: string) => {
     return axiosInstance.get(route)
 }
 
+//cancel match
+export const cancelMatch = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route,payload)
+}
 
