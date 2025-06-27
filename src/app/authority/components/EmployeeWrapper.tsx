@@ -150,7 +150,7 @@ export default function EmployeeClientWrapper({
           venueLong
         );
 
-        if (distance > 100) {
+        if (distance > 200) {
           logOutService('admin/logout-employee');
           signOut({ callbackUrl: "/" });
         }
