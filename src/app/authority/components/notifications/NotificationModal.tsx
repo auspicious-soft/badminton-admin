@@ -76,6 +76,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) 
     BOOKING_CANCELLED: (user) => `${user} has cancelled the game.`,
     FREE_GAME_USED: (user) => `${user} has used a free game.`,
     PLAYER_JOINED_GAME: (user) => `${user} has joined the game`,
+    REFUND_COMPLETED: (user) => `Refund is provided to ${user} `,
   };
 
   const notificationTitle = {
@@ -84,6 +85,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) 
     BOOKING_CANCELLED: `Booking Cancelled`,
     FREE_GAME_USED: `Free Game Used`,
     PLAYER_JOINED_GAME: `New Player Joined`,
+    REFUND_COMPLETED:'Refund Successfully'
   };
 
   const notificationIcons = {
@@ -92,6 +94,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) 
     FREE_GAME_EARNED: { src: StarBadge, alt: "StarBadge", wrapper: false },
     FREE_GAME_USED: { src: FreeGame, alt: "FreeGame", wrapper: false },
     PLAYER_JOINED_GAME: { src: Player, alt: "player", wrapper: false },
+    REFUND_COMPLETED: { src: Success, alt: "Success", wrapper: false },
   };
 
   useEffect(() => {
@@ -238,7 +241,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) 
           {notifications.length > 0 ? (
             <div className="divide-y divide-gray-100">
               {notifications.map((notification, index) => {
-                const { src, alt, wrapper } = notificationIcons[notification.type];
+                const { src, alt, wrapper } = notificationIcons[notification?.type];
 
                 return (
                   <div
