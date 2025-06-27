@@ -177,9 +177,47 @@ const AddVenueForm = () => {
       <div className="flex flex-col gap-[10px]">
        <label className="block text-[#1b2229] text-xs font-medium">Location</label>
        <input type="text" {...register("actualPrice")} className="w-full h-[45.41px] px-[15px] py-2.5 bg-white rounded-[39px] text-black/60 text-xs font-medium" placeholder="Enter location" />
+      <div className="flex flex-col gap-[10px]">
+       <label className="block text-[#1b2229] text-xs font-medium">Status</label>
+       {/* <input
+                                type="text"
+                                {...register('quantity')}
+                                className="w-full h-[45.41px] px-[15px] py-2.5 bg-white rounded-[39px] text-black/60 text-xs font-medium"
+                                placeholder="Enter status"
+                            /> */}
+
+       <div className="relative" ref={gameDropdownRef}>
+        <button className="w-full flex justify-between h-10h-[45px] px-[15px] py-2.5 bg-white rounded-[39px] text-black/60 text-xs font-medium " onClick={() => setGameDropdown(!gameDropdown)}>
+         {selectedGame || "Status"}
+         <span className="">{!gameDropdown ? <DownArrowIcon stroke="#1b2229" /> : <UpArrowIcon stroke="#1b2229" />}</span>
+        </button>
+        {gameDropdown && (
+         <div className="z-50 flex flex-col gap-[5px] absolute top-10 left-0  p-[10px] w-full h-fit bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+          {status.map((game) => (
+           <label key={game} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium ">
+            <input
+             type="radio"
+             name="game"
+             value={game}
+             checked={selectedGame === game}
+             onChange={(e) => {
+              setSelectedGame(e.target.value);
+              console.log("Selected Game:", e.target.value);
+              setGameDropdown(false);
+             }}
+             className="bg-[#1b2229]"
+            />
+            {game}
+           </label>
+          ))}
+         </div>
+        )}
+       </div>
+      </div>
       </div>
 
-      <div className="flex flex-col gap-[10px]">
+      
+<div className="flex flex-col gap-[10px]">
        <label className="block text-[#1b2229] text-xs font-medium">Games Available</label>
        <Select
         isMulti
@@ -234,44 +272,6 @@ const AddVenueForm = () => {
          }),
         }}
        />
-      </div>
-
-      <div className="flex flex-col gap-[10px]">
-       <label className="block text-[#1b2229] text-xs font-medium">Status</label>
-       {/* <input
-                                type="text"
-                                {...register('quantity')}
-                                className="w-full h-[45.41px] px-[15px] py-2.5 bg-white rounded-[39px] text-black/60 text-xs font-medium"
-                                placeholder="Enter status"
-                            /> */}
-
-       <div className="relative" ref={gameDropdownRef}>
-        <button className="w-full flex justify-between h-10h-[45px] px-[15px] py-2.5 bg-white rounded-[39px] text-black/60 text-xs font-medium " onClick={() => setGameDropdown(!gameDropdown)}>
-         {selectedGame || "Status"}
-         <span className="">{!gameDropdown ? <DownArrowIcon stroke="#1b2229" /> : <UpArrowIcon stroke="#1b2229" />}</span>
-        </button>
-        {gameDropdown && (
-         <div className="z-50 flex flex-col gap-[5px] absolute top-10 left-0  p-[10px] w-full h-fit bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
-          {status.map((game) => (
-           <label key={game} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium ">
-            <input
-             type="radio"
-             name="game"
-             value={game}
-             checked={selectedGame === game}
-             onChange={(e) => {
-              setSelectedGame(e.target.value);
-              console.log("Selected Game:", e.target.value);
-              setGameDropdown(false);
-             }}
-             className="bg-[#1b2229]"
-            />
-            {game}
-           </label>
-          ))}
-         </div>
-        )}
-       </div>
       </div>
 
       <button type="submit" className="py-4 bg-[#10375c] rounded-[28px] text-white text-sm font-medium mt-[5px]">

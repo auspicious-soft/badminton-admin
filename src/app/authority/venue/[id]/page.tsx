@@ -751,7 +751,46 @@ const Page = () => {
                   </span>
                 </button>
               </div>
-              <div className="h-[69.41px]">
+              
+            <div className="relative" ref={statusDropdownRef}>
+              <label className="text-xs font-medium text-[#1b2229] block mb-2">
+                Status
+              </label>
+              <button
+                className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
+                onClick={() => setStatusDropdown(!statusDropdown)}
+                aria-expanded={statusDropdown}
+                aria-label="Select Status"
+              >
+                {selectedStatus || "Select Status"}
+                <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
+              </button>
+              {statusDropdown && (
+                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
+                  {statuses.map((status) => (
+                    <label
+                      key={status}
+                      className="flex gap-2 cursor-pointer text-xs py-1"
+                    >
+                      <input
+                        type="radio"
+                        name="status"
+                        value={status}
+                        checked={selectedStatus === status}
+                        onChange={(e) => {
+                          setSelectedStatus(e.target.value);
+                          setStatusDropdown(false);
+                        }}
+                        className="accent-[#1b2229]"
+                      />
+                      {status}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            </div>
+<div className="h-[69.41px]">
                 <div className="text-[#1B2229] mb-[8px] text-xs font-medium">
                   Games Available
                 </div>
@@ -813,45 +852,6 @@ const Page = () => {
                   }}
                 />
               </div>
-            </div>
-
-            <div className="relative" ref={statusDropdownRef}>
-              <label className="text-xs font-medium text-[#1b2229] block mb-2">
-                Status
-              </label>
-              <button
-                className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
-                onClick={() => setStatusDropdown(!statusDropdown)}
-                aria-expanded={statusDropdown}
-                aria-label="Select Status"
-              >
-                {selectedStatus || "Select Status"}
-                <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
-              </button>
-              {statusDropdown && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
-                  {statuses.map((status) => (
-                    <label
-                      key={status}
-                      className="flex gap-2 cursor-pointer text-xs py-1"
-                    >
-                      <input
-                        type="radio"
-                        name="status"
-                        value={status}
-                        checked={selectedStatus === status}
-                        onChange={(e) => {
-                          setSelectedStatus(e.target.value);
-                          setStatusDropdown(false);
-                        }}
-                        className="accent-[#1b2229]"
-                      />
-                      {status}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {/* Add Description Field */}
             <div>
