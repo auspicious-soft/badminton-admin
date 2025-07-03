@@ -361,7 +361,7 @@ useEffect(() => {
               </span>
             </button>
             {venueDropdown && (
-              <div className="venue-options space-y-2 w-[220px] h-[300px] overflow-y-auto overflo-custom">
+              <div className="venue-options space-y-2 w-[220px] min-h-[100px] max-h-[300px] overflow-y-auto overflo-custom">
                 <label className="venue-option ">
                   <input
                     type="radio"

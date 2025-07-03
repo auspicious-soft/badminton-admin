@@ -1,46 +1,4 @@
-// 'use client';
-
-// import React, { useState, useEffect } from 'react';
-
-// interface EmployeeClientWrapperProps {
-//   children: React.ReactNode;
-//   tabParam: string | null;
-// }
-
-// export default function EmployeeClientWrapper({ children, tabParam }: EmployeeClientWrapperProps) {
-//   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-//   const [selectedTab, setSelectedTab] = useState<string | null>(null);
-
-//   // Geolocation logic
-//   useEffect(() => {
-//     if ('geolocation' in navigator) {
-//       navigator.geolocation.getCurrentPosition(({ coords }) => {
-//         setLocation({
-//           latitude: coords.latitude,
-//           longitude: coords.longitude,
-//         });
-//       });
-//     }
-//   }, []);
-
-//   // Log location when it changes
-//   useEffect(() => {
-//     console.log('location: ', location);
-//   }, [location]);
-
-//   // Tab parameter logic
-//   useEffect(() => {
-//     if (tabParam && ['Upcoming', 'Previous', 'Cancelled'].includes(tabParam)) {
-//       setSelectedTab(tabParam);
-//     }
-//   }, [tabParam]);
-
-//   return <>{children}</>;
-// }
-
-
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { logOutService } from "@/services/admin-services";
@@ -50,12 +8,6 @@ interface EmployeeClientWrapperProps {
   tabParam: string | null;
   session: any;
 }
-
-// Static venue location (replace with actual venue coordinates)
-const VENUE_LOCATION = {
-  latitude: 40.7128, // Example: New York City
-  longitude: -74.0060,
-};
 
 // Haversine formula to calculate distance in meters
 const calculateDistance = (
@@ -82,7 +34,6 @@ export default function EmployeeClientWrapper({
   tabParam,
   session
 }: EmployeeClientWrapperProps) {
-  console.log('session: ', session);
   const [location, setLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -90,46 +41,7 @@ export default function EmployeeClientWrapper({
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
  const venueLat = (session as any).user.venueLat;
  const venueLong = (session as any).user.venueLong;
- 
-  // Geolocation logic and distance-based logout
-  // useEffect(() => {
-  //   if ('geolocation' in navigator) {
-  //     navigator.geolocation.getCurrentPosition(
-  //       ({ coords }) => {
-  //         const userLocation = {
-  //           latitude: coords.latitude,
-  //           longitude: coords.longitude,
-  //         };
-  //         setLocation(userLocation);
 
-  //         // Calculate distance to venue
-  //         const distance = calculateDistance(
-  //           userLocation.latitude,
-  //           userLocation.longitude,
-  //           venueLat,
-  //           venueLong
-  //         );
-
-  //         // If distance > 20 meters, trigger logout
-  //         if (distance > 100) {
-  //           // signOut({ callbackUrl: '/' });
-  //             //  setLogoutLoading(true);
-              
-  //                  logOutService('admin/logout-employee');
-            
-  //               signOut({ callbackUrl: "/" });
-  //               // setLogoutLoading(false);
-  //         }
-  //       },
-  //       (error) => {
-  //         console.error('Geolocation error:', error);
-  //         // Optionally handle geolocation errors (e.g., permission denied)
-  //       }
-  //     );
-  //   } else {
-  //     console.error('Geolocation not supported');
-  //   }
-  // }, []);
 
   useEffect(() => {
   let watchId;
@@ -150,10 +62,12 @@ export default function EmployeeClientWrapper({
           venueLong
         );
 
-        if (distance > 200) {
+        if (distance > 500) {
           logOutService('admin/logout-employee');
           signOut({ callbackUrl: "/" });
         }
+
+
       },
       (error) => {
         console.error('Geolocation error:', error);
@@ -173,7 +87,7 @@ export default function EmployeeClientWrapper({
       navigator.geolocation.clearWatch(watchId);
     }
   };
-}, []);
+}, [venueLat, venueLong]);
 
   // Log location when it changes
   useEffect(() => {

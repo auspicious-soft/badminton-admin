@@ -24,7 +24,7 @@ const [showPassword, setShowPassword] = useState(false);
 
       //   router.push("/");
       // } else {
-      //   router.push("/authority/dashboard");
+      //      .push("/authority/dashboard");
       // }
               router.push("/authority/dashboard");
 
