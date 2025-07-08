@@ -12,6 +12,14 @@ import { getDashboard } from "@/services/admin-services";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
+// Extend the User type to include 'role' and 'venueId'
+declare module "next-auth" {
+  interface User {
+    role?: string;
+    venueId?: string;
+  }
+}
+
 const StatCard = ({ value, label, Icon }) => (
   <div className="flex items-center gap-3 rounded-lg">
     <div>
@@ -51,13 +59,14 @@ const Dashboard = () => {
     setOpenPanelIndex(openPanelIndex === index ? -1 : index);
   };
   const { data: session, status } = useSession();
-  if (status === "loading") return <div>Loading session...</div>;
   const userRole = (session?.user?.role || "").toLowerCase();
   const venueId = session?.user?.venueId;
 
   const endpoint = userRole === "employee" ? `/admin/dashboard-emp?venueId=${venueId}` : `/admin/dashboard`;
   const { data, isLoading } = useSWR(endpoint, getDashboard);
   const data1 = data?.data?.data;
+
+  if (status === "loading") return <div>Loading session...</div>;
 
   const OngoingMatchesPanel = ({ open, data }) => {
     if (!open) return null;
@@ -92,7 +101,7 @@ const Dashboard = () => {
         <div className="bg-[#fbfaff] p-1 flex flex-col items-center justify-center min-h-[60vh] ">
           <h2 className="text-[#10375C] text-3xl font-semibold mb-4">You’re not yet assigned to any venue.</h2>
           <p className="text-[#1B2229] text-center text-sm max-w-[60%]">
-            You're currently not assigned to any venue. Please reach out to your admin or manager to get assigned to a venue so you can start accessing relevant schedules, tools, and updates tailored to your role.
+            You&apos;re currently not assigned to any venue. Please reach out to your admin or manager to get assigned to a venue so you can start accessing relevant schedules, tools, and updates tailored to your role.
           </p>
         </div>
       ) : (
