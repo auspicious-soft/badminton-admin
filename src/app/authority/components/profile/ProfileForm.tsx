@@ -3,13 +3,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { CrossIcon, EditIcon, DeleteIcon1, DeleteMaintenanceIcon } from '@/utils/svgicons';
+import { CrossIcon, EditIcon, DeleteMaintenanceIcon } from '@/utils/svgicons';
 import NoImage from "@/assets/images/nofile.png";
 import Image from 'next/image';
 import useSWR from 'swr';
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-
 import { getAdminDetails, updateAdminDetails, getDynamicPricing, deleteMaintenance } from '@/services/admin-services';
 import { generateSignedUrlForProfile, deleteFileFromS3 } from '@/actions';
 import { getImageClientS3URL } from '@/config/axios';
@@ -40,20 +39,21 @@ const profileSchema = yup.object().shape({
     images: yup.mixed().nullable(),
 });
 
-
-
 const ProfileForm = () => {
     const [imagePreview, setImagePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
- const { data: session } = useSession();
-  const userRole = (session as any )?.user?.role; 
+    const { data: session } = useSession();
+    const userRole = (session as any)?.user?.role;
     const [imageKey, setImageKey] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<any>(null);
+    const [openAccordions, setOpenAccordions] = useState({});
 
     const { data, mutate, isLoading } = useSWR("admin/get-admin-details", getAdminDetails);
-    const { data: maintenanceData1, mutate: maintenanceMutate, isLoading: maintenanceLoading } = useSWR("admin/maintenance-booking", getAdminDetails);
+    const { data: maintenanceData1, mutate: maintenanceMutate, isLoading: maintenanceLoading } = useSWR("admin/maintenance-booking?page=1&limit=100", getAdminDetails);
+    const { data: PricingData, mutate: priceMutate, isLoading: priceLoading } = useSWR("admin/dynamic-pricing", getDynamicPricing);
+    const profileDetails = useMemo(() => data?.data?.data || {}, [data]);
 
     // Map API data to table format
     const mappedMaintenanceData = useMemo(() => {
@@ -74,8 +74,26 @@ const ProfileForm = () => {
         }
         return [];
     }, [maintenanceData1]);
-    const { data: PricingData, mutate: priceMutate, isLoading: priceLoading } = useSWR("admin/dynamic-pricing", getDynamicPricing);
-    const profileDetails = useMemo(() => data?.data?.data || {}, [data]);
+
+    // Group maintenance data by venue and date
+    const groupedMaintenanceData = useMemo(() => {
+        const grouped = {};
+        mappedMaintenanceData.forEach((item) => {
+            const key = `${item.venue}-${item.date}`;
+            if (!grouped[key]) {
+                grouped[key] = {
+                    venue: item.venue,
+                    date: item.date,
+                    items: [],
+                };
+            }
+            grouped[key].items.push(item);
+        });
+        return Object.values(grouped).map((group: any, index) => ({
+            ...group,
+            srNo: index + 1,
+        }));
+    }, [mappedMaintenanceData]);
 
     // Map API pricing data to component format
     const mappedPricingData = useMemo(() => {
@@ -109,11 +127,7 @@ const ProfileForm = () => {
         },
     });
 
-
-
-
-
-    // Profile form logic (unchanged)
+    // Profile form logic
     useEffect(() => {
         if (profileDetails && Object.keys(profileDetails).length > 0) {
             const newValues = {
@@ -159,11 +173,9 @@ const ProfileForm = () => {
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files[0];
         if (file) {
-            // Validate the file
-            const validation = validateImageFile(file, 5); // 5MB limit
+            const validation = validateImageFile(file, 5);
             if (!validation.isValid) {
                 toast.error(validation.error);
-                // Reset the input
                 e.target.value = '';
                 return;
             }
@@ -172,7 +184,6 @@ const ProfileForm = () => {
                 URL.revokeObjectURL(imagePreview.url);
             }
 
-            // Create a local preview
             const newPreview = {
                 file,
                 url: URL.createObjectURL(file),
@@ -185,14 +196,8 @@ const ProfileForm = () => {
         try {
             const timestamp = Date.now();
             const fileName = `${timestamp}-${file.name}`;
+            const { signedUrl, key } = await generateSignedUrlForProfile(fileName, file.type);
 
-            // Generate signed URL for S3 upload
-            const { signedUrl, key } = await generateSignedUrlForProfile(
-                fileName,
-                file.type
-            );
-
-            // Upload the file to S3
             const uploadResponse = await fetch(signedUrl, {
                 method: "PUT",
                 body: file,
@@ -205,7 +210,6 @@ const ProfileForm = () => {
                 throw new Error("Failed to upload image to S3");
             }
 
-            // Delete previous image if it exists
             if (imageKey) {
                 try {
                     await deleteFileFromS3(imageKey);
@@ -237,23 +241,21 @@ const ProfileForm = () => {
             }
         };
     }, [imagePreview]);
+
     const onProfileSubmit = async (data: any) => {
         setIsSubmitting(true);
         try {
             let uploadedImageKey = imageKey;
 
-            // If there's a new image file, upload it to S3
             if (imagePreview?.file) {
                 try {
                     uploadedImageKey = await uploadImageToS3(imagePreview.file);
                 } catch (uploadError) {
                     console.error("Error uploading image to S3:", uploadError);
                     toast.error("Failed to upload profile image");
-                    // Continue with the profile update even if image upload fails
                 }
             }
 
-            // Prepare payload for API
             const payload: any = {
                 fullName: data.name,
                 phoneNumber: data.phoneNumber,
@@ -261,7 +263,6 @@ const ProfileForm = () => {
                 profilePic: uploadedImageKey || profileDetails.profilePic || null
             };
 
-            // Add password if it was changed
             if (data.changePassword) {
                 payload.password = data.changePassword;
             }
@@ -283,7 +284,6 @@ const ProfileForm = () => {
                 images: null,
             }, { keepDirty: false });
 
-            // Update image preview with the S3 URL if available
             if (uploadedImageKey) {
                 const imageUrl = getImageClientS3URL(uploadedImageKey);
                 setImagePreview({ url: imageUrl });
@@ -301,7 +301,6 @@ const ProfileForm = () => {
 
     // Maintenance form logic
     const onMaintenanceSubmit = () => {
-
         maintenanceMutate();
         setIsModalOpen(false);
         toast.success("Maintenance schedule added successfully");
@@ -319,42 +318,38 @@ const ProfileForm = () => {
 
         try {
             console.log('Deleting maintenance item:', itemToDelete);
-
-            // Call the delete API endpoint
             const response = await deleteMaintenance(`admin/maintenance-booking/${itemToDelete.id}`);
             console.log('Delete response:', response);
-
-            // Refresh the data
             maintenanceMutate();
             toast.success("Maintenance schedule deleted successfully");
-
-            // Close modal and reset state
             setIsDeleteModalOpen(false);
             setItemToDelete(null);
-
         } catch (error: any) {
             console.error('Error deleting maintenance:', error);
-
-            // Show error message
             const errorMessage = error?.response?.data?.message || 'Failed to delete maintenance schedule';
             toast.error(errorMessage);
         }
     };
 
-
+    // Toggle accordion open/close state
+    const toggleAccordion = (key) => {
+        setOpenAccordions((prev) => ({
+            ...prev,
+            [key]: !prev[key],
+        }));
+    };
 
     if (isLoading) {
         return <div>Loading...</div>;
     }
 
     return (
-        <div className="mb-[50px] h-[100vh] w-full  flex flex-row gap-[15px]">
+        <div className="mb-[50px] h-[100vh] w-full flex flex-row gap-[15px]">
             <div className="w-1/2">
-                {/* Profile Section */}
                 <div className="flex w-full justify-between">
                     <h2 className="text-[#10375c] text-3xl font-semibold mb-6">Profile</h2>
                 </div>
-                <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="w-full flex flex-col md:flex-row gap-[15px] h-fit">
+                <form autoComplete="off" onSubmit={handleProfileSubmit(onProfileSubmit)} className="w-full flex flex-col md:flex-row gap-[15px] h-fit">
                     <div className="w-full space-y-4 bg-[#f2f2f4] p-[15px] rounded-[20px] h-fit mb-[30px]">
                         <div className="relative bg-gray-100 rounded-lg flex flex-col items-center justify-center">
                             {imagePreview ? (
@@ -400,7 +395,6 @@ const ProfileForm = () => {
                                 />
                             </label>
                         </div>
-
                         <div className="flex flex-col gap-[15px]">
                             <div className="flex flex-col gap-[10px]">
                                 <label className="block text-[#1b2229] text-xs font-medium">Name</label>
@@ -412,7 +406,6 @@ const ProfileForm = () => {
                                 />
                                 {profileErrors.name && <p className="text-red-500 text-xs">{profileErrors.name.message}</p>}
                             </div>
-
                             <div className="flex flex-col gap-[10px]">
                                 <label className="block text-[#1b2229] text-xs font-medium">Phone Number</label>
                                 <input
@@ -423,7 +416,6 @@ const ProfileForm = () => {
                                 />
                                 {profileErrors.phoneNumber && <p className="text-red-500 text-xs">{profileErrors.phoneNumber.message}</p>}
                             </div>
-
                             <div className="flex flex-col gap-[10px]">
                                 <label className="block text-[#1b2229] text-xs font-medium">Email Address</label>
                                 <input
@@ -434,12 +426,12 @@ const ProfileForm = () => {
                                 />
                                 {profileErrors.email && <p className="text-red-500 text-xs">{profileErrors.email.message}</p>}
                             </div>
-
                             <div className="flex w-full gap-[15px]">
                                 <div className="w-[50%] flex flex-col gap-[10px]">
                                     <label className="block text-[#1b2229] text-xs font-medium">Change Password</label>
                                     <input
                                         type="password"
+                                        autoComplete="new-password"
                                         {...profileRegister('changePassword')}
                                         className="w-full h-[45.41px] px-[15px] py-2.5 bg-white rounded-[39px] text-black/60 text-xs font-medium"
                                         placeholder="******"
@@ -450,6 +442,7 @@ const ProfileForm = () => {
                                     <label className="block text-[#1b2229] text-xs font-medium">Confirm Password</label>
                                     <input
                                         type="password"
+                                        autoComplete="new-password"
                                         {...profileRegister('confirmPassword')}
                                         className="w-full h-[45.41px] px-[15px] py-2.5 bg-white rounded-[39px] text-black/60 text-xs font-medium"
                                         placeholder="******"
@@ -457,7 +450,6 @@ const ProfileForm = () => {
                                     {profileErrors.confirmPassword && <p className="text-red-500 text-xs">{profileErrors.confirmPassword.message}</p>}
                                 </div>
                             </div>
-
                             <button
                                 type="submit"
                                 disabled={!hasChanges || isSubmitting}
@@ -482,74 +474,106 @@ const ProfileForm = () => {
                     </div>
                 </form>
             </div>
-
             <div className="w-full">
                 <h2 className="text-[#10375c] text-3xl font-semibold">Settings</h2>
                 <div className="mt-6 w-full">
-
                     <div className="overflow-x-auto bg-[#f2f2f4] rounded-[20px] p-[15px]">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-[#10375C] text-xl font-semibold ">Maintenance</h2>
+                            <h2 className="text-[#10375C] text-xl font-semibold">Maintenance</h2>
                             <button
                                 onClick={() => setIsModalOpen(true)}
                                 className="flex items-center gap-2 bg-[#1C2329] text-white text-sm font-medium px-4 py-2 rounded-full"
                             >
-                                <span className="text-2xl ">+</span> Add A New Court
+                                <span className="text-2xl">+</span> Add A New Court
                             </button>
                         </div>
-                        <table className="w-full ">
+                        <table className="w-full">
                             <thead>
                                 <tr className="text-left text-[#1b2229] text-sm font-medium">
                                     <th className="text-[#7E7E8A] text-xs font-medium">Sr No</th>
                                     <th className="text-[#7E7E8A] text-xs font-medium w-[30%]">Venue</th>
-                                    <th className="text-[#7E7E8A] text-xs font-medium">Court</th>
-                                    <th className="text-[#7E7E8A] text-xs font-medium text-right">Date</th>
-                                    <th className="text-[#7E7E8A] text-xs font-medium text-right">Time</th>
-                                    <th className="text-[#7E7E8A] text-xs font-medium text-right">Action</th>
+                                    <th className="text-[#7E7E8A] text-xs font-medium">Date</th>
+                                    <th className="text-[#7E7E8A] text-xs font-medium text-right">Details</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {maintenanceLoading ? (
                                     <tr>
-                                        <td colSpan={6} className="text-center py-4">
+                                        <td colSpan={4} className="text-center py-4">
                                             <p className="text-gray-600">Loading maintenance data...</p>
                                         </td>
                                     </tr>
-                                ) : mappedMaintenanceData.length === 0 ? (
+                                ) : groupedMaintenanceData.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="text-center py-4">
+                                        <td colSpan={4} className="text-center py-4">
                                             <p className="text-gray-600">No maintenance schedules found</p>
                                         </td>
                                     </tr>
                                 ) : (
-                                    mappedMaintenanceData.map((item: any, index: number) => (
-                                        <tr key={item.id} className={`text-sm px-3 py-3 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[40px]`}>
-                                            <td className="">{item.srNo}</td>
-                                            <td className=" text-[#1B2229] text-xs font-medium ">{item.venue}</td>
-                                            <td className=" text-[#1B2229] text-xs font-medium">{item.court}</td>
-                                            <td className=" text-[#1B2229] text-xs font-medium text-right">{item.date}</td>
-                                            <td className=" text-[#1B2229] text-xs font-medium text-right">{item.time}</td>
-                                            <td className=" text-[#1B2229] text-xs font-medium text-right">
-                                                <button onClick={() => openDeleteModal(item)} className="text-red-500">
-                                                    <DeleteMaintenanceIcon />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
+                                    groupedMaintenanceData.map((group, index) => {
+                                        const key = `${group.venue}-${group.date}`;
+                                        const isOpen = !!openAccordions[key];
+                                        return (
+                                            <React.Fragment key={key}>
+                                                <tr
+                                                    className={`text-sm px-3 py-3 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[40px] cursor-pointer`}
+                                                    onClick={() => toggleAccordion(key)}
+                                                >
+                                                    <td>{group.srNo}</td>
+                                                    <td className="text-[#1B2229] text-xs font-medium">{group.venue}</td>
+                                                    <td className="text-[#1B2229] text-xs font-medium">{group.date}</td>
+                                                    <td className="text-[#1B2229] text-xs font-medium text-right">
+                                                        <span>{isOpen ? '▲' : '▼'}</span>
+                                                    </td>
+                                                </tr>
+                                                {isOpen && (
+                                                    <tr>
+                                                        <td colSpan={4} className="p-0">
+                                                            <div className="bg-[#e7e7e7] p-4 rounded-b-[20px]">
+                                                                <table className="w-full">
+                                                                    <thead>
+                                                                        <tr className="text-left text-[#7E7E8A] text-xs font-medium">
+                                                                            <th className="py-2">Court</th>
+                                                                            <th className="py-2 text-right">Time</th>
+                                                                            <th className="py-2 text-right">Reason</th>
+                                                                            <th className="py-2 text-right">Action</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {group.items.map((item, itemIndex) => (
+                                                                            <tr
+                                                                                key={item.id}
+                                                                                className={`text-sm ${itemIndex % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[10px]`}
+                                                                            >
+                                                                                <td className="py-2 text-[#1B2229] text-xs font-medium">{item.court}</td>
+                                                                                <td className="py-2 text-[#1B2229] text-xs font-medium text-right">{item.time}</td>
+                                                                                <td className="py-2 text-[#1B2229] text-xs font-medium text-right">{item.maintenanceReason}</td>
+                                                                                 <td className="py-2 text-[#1B2229] text-xs font-medium text-right">
+                                                                                     <button onClick={() => openDeleteModal(item)} className="text-red-500">
+                                                                                         <DeleteMaintenanceIcon />
+                                                                                    </button>
+                                                                                 </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
                     </div>
                 </div>
-
-                {/* Maintenance Modal */}
                 <MaintenanceModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     onSubmit={onMaintenanceSubmit}
                 />
-
-                {/* Delete Confirmation Modal */}
                 <DeleteConfirmationModal
                     open={isDeleteModalOpen}
                     onClose={() => setIsDeleteModalOpen(false)}
@@ -559,33 +583,28 @@ const ProfileForm = () => {
                     cancelText="Cancel"
                     deleteText="Delete"
                 />
-                {userRole !== "employee" &&
-                <div className="mt-5">
-                    {priceLoading ? (
-                        <div className="flex justify-center items-center h-32">
-                            <p className="text-lg text-gray-600">Loading pricing data...</p>
-                        </div>
-                    ) : (
-                        <PricingBlock
-                            weekdayPricing={mappedPricingData.weekdayPricing}
-                            weekendPricing={mappedPricingData.weekendPricing}
-                            onWeekdayPricingUpdate={(data) => {
-                                console.log("Weekday pricing updated:", data);
-                                priceMutate(); // Refresh pricing data
-                            }}
-                            onWeekendPricingUpdate={(data) => {
-                                console.log("Weekend pricing updated:", data);
-                                priceMutate(); // Refresh pricing data
-                            }}
-                            // onAddPricing={(data) => {
-                            //     console.log("New pricing added:", data);
-                            //     priceMutate(); // Refresh pricing data
-                            //     toast.success("New pricing added successfully");
-                            // }}
-                        />
-                    )}
-                </div>
-}
+                {userRole !== "employee" && (
+                    <div className="mt-5">
+                        {priceLoading ? (
+                            <div className="flex justify-center items-center h-32">
+                                <p className="text-lg text-gray-600">Loading pricing data...</p>
+                            </div>
+                        ) : (
+                            <PricingBlock
+                                weekdayPricing={mappedPricingData.weekdayPricing}
+                                weekendPricing={mappedPricingData.weekendPricing}
+                                onWeekdayPricingUpdate={(data) => {
+                                    console.log("Weekday pricing updated:", data);
+                                    priceMutate();
+                                }}
+                                onWeekendPricingUpdate={(data) => {
+                                    console.log("Weekend pricing updated:", data);
+                                    priceMutate();
+                                }}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

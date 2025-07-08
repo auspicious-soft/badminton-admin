@@ -7,6 +7,8 @@ import { AppLogoIcon, Loading } from "../../../../utils/svgicons";
 import { signOut, useSession } from "next-auth/react";
 import { logOutService } from "@/services/admin-services";
 import NotificationModal from "../notifications/NotificationModal";
+import { getNotifications } from "@/services/admin-services";
+import useSWR from "swr";
 
 const navigationLinks = [
   { href: "/authority/dashboard", label: "Dashboard", routes: ["/authority/dashboard"] },
@@ -42,7 +44,27 @@ const Headers = () => {
   const router = useRouter();
   const pathname = usePathname();
   const isProfileActive = pathname === "/authority/profile";
+  const venueId = (data as any)?.user?.venueId;
+   const endpoint =
+    userRole === "employee"
+      ? `/admin/notifications?page=1&limit=10&venueId=${venueId}`
+      : `/admin/notifications?page=1&limit=1000`;
 
+  const {
+  data: notificationsData,
+  error: swrError,
+  isLoading,
+  mutate,
+} = useSWR(showNotificationDropdown ? endpoint : null, getNotifications, {
+  revalidateOnFocus: false,
+  revalidateOnReconnect: false,
+  revalidateIfStale: false,
+  keepPreviousData: true,
+  dedupingInterval: 5000,
+});
+const hasUnreadNotifications = Array.isArray(notificationsData?.data?.data)
+  ? notificationsData.data.data.some((n) => n.isReadyByAdmin === false)
+  : false;
   // Filter navigation links based on userRole
   const filteredNavigationLinks = userRole?.toLowerCase() === "employee"
     ? navigationLinks.filter(
@@ -147,12 +169,21 @@ const Headers = () => {
               </button>
               
               <div className="relative" ref={notificationRef}>
-                <button
+                {/* <button
                   className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                   onClick={handleNotificationClick}
                 >
                   <Bell className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
+                </button> */}
+                <button
+  className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors relative"
+  onClick={handleNotificationClick}
+>
+  <Bell className="w-4 h-4 md:w-5 md:h-5" />
+  {hasUnreadNotifications && (
+    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+  )}
+</button>
                 
                 <NotificationModal
                   open={showNotificationDropdown}

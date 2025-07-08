@@ -47,13 +47,14 @@ export default function SingleUserProfile() {
         ].slice(0, 4);
 
         const equipmentRented = [
-            match?.team1?.[0]?.racketA ? `${match.team1[0].racketA} Racket A` : null,
-            match?.team1?.[0]?.racketB ? `${match.team1[0].racketB} Racket B` : null,
-            match?.team1?.[0]?.racketC ? `${match.team1[0].racketC} Racket C` : null,
-            match?.team1?.[0]?.balls ? `${match.team1[0].balls} Balls` : null,
-        ]
-            .filter(Boolean)
-            .join(", ") || "None";
+            (match?.team1?.[0]?.rackets || 0) + (match?.team2?.[0]?.rackets || 0) > 0
+                ? `${(match?.team1?.[0]?.rackets || 0) + (match?.team2?.[0]?.rackets || 0)} Racket`
+                : null,
+            (match?.team1?.[0]?.balls || 0) + (match?.team2?.[0]?.balls || 0) > 0
+                ? `${(match?.team1?.[0]?.balls || 0) + (match?.team2?.[0]?.balls || 0)} Balls`
+                : null,
+        ].filter(Boolean)
+            .join(" - ") || "None";
 
         const equipmentCount = [
             match?.team1?.[0]?.racketA || 0,
@@ -65,13 +66,14 @@ export default function SingleUserProfile() {
         return {
             date: match?.bookingDate
                 ? new Date(match.bookingDate).toLocaleString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                  })
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    //   hour: "2-digit",
+                    //   minute: "2-digit",
+                })
                 : "N/A",
+            slot: match?.bookingSlots,
             location: `${match?.venue?.name || "Unknown"}, ${match?.venue?.city || "Unknown"}`,
             amountPaid: `₹${match?.bookingAmount || 0}`,
             gameType: match?.court?.games || "Padel",
@@ -336,6 +338,8 @@ export default function SingleUserProfile() {
                                                     </div>
                                                     <div className="text-right text-[#1b2229] text-sm font-semibold leading-[16.80px]">
                                                         {formattedMatch.date}
+                                                        {" "}
+                                                        {formattedMatch.slot}
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-[20px] w-full">
@@ -408,7 +412,8 @@ export default function SingleUserProfile() {
                                                             Equipment Rented (if any)
                                                         </div>
                                                         <div className="text-right text-white text-xs font-medium leading-[14.40px]">
-                                                            {formattedMatch.equipmentRented}
+                                                            {/* {formattedMatch.equipmentRented} */}
+                                                            {/* {match.} */}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -441,6 +446,8 @@ export default function SingleUserProfile() {
                                                     </div>
                                                     <div className="text-right text-[#1b2229] text-sm font-semibold leading-[16.80px]">
                                                         {formattedMatch.date}
+                                                        {", "}
+                                                        {formattedMatch.slot}
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-[20px] w-full">
@@ -556,20 +563,20 @@ export default function SingleUserProfile() {
                                                             {formattedMatch.equipmentRented}
                                                         </div>
                                                     </div>
-                                                    <div className="flex justify-between items-center w-full">
+                                                    {/* <div className="flex justify-between items-center w-full">
                                                         <div className="text-white text-xs font-medium leading-[14.40px]">
                                                             Price of Equipment Rented
                                                         </div>
                                                         <div className="text-right text-white text-xs font-medium leading-[14.40px]">
                                                             {formattedMatch.rentedEquipmentPrice}
                                                         </div>
-                                                    </div>
+                                                    </div> */}
                                                 </div>
                                             </div>
                                         </div>
-                                        {index === 0 && (
-                                            <div className="w-full h-[0px] border border-dotted border-[#d0d0d0] my-[10px]" />
-                                        )}
+                                        {/* {index === 0 && ( */}
+                                        <div className="w-full h-[0px] border border-dotted border-[#d0d0d0] my-[10px]" />
+                                        {/* )} */}
                                     </div>
                                 );
                             })
