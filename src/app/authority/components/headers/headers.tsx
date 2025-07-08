@@ -55,16 +55,24 @@ const Headers = () => {
   error: swrError,
   isLoading,
   mutate,
-} = useSWR(showNotificationDropdown ? endpoint : null, getNotifications, {
+} = useSWR( endpoint , getNotifications, {
   revalidateOnFocus: false,
   revalidateOnReconnect: false,
   revalidateIfStale: false,
   keepPreviousData: true,
-  dedupingInterval: 5000,
+  dedupingInterval: 100,
 });
 const hasUnreadNotifications = Array.isArray(notificationsData?.data?.data)
   ? notificationsData.data.data.some((n) => n.isReadyByAdmin === false)
   : false;
+  
+// useEffect(() => {
+//     if (notificationsData) {
+//       mutate()
+//     }
+//   }, [notificationsData, mutate])
+
+
   // Filter navigation links based on userRole
   const filteredNavigationLinks = userRole?.toLowerCase() === "employee"
     ? navigationLinks.filter(
