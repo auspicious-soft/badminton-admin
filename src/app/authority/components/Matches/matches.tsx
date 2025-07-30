@@ -132,6 +132,7 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
             <div className="w-[30%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Team 1</div>
             <div className="w-[30%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Team 2</div>
             <div className="w-[15%] h-3.5 text-[#7e7e8a] text-xs font-medium">Game</div>
+            <div className="w-[13%] h-3.5 text-[#7e7e8a] text-xs font-medium">Venue</div>
             <div className="w-[18%] h-3.5 text-[#7e7e8a] text-xs text-center font-medium">Date</div>
             <div className="w-[10%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Action</div>
           </div>
@@ -204,6 +205,12 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                       }`}
                   >
                     {match.court?.games || "N/A"}
+                  </div>
+                  <div
+                    className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                      }`}
+                  >
+                    {match.venue?.name || "N/A"}
                   </div>
                   <div
                     className={`w-[18%] text-[#1b2229] text-center break-words text-xs font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
