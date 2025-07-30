@@ -1,6 +1,6 @@
 "use client";
 import Login from "@/assets/images/LoginImage.png";
-import Logo from "@/assets/images/appLogo.png";
+import Logo from "@/assets/images/appLogo.svg";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -82,8 +82,8 @@ const [showPassword, setShowPassword] = useState(false);
      <Image src={Login} alt="Illustration" className=" w-[80%]" />
     </div>
     <div className="w-full md:w-[60%] p-8 flex flex-col justify-center">
-     <div className="text-center mb-6 space-y-[50px]">
-      <Image src={Logo} alt="Play Adel Pickle" className="mx-auto w-24" />
+     <div className="text-center mb-6 space-y-[20px]">
+      <Image src={Logo} alt="Play Adel Pickle" className="mx-auto " />
       <h2 className="text-center text-[#1b2229] text-3xl font-semibold">Welcome Back</h2>
      </div>
      <form onSubmit={handleSubmit} className="w-full space-y-[20px] max-w-sm mx-auto">
