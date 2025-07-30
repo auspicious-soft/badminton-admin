@@ -284,6 +284,23 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
               {currentSelectedMatch?.isMaintenance === false && (
                 <div>
                   <div className="flex justify-between items-center mt-4">
+                    <h4 className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Venue</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="w-[25px] h-[25px] relative">
+                        {/* <Image
+                          src={selectedMatch?.venue?.image !== "null" && getProfileImageUrl(selectedMatch?.venue?.image)}
+                          alt="Avatar"
+                          className="rounded-full object-cover"
+                          fill
+                          unoptimized
+                        /> */}
+                      </div>
+                      <p className="text-right text-[#1b2229] text-sm font-semibold">
+                        {selectedMatch?.venue?.name || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <h4 className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Created By</h4>
                     <div className="flex items-center gap-2">
                       <div className="w-[25px] h-[25px] relative">
