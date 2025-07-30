@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import MatchImage from "@/assets/images/padelImage.png";
 import UserProfile2 from "@/assets/images/images.png";
@@ -11,25 +11,25 @@ import { getImageClientS3URL } from "@/config/axios";
 import { useSession } from "next-auth/react";
 import RefundConfirmation from "./refundConfirmationModal";
 
-export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }: { name: string, selectedGame: string, selectedCity: string, selectedDate: string }) {
+export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [searchParams, setSearchParams] = useState("");
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
   const [type, setType] = useState("upcoming");
   const [isTabSwitching, setIsTabSwitching] = useState(false);
-  const { data: session } = useSession();
-  console.log("session", session);
-  const userRole = (session as any)?.user?.role;
-  const venueId = (session as any)?.user?.venueId;
-
-  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
-  const typeMapping: { [key: string]: string } = {
+  const { data: session, status } = useSession();
+  console.log("session", session, "status", status);
+const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  // Derive userRole and venueId from session
+  const userRole = status === "authenticated" ? (session as any)?.user?.role : undefined;
+  const venueId = status === "authenticated" ? (session as any)?.user?.venueId : undefined;
+  console.log("userRole", userRole, "venueId", venueId);
+     const typeMapping: { [key: string]: string } = {
     "Cancelled Matches": "cancelled",
     "Previous Matches": "completed",
     "Upcoming Matches": "upcoming",
   };
-
   useEffect(() => {
     const mappedType = typeMapping[name] || "completed";
     setType(mappedType);
@@ -37,15 +37,24 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
     setSelectedMatch(null);
     setIsTabSwitching(true);
   }, [name]);
-
-  // Define shouldFetch to control API call
-  const shouldFetch = (userRole === "employee" && venueId === null);
-  // Unconditionally call useSWR, but pass null key if we don't want to fetch
-  console.log('shouldFetch: ', shouldFetch);
+  // Compute the SWR key based on role and conditions
+  const swrKey = useMemo(() => {
+    console.log('Computing swrKey - userRole:', userRole, 'venueId:', venueId, 'status:', status);
+    if (status !== "authenticated") return null;
+ 
+    const baseParams = `?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}`;
+ 
+    if (userRole === "admin") {
+      return `/admin/get-matches${baseParams}`;
+    }
+     else if (userRole === "employee" && venueId !== "null") {
+      return `/admin/get-matches${baseParams}&venueId=${venueId}`;
+    }
+    return null; // No fetch for other cases
+  }, [status, userRole, venueId, page, itemsPerPage, type, searchParams, selectedGame, selectedDate, selectedCity]);
+ 
   const { data, mutate, isLoading, error } = useSWR(
-    shouldFetch
-      ? `/admin/get-matches?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}${userRole === "employee" ? `&venueId=${venueId}` : ''}`
-      : null,
+    swrKey,
     getAllMatches
   );
 
