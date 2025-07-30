@@ -192,8 +192,8 @@ const Page = () => {
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [contactNumber, setContactNumber] = useState(""); // State for contact number
-  const [description, setDescription] = useState(""); // New state for description
+  const [contactNumber, setContactNumber] = useState("");
+  const [description, setDescription] = useState("");
   const stateDropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedFacilities, setSelectedFacilities] = useState([]);
@@ -209,14 +209,16 @@ const Page = () => {
   const [searchParams, setSearchParams] = useState("");
   const [location, setLocation] = useState(null);
   const [openingHours, setOpeningHours] = useState<OpeningHour[]>([
-    { day: "Monday", hours: ["06:00", "21:00"] },
-    { day: "Tuesday", hours: ["06:00", "21:00"] },
-    { day: "Wednesday", hours: ["06:00", "21:00"] },
-    { day: "Thursday", hours: ["06:00", "21:00"] },
-    { day: "Friday", hours: ["06:00", "21:00"] },
+    { day: "Monday", hours: ["06:00", "22:00"] },
+    { day: "Tuesday", hours: ["06:00", "22:00"] },
+    { day: "Wednesday", hours: ["06:00", "22:00"] },
+    { day: "Thursday", hours: ["06:00", "22:00"] },
+    { day: "Friday", hours: ["06:00", "22:00"] },
     { day: "Saturday", hours: ["07:00", "22:00"] },
-    { day: "Sunday", hours: ["07:00", "20:00"] },
+    { day: "Sunday", hours: ["07:00", "22:00"] },
   ]);
+  const [openingTime, setOpeningTime] = useState("06:00");
+  const [closingTime, setClosingTime] = useState("22:00");
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
 
   const apiKey = "AIzaSyCDZoRf-BZL2yR_ZyXpzht_a63hMgLCTis";
@@ -228,6 +230,24 @@ const Page = () => {
   );
 
   const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
+
+  // Function to generate timeslots between opening and closing times
+  const generateTimeslots = (startTime: string, endTime: string): string[] => {
+    const timeslots: string[] = [];
+    if (!startTime || !endTime) return timeslots;
+
+    const startHour = parseInt(startTime.split(":")[0], 10);
+    const endHour = parseInt(endTime.split(":")[0], 10);
+
+    if (isNaN(startHour) || isNaN(endHour)) return timeslots;
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+      const formattedHour = hour.toString().padStart(2, "0") + ":00";
+      timeslots.push(formattedHour);
+    }
+
+    return timeslots;
+  };
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -256,7 +276,7 @@ const Page = () => {
       setSelectedState(venueDataValue.venue?.state || "");
       setSelectedStatus(venueDataValue.venue?.isActive ? "Active" : "In-Active");
       setContactNumber(venueDataValue.venue?.contactInfo || "");
-      setDescription(venueDataValue.venue?.venueInfo || ""); // Map venueInfo to description
+      setDescription(venueDataValue.venue?.venueInfo || "");
 
       const mappedCourts = venueDataValue.courts?.map((court: any) => ({
         id: court._id,
@@ -295,13 +315,15 @@ const Page = () => {
 
       if (venueDataValue.venue?.openingHours) {
         setOpeningHours(venueDataValue.venue.openingHours);
+        if (venueDataValue.venue.openingHours.length > 0) {
+          setOpeningTime(venueDataValue.venue.openingHours[0].hours[0]);
+          setClosingTime(venueDataValue.venue.openingHours[0].hours[1]);
+        }
       }
 
-      // Handle image
       const venueImage = venueDataValue.venue?.image || null;
       setImageKey(venueImage);
 
-      // If the image is an S3 URL, fetch and display it
       if (venueImage && venueImage.startsWith('venues/')) {
         const imageUrl = getImageClientS3URL(venueImage);
         setSelectedImage(imageUrl);
@@ -318,7 +340,7 @@ const Page = () => {
     city &&
     selectedState &&
     contactNumber &&
-    description && // Added description to validation
+    description &&
     courts.length > 0 &&
     employees.length > 0 &&
     location
@@ -328,17 +350,13 @@ const Page = () => {
 
   const handleToggleCourtStatus = async (courtId: string) => {
     try {
-      // Find the court
       const court = courts.find(c => c.id === courtId);
       if (!court) return;
 
-      // Set the toggling state to show loading
       setTogglingCourtId(courtId);
 
-      // Prepare the new status
       const newStatus = court.status === "Active" ? "Inactive" : "Active";
 
-      // Prepare the payload for the API
       const payload = {
         id: courtId,
         venueId: id,
@@ -348,11 +366,9 @@ const Page = () => {
         image: court.imageKey || null,
       };
 
-      // Call the API to update the court
       const response = await updateCourt("/admin/court", payload);
 
       if (response?.status === 200 || response?.status === 201) {
-        // Update the local state
         setCourts((prev) =>
           prev.map((c) =>
             c.id === courtId
@@ -368,7 +384,6 @@ const Page = () => {
       console.error("Error updating court status:", error);
       toast.error("Failed to update court status");
     } finally {
-      // Clear the toggling state
       setTogglingCourtId(null);
     }
   };
@@ -378,12 +393,10 @@ const Page = () => {
   };
 
   const handleUpdateCourt = (updatedCourt: Court) => {
-    // Make sure we preserve the imageKey when updating the court
     setCourts((prev) =>
       prev.map((court) =>
         court.id === updatedCourt.id ? {
           ...updatedCourt,
-          // Ensure the imageKey is preserved or updated
           imageKey: updatedCourt.imageKey || court.imageKey
         } : court
       )
@@ -399,7 +412,7 @@ const Page = () => {
     const mappedEmployees = newEmployees.map((emp: any) => ({
       id: emp.employeeId,
       name: emp.fullName,
-      image: emp.image, // Already a URL from AddEmployeeModal
+      image: emp.image,
       isActive: emp.isActive,
     }));
     setEmployees((prev) => [...prev, ...mappedEmployees]);
@@ -412,19 +425,13 @@ const Page = () => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // If the current image is a local object URL, revoke it
       if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
         URL.revokeObjectURL(selectedImage);
       }
 
-      // Create a local preview URL for the image
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
-
-      // Store the file for later upload when Save is clicked
       setImageFile(file);
-
-      // Clear the image key since we're replacing the image
       setImageKey(null);
     }
   };
@@ -442,13 +449,11 @@ const Page = () => {
       const timestamp = Date.now();
       const fileName = `${timestamp}-${file.name}`;
 
-      // Generate signed URL for S3 upload
       const { signedUrl, key } = await generateSignedUrlForVenue(
         fileName,
         file.type
       );
 
-      // Upload the file to S3
       const uploadResponse = await fetch(signedUrl, {
         method: "PUT",
         body: file,
@@ -471,40 +476,41 @@ const Page = () => {
     }
   };
 
-  const handleTimeChange = (day: string, index: number, value: string) => {
+  const handleTimeChange = (index: number, value: string) => {
+    const newHours = [openingTime, closingTime];
+    newHours[index] = value;
+    const [newOpeningTime, newClosingTime] = newHours;
+    setOpeningTime(newOpeningTime);
+    setClosingTime(newClosingTime);
     setOpeningHours((prev) =>
-      prev.map((entry) =>
-        entry.day === day
-          ? { ...entry, hours: entry.hours.map((time, i) => (i === index ? value : time)) }
-          : entry
-      )
+      prev.map((entry) => ({
+        ...entry,
+        hours: [newOpeningTime, newClosingTime],
+      }))
     );
   };
 
   const handleSave = async () => {
     setIsUploading(true);
     try {
-      // Handle venue image upload
       let finalImageKey = imageKey;
 
-      // If we have a new venue image file, upload it to S3
       if (imageFile) {
         finalImageKey = await uploadImageToS3(imageFile);
 
-        // If we had a previous S3 image, delete it
         if (imageKey && imageKey.startsWith('venues/')) {
           try {
             await deleteFileFromS3(imageKey);
             console.log("Previous venue image deleted:", imageKey);
           } catch (error) {
             console.error("Error deleting previous venue image:", error);
-            // Continue with the save process even if deletion fails
           }
         }
       }
 
-      // Use the current courts state since images are already uploaded
       const updatedCourts = courts;
+
+      const timeslots = generateTimeslots(openingTime, closingTime);
 
       const payload = {
         _id: id,
@@ -513,7 +519,7 @@ const Page = () => {
         city,
         state: selectedState,
         contactInfo: contactNumber,
-        venueInfo: description, // Added description as venueInfo
+        venueInfo: description,
         image: finalImageKey,
         gamesAvailable,
         facilities: [
@@ -527,7 +533,7 @@ const Page = () => {
           isActive: court.status === "Active",
           games: court.game,
           image: court.imageKey || null,
-          id: court.id, // Include the court ID for existing courts
+          id: court.id,
         })),
         employees: employees.map((emp) => ({
           employeeId: emp.id,
@@ -538,6 +544,7 @@ const Page = () => {
           coordinates: [location.lng, location.lat],
         },
         openingHours,
+        timeslots,
       };
 
       startTransition(async () => {
@@ -548,12 +555,10 @@ const Page = () => {
           if (response?.status === 200 || response?.status === 201) {
             toast.success("Venue updated successfully");
 
-            // Clean up local image URL if it exists
             if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
               URL.revokeObjectURL(selectedImage);
             }
 
-            // Clean up any blob URLs in courts
             courts.forEach(court => {
               if (court.image && typeof court.image === 'string' && court.image.startsWith('blob:')) {
                 URL.revokeObjectURL(court.image);
@@ -580,7 +585,6 @@ const Page = () => {
 
   useEffect(() => {
     return () => {
-      // Only revoke object URLs for local images
       if (selectedImage && typeof selectedImage === 'string' && selectedImage.startsWith('blob:')) {
         URL.revokeObjectURL(selectedImage);
       }
@@ -675,26 +679,18 @@ const Page = () => {
                 <label className="text-xs font-medium text-[#1b2229]">
                   Contact Number
                 </label>
-                {/* <input
+                <input
                   type="tel"
                   value={contactNumber}
-                  onChange={(e) => setContactNumber(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    if (value.length <= 10) {
+                      setContactNumber(value);
+                    }
+                  }}
                   className="w-full mt-2 p-3 bg-white rounded-full text-xs border border-gray-300"
                   placeholder="Enter Contact Number"
-                /> */}
-                <input
-  type="tel"
-  value={contactNumber}
-  onChange={(e) => {
-    const value = e.target.value.replace(/\D/g, ""); // remove non-digits
-    if (value.length <= 10) {
-      setContactNumber(value);
-    }
-  }}
-  className="w-full mt-2 p-3 bg-white rounded-full text-xs border border-gray-300"
-  placeholder="Enter Contact Number"
-/>
-
+                />
               </div>
               <div className="relative" ref={stateDropdownRef}>
                 <label className="text-xs font-medium text-[#1b2229] block mb-2">
@@ -751,109 +747,108 @@ const Page = () => {
                   </span>
                 </button>
               </div>
-              
-            <div className="relative" ref={statusDropdownRef}>
-              <label className="text-xs font-medium text-[#1b2229] block mb-2">
-                Status
-              </label>
-              <button
-                className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
-                onClick={() => setStatusDropdown(!statusDropdown)}
-                aria-expanded={statusDropdown}
-                aria-label="Select Status"
-              >
-                {selectedStatus || "Select Status"}
-                <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
-              </button>
-              {statusDropdown && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
-                  {statuses.map((status) => (
-                    <label
-                      key={status}
-                      className="flex gap-2 cursor-pointer text-xs py-1"
-                    >
-                      <input
-                        type="radio"
-                        name="status"
-                        value={status}
-                        checked={selectedStatus === status}
-                        onChange={(e) => {
-                          setSelectedStatus(e.target.value);
-                          setStatusDropdown(false);
-                        }}
-                        className="accent-[#1b2229]"
-                      />
-                      {status}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-            </div>
-<div className="h-[69.41px]">
-                <div className="text-[#1B2229] mb-[8px] text-xs font-medium">
-                  Games Available
-                </div>
-                <Select
-                  isMulti
-                  options={gamesAvailableOptions}
-                  value={gamesAvailableOptions.filter((option) =>
-                    gamesAvailable.includes(option.value)
-                  )}
-                  onChange={handleGameChange}
-                  className="w-full text-black/60 text-xs font-medium"
-                  classNamePrefix="react-select"
-                  placeholder="Select Game..."
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      borderRadius: "44px",
-                      border: "1px solid #e6e6e6",
-                      boxShadow: "none",
-                      height: "45.41px",
-                      backgroundColor: "white",
-                      "&:hover": {
-                        borderColor: "#e6e6e6",
-                      },
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      borderRadius: "8px",
-                      width: "40%",
-                      boxShadow: "0 2px 4px rgba(0, 0,0, 0.1)",
-                    }),
-                    option: (base, { isFocused }) => ({
-                      ...base,
-                      backgroundColor: isFocused ? "#e6f7ff" : "white",
-                      color: "#1c2329",
-                      "&:active": {
-                        backgroundColor: "#e6f7ff",
-                      },
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      backgroundColor: "#1c2329",
-                      borderRadius: "5px",
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: "white",
-                      padding: "4px 2px 4px 12px",
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: "white",
-                      margin: "4px 5px 4px 0px",
-                      "&:hover": {
-                        backgroundColor: "#1c2329",
-                        color: "white",
-                      },
-                    }),
-                  }}
-                />
+              <div className="relative" ref={statusDropdownRef}>
+                <label className="text-xs font-medium text-[#1b2229] block mb-2">
+                  Status
+                </label>
+                <button
+                  className="w-full p-3 border border-[#e6e6e6] rounded-full bg-white flex justify-between items-center text-xs"
+                  onClick={() => setStatusDropdown(!statusDropdown)}
+                  aria-expanded={statusDropdown}
+                  aria-label="Select Status"
+                >
+                  {selectedStatus || "Select Status"}
+                  <span>{statusDropdown ? <UpArrowIcon /> : <BottomArrow />}</span>
+                </button>
+                {statusDropdown && (
+                  <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg p-4 z-50">
+                    {statuses.map((status) => (
+                      <label
+                        key={status}
+                        className="flex gap-2 cursor-pointer text-xs py-1"
+                      >
+                        <input
+                          type="radio"
+                          name="status"
+                          value={status}
+                          checked={selectedStatus === status}
+                          onChange={(e) => {
+                            setSelectedStatus(e.target.value);
+                            setStatusDropdown(false);
+                          }}
+                          className="accent-[#1b2229]"
+                        />
+                        {status}
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
+            </div>
 
-            {/* Add Description Field */}
+            <div className="h-[69.41px]">
+              <div className="text-[#1B2229] mb-[8px] text-xs font-medium">
+                Games Available
+              </div>
+              <Select
+                isMulti
+                options={gamesAvailableOptions}
+                value={gamesAvailableOptions.filter((option) =>
+                  gamesAvailable.includes(option.value)
+                )}
+                onChange={handleGameChange}
+                className="w-full text-black/60 text-xs font-medium"
+                classNamePrefix="react-select"
+                placeholder="Select Game..."
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    borderRadius: "44px",
+                    border: "1px solid #e6e6e6",
+                    boxShadow: "none",
+                    height: "45.41px",
+                    backgroundColor: "white",
+                    "&:hover": {
+                      borderColor: "#e6e6e6",
+                    },
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    borderRadius: "8px",
+                    width: "40%",
+                    boxShadow: "0 2px 4px rgba(0, 0,0, 0.1)",
+                  }),
+                  option: (base, { isFocused }) => ({
+                    ...base,
+                    backgroundColor: isFocused ? "#e6f7ff" : "white",
+                    color: "#1c2329",
+                    "&:active": {
+                      backgroundColor: "#e6f7ff",
+                    },
+                  }),
+                  multiValue: (base) => ({
+                    ...base,
+                    backgroundColor: "#1c2329",
+                    borderRadius: "5px",
+                  }),
+                  multiValueLabel: (base) => ({
+                    ...base,
+                    color: "white",
+                    padding: "4px 2px 4px 12px",
+                  }),
+                  multiValueRemove: (base) => ({
+                    ...base,
+                    color: "white",
+                    margin: "4px 5px 4px 0px",
+                    "&:hover": {
+                      backgroundColor: "#1c2329",
+                      color: "white",
+                    },
+                  }),
+                }}
+              />
+            </div>
+
             <div>
               <label className="text-xs font-medium text-[#1b2229] block mb-2">
                 Description
@@ -875,11 +870,8 @@ const Page = () => {
               }`}
               disabled={isSaveDisabled || isUploading}
             >
-              {/* {isUploading ? "Uploading..." : "Save"} */}
-              { isUploading ? (
-              <Loading />
-            ) : null}
-            {isUploading ? 'Saving...' : 'Save'}
+              {isUploading ? <Loading /> : null}
+              {isUploading ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
@@ -1041,7 +1033,7 @@ const Page = () => {
                     <div className="flex justify-between items-center py-1">
                       <div className="flex items-center gap-3">
                         <Image
-                          src={employee.image || UserProfile2} // Fallback to UserProfile2 if image is null
+                          src={employee.image || UserProfile2}
                           alt={`Employee ${employee.name}`}
                           width={23}
                           height={23}
@@ -1079,29 +1071,25 @@ const Page = () => {
           {/* Timings */}
           <div className="bg-[#f2f2f4] rounded-2xl p-4">
             <h2 className="text-xl font-medium text-[#172554] mb-4">Timings</h2>
-            <div className="grid grid-cols-3 gap-4 font-semibold text-[#10375C] text-sm border-b border-gray-300 pb-2">
-              <div>Days</div>
+            <div className="grid grid-cols-2 gap-4 font-semibold text-[#10375C] text-sm border-b border-gray-300 pb-2">
               <div>Opening Hours</div>
               <div>Closing Hours</div>
             </div>
-            <div className="space-y-2 max-h-48 overflow-y-auto overflo-custom mt-1">
-              {openingHours.map((entry) => (
-                <div key={entry.day} className="grid grid-cols-3 gap-4 items-center text-sm">
-                  <div className="text-[#10375C]">{entry.day}</div>
-                  <input
-                    type="time"
-                    value={entry.hours[0]}
-                    onChange={(e) => handleTimeChange(entry.day, 0, e.target.value)}
-                    className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
-                  />
-                  <input
-                    type="time"
-                    value={entry.hours[1]}
-                    onChange={(e) => handleTimeChange(entry.day, 1, e.target.value)}
-                    className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
-                  />
-                </div>
-              ))}
+            <div className="mt-4">
+              <div className="grid grid-cols-2 gap-4 items-center text-sm">
+                <input
+                  type="time"
+                  value={openingTime}
+                  onChange={(e) => handleTimeChange(0, e.target.value)}
+                  className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
+                />
+                <input
+                  type="time"
+                  value={closingTime}
+                  onChange={(e) => handleTimeChange(1, e.target.value)}
+                  className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
+                />
+              </div>
             </div>
           </div>
         </div>

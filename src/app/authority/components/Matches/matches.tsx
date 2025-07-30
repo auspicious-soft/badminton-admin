@@ -10,6 +10,7 @@ import { getAllMatches } from "@/services/admin-services";
 import { getImageClientS3URL } from "@/config/axios";
 import { useSession } from "next-auth/react";
 import RefundConfirmation from "./refundConfirmationModal";
+import { getProfileImageUrl } from "@/utils";
 
 export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -114,7 +115,7 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   };
 
   // Return early if no venue is assigned for employee
-  if (userRole === "employee" && venueId === null) {
+  if (userRole === "employee" && venueId === "null") {
     return <p className="text-center text-[#10375c] text-lg font-semibold">No venue assigned yet</p>;
   }
 
@@ -159,8 +160,8 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                     <div className="w-[25px] h-[25px] relative">
                       <Image
                         src={
-                          match?.team1?.length > 0 && match?.team1?.[0]?.userData?.profilePic
-                            ? getImageClientS3URL(match?.team1?.[0]?.userData?.profilePic)
+                          match?.team1?.length > 0 && match?.team1?.[0]?.userData?.profilePic !== "null"
+                            ? getProfileImageUrl(match?.team1?.[0]?.userData?.profilePic)
                             : UserProfile2
                         }
                         alt="Avatar"
@@ -182,8 +183,8 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                     <div className="w-[25px] h-[25px] relative">
                       {match.isMaintenance === false && <Image
                         src={
-                          match?.team2?.length > 0 && match?.team2[0]?.userData?.profilePic
-                            ? getImageClientS3URL(match?.team2[0].userData.profilePic)
+                          match?.team2?.length > 0 && match?.team2[0]?.userData?.profilePic !== "null"
+                            ? getProfileImageUrl(match?.team2[0].userData.profilePic)
                             : UserProfile2
                         }
                         alt="Avatar"
@@ -287,7 +288,7 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                     <div className="flex items-center gap-2">
                       <div className="w-[25px] h-[25px] relative">
                         <Image
-                          src={selectedMatch?.team1?.[0]?.userData?.profilePic !== null ? getImageClientS3URL(selectedMatch?.team1?.[0]?.userData?.profilePic) : UserProfile2}
+                          src={selectedMatch?.team1?.[0]?.userData?.profilePic !== "null" ? getProfileImageUrl(selectedMatch?.team1?.[0]?.userData?.profilePic) : UserProfile2}
                           alt="Avatar"
                           className="rounded-full object-cover"
                           fill
@@ -322,7 +323,7 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                         <div key={idx} className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
                             <Image
-                              src={player.userData?.profilePic !== null ? getImageClientS3URL(player.userData?.profilePic) : UserProfile2}
+                              src={player.userData?.profilePic !== "null" ? getProfileImageUrl(player.userData?.profilePic) : UserProfile2}
                               alt="Player"
                               className="rounded-full object-cover"
                               fill
@@ -338,12 +339,12 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                           <div key={idx} className="flex flex-col items-center">
                             <div className="w-16 h-16 relative">
                               <Image
-                                src={player.userData?.profilePic !== null ? getImageClientS3URL(player.userData?.profilePic) : UserProfile2}
+                                src={player.userData?.profilePic !== "null" ? getProfileImageUrl(player.userData?.profilePic) : UserProfile2}
                                 alt="Player"
                                 className="rounded-full object-cover"
                                 fill
                               />
-                            Ascending
+                            
                             </div>
                             <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
                           </div>

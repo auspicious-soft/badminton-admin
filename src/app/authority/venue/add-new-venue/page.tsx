@@ -194,6 +194,8 @@ const Page = () => {
     { day: "Saturday", hours: ["07:00", "22:00"] },
     { day: "Sunday", hours: ["07:00", "20:00"] },
   ]);
+    const [openingTime, setOpeningTime] = useState("06:00");
+  const [closingTime, setClosingTime] = useState("21:00");
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
   const apiKey = "AIzaSyCDZoRf-BZL2yR_ZyXpzht_a63hMgLCTis";
   const router = useRouter();
@@ -213,7 +215,23 @@ const Page = () => {
   );
 
   const fullAddress = `${address}, ${city}, ${selectedState}`.trim();
+ // Function to generate timeslots between opening and closing times
+  const generateTimeslots = (startTime: string, endTime: string): string[] => {
+    const timeslots: string[] = [];
+    if (!startTime || !endTime) return timeslots;
 
+    const startHour = parseInt(startTime.split(":")[0], 10);
+    const endHour = parseInt(endTime.split(":")[0], 10);
+
+    if (isNaN(startHour) || isNaN(endHour)) return timeslots;
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+      const formattedHour = hour.toString().padStart(2, "0") + ":00";
+      timeslots.push(formattedHour);
+    }
+
+    return timeslots;
+  };
   // Click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -339,16 +357,29 @@ const Page = () => {
     }
   };
 
-  const handleTimeChange = (day: string, index: number, value: string) => {
+  // const handleTimeChange = (day: string, index: number, value: string) => {
+  //   setOpeningHours((prev) =>
+  //     prev.map((entry) =>
+  //       entry.day === day
+  //         ? { ...entry, hours: entry.hours.map((time, i) => (i === index ? value : time)) }
+  //         : entry
+  //     )
+  //   );
+  // };
+   const handleTimeChange = (index: number, value: string) => {
+    const newHours = [openingTime, closingTime];
+    newHours[index] = value;
+    const [newOpeningTime, newClosingTime] = newHours;
+    setOpeningTime(newOpeningTime);
+    setClosingTime(newClosingTime);
     setOpeningHours((prev) =>
-      prev.map((entry) =>
-        entry.day === day
-          ? { ...entry, hours: entry.hours.map((time, i) => (i === index ? value : time)) }
-          : entry
-      )
+      prev.map((entry) => ({
+        ...entry,
+        hours: [newOpeningTime, newClosingTime],
+      }))
     );
   };
-
+console.log("OpeningHours", openingHours)
   // Function to upload a court image to S3
   const uploadCourtImageToS3 = async (file: File): Promise<string> => {
     try {
@@ -429,7 +460,7 @@ const Page = () => {
 
       // Update the courts state with the new image keys
       setCourts(updatedCourts);
-
+const timeslots = generateTimeslots(openingTime, closingTime);
       const payload = {
         name,
         address,
@@ -460,6 +491,7 @@ const Page = () => {
           coordinates: [location.lng, location.lat],
         },
         openingHours,
+        timeslots
       };
       console.log("payload", payload);
 
@@ -878,7 +910,7 @@ const Page = () => {
             </div>
           </div>
 
-          <div className="bg-[#f2f2f4] rounded-2xl p-4">
+          {/* <div className="bg-[#f2f2f4] rounded-2xl p-4">
             <h2 className="text-xl font-medium text-[#172554] mb-4">Timings</h2>
             <div className="grid grid-cols-3 gap-4 font-semibold text-[#10375C] text-sm border-b border-gray-300 pb-2">
               <div>Days</div>
@@ -903,8 +935,32 @@ const Page = () => {
                   />
                 </div>
               ))}
+            </div> */}
+                {/* Timings */}
+          <div className="bg-[#f2f2f4] rounded-2xl p-4">
+            <h2 className="text-xl font-medium text-[#172554] mb-4">Timings</h2>
+            <div className="grid grid-cols-2 gap-4 font-semibold text-[#10375C] text-sm border-b border-gray-300 pb-2">
+              <div>Opening Hours</div>
+              <div>Closing Hours</div>
+            </div>
+            <div className="mt-4">
+              <div className="grid grid-cols-2 gap-4 items-center text-sm">
+                <input
+                  type="time"
+                  value={openingTime}
+                  onChange={(e) => handleTimeChange(0, e.target.value)}
+                  className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
+                />
+                <input
+                  type="time"
+                  value={closingTime}
+                  onChange={(e) => handleTimeChange(1, e.target.value)}
+                  className="p-2 bg-white rounded-full text-xs border border-gray-300 w-full"
+                />
+              </div>
             </div>
           </div>
+          
         </div>
       </div>
       <CourtManagement
@@ -963,3 +1019,4 @@ const Page = () => {
 };
 
 export default Page;
+

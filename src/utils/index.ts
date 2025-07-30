@@ -1,3 +1,6 @@
+import UserProfile2 from "@/assets/images/images.png";
+import { getImageClientS3URL } from "@/config/axios";
+
 export const states = [
   "Andaman and Nicobar Islands",
   "Andhra Pradesh",
@@ -36,3 +39,10 @@ export const states = [
   "Uttarakhand",
   "West Bengal"
 ]
+
+export const getProfileImageUrl = (profilePic?: string | null): string => {
+  if (profilePic && typeof profilePic === "string" && profilePic.startsWith("https")) {
+    return profilePic;
+  }
+  return profilePic && getImageClientS3URL(profilePic) ;
+};
