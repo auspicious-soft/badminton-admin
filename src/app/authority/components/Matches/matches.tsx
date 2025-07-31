@@ -11,6 +11,7 @@ import { getImageClientS3URL } from "@/config/axios";
 import { useSession } from "next-auth/react";
 import RefundConfirmation from "./refundConfirmationModal";
 import { getProfileImageUrl } from "@/utils";
+import { toast } from "sonner";
 
 export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -21,16 +22,35 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const [isTabSwitching, setIsTabSwitching] = useState(false);
   const { data: session, status } = useSession();
   console.log("session", session, "status", status);
-const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   // Derive userRole and venueId from session
   const userRole = status === "authenticated" ? (session as any)?.user?.role : undefined;
   const venueId = status === "authenticated" ? (session as any)?.user?.venueId : undefined;
   console.log("userRole", userRole, "venueId", venueId);
-     const typeMapping: { [key: string]: string } = {
+  const typeMapping: { [key: string]: string } = {
     "Cancelled Matches": "cancelled",
     "Previous Matches": "completed",
     "Upcoming Matches": "upcoming",
   };
+  const handleDownloadRecipt = (async (id: string) => {
+    // const response = await getAllMatches(`booking-receipt/${id}`);
+    // const blob = new Blob([response.data], { type: "application/pdf" });
+    // console.log('blob: ', blob);
+     try {
+      console.log("Opening receipt preview for order ID:", id);
+      const receiptUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/booking-receipt/${id}`;
+
+      // window.open(receiptUrl, '_blank', 'noopener,noreferrer');
+      window.open(receiptUrl, '_self');
+
+      toast.success("Download receipt successful");
+    } catch (error) {
+      console.error("Error opening receipt preview:", error);
+      toast.error("Failed to open receipt preview");
+    }
+  
+  })
+
   useEffect(() => {
     const mappedType = typeMapping[name] || "completed";
     setType(mappedType);
@@ -42,18 +62,18 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   const swrKey = useMemo(() => {
     console.log('Computing swrKey - userRole:', userRole, 'venueId:', venueId, 'status:', status);
     if (status !== "authenticated") return null;
- 
+
     const baseParams = `?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}`;
- 
+
     if (userRole === "admin") {
       return `/admin/get-matches${baseParams}`;
     }
-     else if (userRole === "employee" && venueId !== "null") {
+    else if (userRole === "employee" && venueId !== "null") {
       return `/admin/get-matches${baseParams}&venueId=${venueId}`;
     }
     return null; // No fetch for other cases
   }, [status, userRole, venueId, page, itemsPerPage, type, searchParams, selectedGame, selectedDate, selectedCity]);
- 
+
   const { data, mutate, isLoading, error } = useSWR(
     swrKey,
     getAllMatches
@@ -132,7 +152,8 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
             <div className="w-[30%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Team 1</div>
             <div className="w-[30%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Team 2</div>
             <div className="w-[15%] h-3.5 text-[#7e7e8a] text-xs font-medium">Game</div>
-            <div className="w-[13%] h-3.5 text-[#7e7e8a] text-xs font-medium">Venue</div>
+            <div className="w-[18%] h-3.5 text-[#7e7e8a] text-xs font-medium">Venue</div>
+            <div className="w-[20%] h-3.5 text-[#7e7e8a] text-xs font-medium">Court</div>
             <div className="w-[18%] h-3.5 text-[#7e7e8a] text-xs text-center font-medium">Date</div>
             <div className="w-[10%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Action</div>
           </div>
@@ -207,10 +228,16 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                     {match.court?.games || "N/A"}
                   </div>
                   <div
-                    className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                    className={`w-[20%] text-[#1b2229] text-xs text-start font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
                       }`}
                   >
                     {match.venue?.name || "N/A"}
+                  </div>
+                  <div
+                    className={`w-[20%] text-[#1b2229] text-xs text-start font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                      }`}
+                  >
+                    {match.court?.name || "N/A"}
                   </div>
                   <div
                     className={`w-[18%] text-[#1b2229] text-center break-words text-xs font-medium ${selectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
@@ -307,6 +334,16 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                       </p>
                     </div>
                   </div>
+                  <div className="flex justify-between items-center ">
+                    <h4 className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Court</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="w-[25px] h-[25px] relative">
+                      </div>
+                      <p className="text-right text-[#1b2229] text-sm font-medium">
+                        {selectedMatch?.court?.name || "N/A"}
+                      </p>
+                    </div>
+                  </div>
                   <div className="flex justify-between items-center">
                     <h4 className="text-[#1b2229] text-sm font-semibold leading-[16.80px]">Created By</h4>
                     <div className="flex items-center gap-2">
@@ -368,7 +405,7 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                                 className="rounded-full object-cover"
                                 fill
                               />
-                            
+
                             </div>
                             <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
                           </div>
@@ -404,13 +441,16 @@ const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
                 </div>
               )}
               {type === "upcoming" && (
-                <>
+                <div className="">
                   <button onClick={() => setIsRefundModalOpen(true)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[10%]">
                     Cancel Game
                   </button>
                   <RefundConfirmation open={isRefundModalOpen} setOpen={setIsRefundModalOpen} id={selectedMatch?._id} />
-                </>
+                </div>
               )}
+                  <button onClick={() => handleDownloadRecipt(selectedMatch._id)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[1%]">
+                    Download Receipt
+                  </button>
             </div>
           ) : (
             <p className="text-center text-gray-500">Select a match to see details</p>

@@ -76,7 +76,7 @@ const fetchAllLoyaltyData = async () => {
     const freeGameData = freeGameRes?.data?.data?.data || freeGameRes?.data?.data || freeGameRes?.data || {};
 
     const mergedData: LoyaltyPoints = {
-      rewardType: '', // You can leave this blank initially or update it when user selects
+      rewardType: '', 
       enabled: referralData.enabled ? 'yes' : (freeGameData.enabled ? 'yes' : 'no'),
       bonusAmount: referralData.bonusAmount || 0,
       playCoinAmount: 0, // not used currently
