@@ -109,13 +109,13 @@ export default async function AdminLayout({
     <div className="min-h-screen">
       <Headers />
       <main className="mt-4 px-4 md:px-8 max-w-full">
-        {userRole === 'employee' ? (
-          <EmployeeClientWrapper tabParam={tabParam} session={session}>
-            {children}
-          </EmployeeClientWrapper>
-        ) : (   
-          children
-        )}
+        {/* {userRole === 'employee' ? ( */}
+          {/* // <EmployeeClientWrapper tabParam={tabParam} session={session}> */}
+            {/* // {children} */}
+          {/* // </EmployeeClientWrapper> */}
+        {/* // ) : (    */}
+          {children}
+        {/* // )} */}
       </main>
     </div>
   );

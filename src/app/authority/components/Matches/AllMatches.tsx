@@ -22,8 +22,9 @@ const MatchesPage = () => {
   return (
     <div className="">
       {/* Header with Tabs & Filters */}
-      <div>
+      <div >
         <MatchesHeader selectedTab={selectedTab} setSelectedTab={setSelectedTab} selectedGame={selectedGame} setSelectedGame={setSelectedGame} selectedCity={selectedCity} setSelectedCity={setSelectedCity} setSelectedDate={setSelectedDate} selectedDate={selectedDate} />
+        
       </div>
       {/* Render Content Based on Selected Tab */}
       <div className="mt-6 mb-6">

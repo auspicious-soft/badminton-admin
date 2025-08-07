@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { UpArrowIcon, DownArrowIcon } from "@/utils/svgicons";
 import useSWR from "swr";
 import { getAllCities } from "@/services/admin-services";
+import BookingModal from "./BookMatchModal";
 
 const tabs = ["Upcoming", "Previous", "Cancelled"];
 const games = ["All", "Padel", "Pickleball"];
@@ -24,6 +25,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
   const dateInputRef = useRef<HTMLInputElement>(null);
   const gameDropdownRef = useRef<HTMLDivElement>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data, mutate, isLoading } = useSWR("/admin/get-cities", getAllCities)
   const cities = data?.data?.data || [];
   console.log('data: ', data?.data?.data);
@@ -56,6 +58,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
   return (
     <div className="space-y-[10px] relative">
       <p className="text-[#10375c] text-3xl font-semibold">Matches</p>
+      <div className="flex justify-between">
       <div className="flex w-[65%] flex-col md:flex-row justify-between  flex-wrap gap-[15px]">
         {/* Tabs */}
         <div className="bg-white rounded-[44px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)] justify-start items-start inline-flex">
@@ -142,6 +145,14 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
           </div>
         </div>
       </div>
+
+           <div>
+          <button className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] w-fit flex items-center justify-between" onClick={() => setIsModalOpen(true)}>
+            <span>Create a New Booking</span>
+          </button>
+        </div>
+      </div>
+      {isModalOpen && <BookingModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 };
