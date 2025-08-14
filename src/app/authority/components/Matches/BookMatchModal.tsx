@@ -1,141 +1,407 @@
 "use client";
-import { useState } from "react";
-import dynamic from 'next/dynamic';
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import type { MultiValue } from "react-select";
+import { toast } from "sonner";
+import { getCourts, getVenues, createMatch } from "@/services/admin-services"; // Add createBooking
+import { useSession } from "next-auth/react";
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
 
-export const BookingModal = ({ onClose }) => {
-  const [court, setCourt] = useState("Court 2");
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState([
-    { value: "02:00-03:00", label: "02:00 - 03:00 PM" }
-  ]);
-  const [guestPlayer1, setGuestPlayer1] = useState("Rahul Sharma");
-  const [email, setEmail] = useState("sharmahuzz@gmail.com");
-  const [phone, setPhone] = useState("+91 7964962237");
-  const [guestPlayer2, setGuestPlayer2] = useState("Rahul Sharma");
-  const [guestPlayer3, setGuestPlayer3] = useState("Rahul Sharma");
-  const [guestPlayer4, setGuestPlayer4] = useState("Rahul Sharma");
-  const [paymentMode, setPaymentMode] = useState("Cash/UPI");
+interface TimeSlotOption {
+  value: string;
+  label: string;
+  isDisabled: boolean;
+}
 
-  const timeSlotOptions = [
-    { value: "02:00-03:00", label: "02:00 - 03:00 PM" },
-    { value: "03:00-04:00", label: "03:00 - 04:00 PM" },
-    { value: "04:00-05:00", label: "04:00 - 05:00 PM" },
-    { value: "05:00-06:00", label: "05:00 - 06:00 PM" },
-    { value: "06:00-07:00", label: "06:00 - 07:00 PM" }
-  ];
+interface Venue {
+  _id: string;
+  name: string;
+}
 
-  const courtOptions = ["Court 1", "Court 2", "Court 3"];
-  const paymentOptions = ["Cash/UPI", "Credit Card", "Debit Card"];
+interface Court {
+  _id: string;
+  name: string;
+  availableSlots: {
+    time: string;
+    isAvailable: boolean;
+  }[];
+}
+
+interface VenueOption {
+  value: string;
+  label: string;
+}
+
+interface CourtOption {
+  value: string;
+  label: string;
+}
+
+// Define the booking payload interface based on the provided data structure
+interface BookingPayload {
+  player1: string;
+  player1Email: string;
+  player1phone: string;
+  player2: string;
+  player3: string;
+  player4: string;
+  venueId: string;
+  courtId: string;
+  bookingSlots: string[];
+}
+
+export const BookingModal = ({ onClose }: { onClose: () => void }) => {
+  const [court, setCourt] = useState<string>("");
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<
+    MultiValue<TimeSlotOption>
+  >([]);
+  const [guestPlayer1, setGuestPlayer1] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [guestPlayer2, setGuestPlayer2] = useState<string>("");
+  const [guestPlayer3, setGuestPlayer3] = useState<string>("");
+  const [guestPlayer4, setGuestPlayer4] = useState<string>("");
+  const [paymentMode, setPaymentMode] = useState<string>("Cash/UPI");
+  const [venue, setVenue] = useState<string>("");
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [courts, setCourts] = useState<Court[]>([]);
+  const [selectedCourtId, setSelectedCourtId] = useState<string>("");
+  const [selectedVenueId, setSelectedVenueId] = useState<string>("");
+  const [date, setDate] = useState<string>("");
+  const { data: session } = useSession();
+  const userRole = (session as any)?.user?.role;
+  const userData = (session as any)?.user
+  const getCurrentDate = (): string => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const finalDate = `${year}-${month}-${day}`;
+    setDate(finalDate);
+    return finalDate;
+  };
+
+  const getAllVenues = async () => {
+    try {
+      const response = await getVenues("/admin/get-venues");
+      const data = response?.data?.data;
+      if (response.status === 200) {
+        setVenues(data);
+        if (userRole !== "admin" && userData.venueId) {
+          const selectedVenue = data.find((venue: Venue) => venue._id === userData.venueId);
+          if (selectedVenue) {
+            setVenue(selectedVenue.name);
+            setSelectedVenueId(selectedVenue._id);
+          }
+        }
+      } else {
+        toast.error("Error fetching venues");
+      }
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const getAllCourts = async () => {
+    if (!date || !selectedVenueId) return;
+    try {
+      const response = await getCourts(
+        `/admin/get-courts?date=${date}&venueId=${selectedVenueId}`
+      );
+      const data = response?.data?.data?.courts;
+      if (response.status === 200) {
+        setCourts(data);
+      } else {
+        toast.error("Error fetching courts");
+      }
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleCreateBooking = async () => {
+    if (
+      !selectedVenueId ||
+      !selectedCourtId ||
+      !guestPlayer1 ||
+      !email ||
+      !phone ||
+      selectedTimeSlots.length === 0
+    ) {
+      toast.error(
+        "Please fill in all required fields (Venue, Court, Player 1, Email, Phone, and at least one Time Slot)."
+      );
+      return;
+    }
+
+    const payload: BookingPayload = {
+      player1: guestPlayer1,
+      player1Email: email,
+      player1phone: phone,
+      player2: guestPlayer2 || "",
+      player3: guestPlayer3 || "",
+      player4: guestPlayer4 || "",
+      venueId: selectedVenueId,
+      courtId: selectedCourtId,
+      bookingSlots: selectedTimeSlots.map((slot) => slot.value),
+    };
+
+    try {
+      const response = await createMatch("/admin//create-match", payload);
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Booking created successfully");
+        onClose();
+      } else {
+        toast.error("Error creating booking");
+      }
+    } catch (error) {
+      toast.error((error as Error).message || "Failed to create booking");
+    }
+  };
+
+  const timeSlotOptions: TimeSlotOption[] =
+    courts
+      .find((court) => court._id === selectedCourtId)
+      ?.availableSlots?.map((slot) => ({
+        value: slot.time,
+        label: `${slot.time} - ${new Date(
+          `2025-08-14T${slot.time}:00`
+        ).toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })}`,
+        isDisabled: !slot.isAvailable,
+      })) || [];
+
+  const venueOptions: VenueOption[] = venues.map((venue) => ({
+    value: venue._id,
+    label: venue.name,
+  }));
+
+  const courtOptions: CourtOption[] = courts.map((court) => ({
+    value: court._id,
+    label: court.name,
+  }));
+
+  const paymentOptions: string[] = ["Cash/UPI", "Credit Card", "Debit Card"];
+
+  useEffect(() => {
+    getCurrentDate();
+    getAllVenues();
+  }, []);
+
+  useEffect(() => {
+    getAllCourts();
+  }, [date, selectedVenueId]);
+
+const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // Only allow venue change if user is not an employee
+    if (userRole == "admin") {
+      const selectedVenue = venues.find((venue) => venue._id === e.target.value);
+      if (selectedVenue) {
+        setVenue(selectedVenue.name);
+        setSelectedVenueId(selectedVenue._id);
+        setCourts([]);
+        setSelectedCourtId("");
+        setSelectedTimeSlots([]);
+      }
+    }
+  };
+
+  const handleCourtChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCourt = courts.find((court) => court._id === e.target.value);
+    if (selectedCourt) {
+      setCourt(selectedCourt.name);
+      setSelectedCourtId(selectedCourt._id);
+      setSelectedTimeSlots([]);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex  justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center z-50">
       <div className="bg-white rounded-lg mt-10 w-[90%] max-w-4xl max-h-[75vh] ">
         {/* Header */}
         <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-800">Create Booking</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            Create Booking
+          </h2>
         </div>
 
         <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
           {/* Booking Details */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Booking Details</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Select Court */}
+            <h3 className="text-sm font-medium text-gray-700 mb-4">
+              Booking Details
+            </h3>
+
+            <div className="space-y-4">
+              {/* Select Venue */}
               <div>
-                <label className="block text-xs text-gray-600 mb-2">Select Court</label>
+                <label className="block text-xs text-gray-600 mb-2">
+                  Select A Venue
+                </label>
                 <div className="relative">
-                  <select 
+                  <select
                     className="w-full p-3 border border-gray-300 rounded-lg bg-white text-sm appearance-none pr-10"
-                    value={court} 
-                    onChange={(e) => setCourt(e.target.value)}
+                    value={selectedVenueId}
+                    onChange={handleVenueChange}
+                    disabled={userRole !== "admin"}
                   >
-                    {courtOptions.map(option => (
-                      <option key={option} value={option}>{option}</option>
+                    <option value="">Select a venue</option>
+                    {venueOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
                     ))}
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    <svg
+                      className="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
                     </svg>
                   </div>
                 </div>
               </div>
 
-              {/* Select Time Slot */}
-              <div>
-                <label className="block text-xs text-gray-600 mb-2">Select Time Slot</label>
-                <Select
-                  isMulti
-                  options={timeSlotOptions}
-                  value={selectedTimeSlots}
-                  onChange={setSelectedTimeSlots}
-                  className="w-full text-sm"
-                  classNamePrefix="react-select"
-                  placeholder="Select Time Slots..."
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      borderRadius: "8px",
-                      border: "1px solid #d1d5db",
-                      boxShadow: "none",
-                      "&:hover": {
-                        borderColor: "#d1d5db",
-                      },
-                      padding: "4px",
-                      minHeight: "48px"
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }),
-                    option: (base, { isFocused }) => ({
-                      ...base,
-                      backgroundColor: isFocused ? "#f3f4f6" : "white",
-                      color: "#374151",
-                      "&:active": {
-                        backgroundColor: "#f3f4f6",
-                      },
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      backgroundColor: "#1f2937",
-                      borderRadius: "6px",
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: "white",
-                      padding: "4px 8px",
-                      fontSize: "12px"
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: "white",
-                      "&:hover": {
-                        backgroundColor: "#374151",
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Select Court */}
+                <div>
+                  <label className="block text-xs text-gray-600 mb-2">
+                    Select Court
+                  </label>
+                  <div className="relative">
+                    <select
+                      className="w-full p-3 border border-gray-300 rounded-lg bg-white text-sm appearance-none pr-10"
+                      value={selectedCourtId}
+                      onChange={handleCourtChange}
+                      disabled={!selectedVenueId}
+                    >
+                      <option value="">Select a court</option>
+                      {courtOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <svg
+                        className="w-4 h-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M19 9l-7 7-7-7"
+                        ></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Select Time Slot */}
+                <div>
+                  <label className="block text-xs text-gray-600 mb-2">
+                    Select Time Slot
+                  </label>
+                  <Select
+                    isMulti
+                    options={timeSlotOptions}
+                    value={selectedTimeSlots}
+                    onChange={(selected: MultiValue<TimeSlotOption>) =>
+                      setSelectedTimeSlots(selected)
+                    }
+                    className="w-full text-sm"
+                    classNamePrefix="react-select"
+                    placeholder="Select Time Slots..."
+                    isOptionDisabled={(option: TimeSlotOption) =>
+                      option.isDisabled
+                    }
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        borderRadius: "8px",
+                        border: "1px solid #d1d5db",
+                        boxShadow: "none",
+                        "&:hover": {
+                          borderColor: "#d1d5db",
+                        },
+                        padding: "4px",
+                        minHeight: "48px",
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                      }),
+                      option: (base, { isFocused, isDisabled }) => ({
+                        ...base,
+                        backgroundColor: isDisabled
+                          ? "#f3f4f6"
+                          : isFocused
+                          ? "#e5e7eb"
+                          : "white",
+                        color: isDisabled ? "#9ca3af" : "#374151",
+                        cursor: isDisabled ? "not-allowed" : "default",
+                        "&:active": {
+                          backgroundColor: isDisabled ? "#f3f4f6" : "#e5e7eb",
+                        },
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        backgroundColor: "#1f2937",
+                        borderRadius: "6px",
+                      }),
+                      multiValueLabel: (base) => ({
+                        ...base,
                         color: "white",
-                      },
-                    }),
-                  }}
-                />
+                        padding: "4px 8px",
+                        fontSize: "12px",
+                      }),
+                      multiValueRemove: (base) => ({
+                        ...base,
+                        color: "white",
+                        "&:hover": {
+                          backgroundColor: "#374151",
+                          color: "white",
+                        },
+                      }),
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Customer Details */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Customer Details</h3>
-            
+            <h3 className="text-sm font-medium text-gray-700 mb-4">
+              Customer Details
+            </h3>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Guest Player 1 */}
               <div>
-                <label className="block text-xs text-gray-600 mb-2">Guest Player 1</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs text-gray-600 mb-2">
+                  Guest Player 1
+                </label>
+                <input
+                  type="text"
                   className="w-full p-3 border border-gray-300 rounded-lg text-sm"
-                  value={guestPlayer1} 
+                  value={guestPlayer1}
                   onChange={(e) => setGuestPlayer1(e.target.value)}
                   placeholder="Guest Player 1"
                 />
@@ -143,23 +409,26 @@ export const BookingModal = ({ onClose }) => {
 
               {/* Email Address */}
               <div>
-                <label className="block text-xs text-gray-600 mb-2">Email Address</label>
-                <input 
-                  type="email" 
+                <label className="block text-xs text-gray-600 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
                   className="w-full p-3 border border-gray-300 rounded-lg text-sm"
-                  value={email} 
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email Address"
                 />
               </div>
 
               {/* Phone */}
               <div>
-                <label className="block text-xs text-gray-600 mb-2">Phone</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs text-gray-600 mb-2">
+                  Phone
+                </label>
+                <input
+                  type="text"
                   className="w-full p-3 border border-gray-300 rounded-lg text-sm"
-                  value={phone} 
+                  value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Phone"
                 />
@@ -167,11 +436,13 @@ export const BookingModal = ({ onClose }) => {
 
               {/* Guest Player 2 */}
               <div>
-                <label className="block text-xs text-gray-600 mb-2">Guest Player 2</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs text-gray-600 mb-2">
+                  Guest Player 2
+                </label>
+                <input
+                  type="text"
                   className="w-full p-3 border border-gray-300 rounded-lg text-sm"
-                  value={guestPlayer2} 
+                  value={guestPlayer2}
                   onChange={(e) => setGuestPlayer2(e.target.value)}
                   placeholder="Guest Player 2"
                 />
@@ -179,11 +450,13 @@ export const BookingModal = ({ onClose }) => {
 
               {/* Guest Player 3 */}
               <div>
-                <label className="block text-xs text-gray-600 mb-2">Guest Player 3</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs text-gray-600 mb-2">
+                  Guest Player 3
+                </label>
+                <input
+                  type="text"
                   className="w-full p-3 border border-gray-300 rounded-lg text-sm"
-                  value={guestPlayer3} 
+                  value={guestPlayer3}
                   onChange={(e) => setGuestPlayer3(e.target.value)}
                   placeholder="Guest Player 3"
                 />
@@ -191,39 +464,16 @@ export const BookingModal = ({ onClose }) => {
 
               {/* Guest Player 4 */}
               <div>
-                <label className="block text-xs text-gray-600 mb-2">Guest Player 4</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs text-gray-600 mb-2">
+                  Guest Player 4
+                </label>
+                <input
+                  type="text"
                   className="w-full p-3 border border-gray-300 rounded-lg text-sm"
-                  value={guestPlayer4} 
+                  value={guestPlayer4}
                   onChange={(e) => setGuestPlayer4(e.target.value)}
                   placeholder="Guest Player 4"
                 />
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Details */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Payment Details</h3>
-            
-            <div className="w-full md:w-1/2">
-              <label className="block text-xs text-gray-600 mb-2">Payment Mode</label>
-              <div className="relative">
-                <select 
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white text-sm appearance-none pr-10"
-                  value={paymentMode} 
-                  onChange={(e) => setPaymentMode(e.target.value)}
-                >
-                  {paymentOptions.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
               </div>
             </div>
           </div>
@@ -231,14 +481,15 @@ export const BookingModal = ({ onClose }) => {
 
         {/* Footer */}
         <div className="flex justify-between items-center p-6 border-t bg-gray-50 rounded-b-lg">
-          <button 
+          <button
             className="px-8 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
             onClick={onClose}
           >
             Cancel
           </button>
-          <button 
+          <button
             className="px-8 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
+            onClick={handleCreateBooking} // Add onClick handler
           >
             Create Booking
           </button>

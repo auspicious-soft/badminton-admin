@@ -287,3 +287,27 @@ export const cancelMatch = async (route: string, payload?:any) => {
     return axiosInstance.post(route,payload)
 }
 
+
+
+export const updateEmployeeDetails = async (route: string, payload: any) => {
+    const axiosInstance= await getAxiosInstance()
+    return axiosInstance.put(route, payload)
+}
+    
+export const getVenues = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+export const getCourts = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+export const getCourtSlots = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+
+export const createMatch = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route,payload)
+}

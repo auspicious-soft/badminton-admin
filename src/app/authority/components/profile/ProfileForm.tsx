@@ -9,7 +9,7 @@ import Image from 'next/image';
 import useSWR from 'swr';
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { getAdminDetails, updateAdminDetails, getDynamicPricing, deleteMaintenance } from '@/services/admin-services';
+import { getAdminDetails, updateAdminDetails, getDynamicPricing, deleteMaintenance, updateEmployeeDetails } from '@/services/admin-services';
 import { generateSignedUrlForProfile, deleteFileFromS3 } from '@/actions';
 import { getImageClientS3URL } from '@/config/axios';
 import { validateImageFile } from '@/utils/fileValidation';
@@ -45,6 +45,7 @@ const ProfileForm = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { data: session } = useSession();
     const userRole = (session as any)?.user?.role;
+        const userId = (session as any)?.user?.id;
     const [imageKey, setImageKey] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<any>(null);
@@ -260,14 +261,24 @@ const ProfileForm = () => {
                 fullName: data.name,
                 phoneNumber: data.phoneNumber,
                 email: data.email,
-                profilePic: uploadedImageKey || profileDetails.profilePic || null
+                profilePic: uploadedImageKey || profileDetails.profilePic || null,
+                id:userId,
             };
 
             if (data.changePassword) {
                 payload.password = data.changePassword;
             }
 
-            const response = await updateAdminDetails("admin/update-admin-details", payload);
+
+            let response ;
+
+
+                if(userRole === "admin"){
+             response = await updateAdminDetails("admin/update-admin-details", payload);
+                }
+                else{
+                    response = await updateEmployeeDetails("/admin/update-employee",payload)
+                }
             if (response?.status === 200 || response?.status === 201) {
                 await mutate();
                 toast.success("Profile updated successfully");

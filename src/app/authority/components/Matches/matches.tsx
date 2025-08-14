@@ -7,11 +7,12 @@ import { EyeIcon, ClockIcon, CalenderIcon } from "@/utils/svgicons";
 import TablePagination from "../TablePagination";
 import useSWR from "swr";
 import { getAllMatches } from "@/services/admin-services";
-import { getImageClientS3URL } from "@/config/axios";
+import { getAxiosInstance, getAxiosInstanceForPublisher, getImageClientS3URL } from "@/config/axios";
 import { useSession } from "next-auth/react";
 import RefundConfirmation from "./refundConfirmationModal";
 import { getProfileImageUrl } from "@/utils";
 import { toast } from "sonner";
+import { AxiosInstance } from "axios";
 
 export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -32,25 +33,33 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
     "Previous Matches": "completed",
     "Upcoming Matches": "upcoming",
   };
-  const handleDownloadRecipt = (async (id: string) => {
-    // const response = await getAllMatches(`booking-receipt/${id}`);
-    // const blob = new Blob([response.data], { type: "application/pdf" });
-    // console.log('blob: ', blob);
-     try {
-      console.log("Opening receipt preview for order ID:", id);
-      const receiptUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/booking-receipt/${id}`;
 
-      // window.open(receiptUrl, '_blank', 'noopener,noreferrer');
-      window.open(receiptUrl, '_self');
-
-      toast.success("Download receipt successful");
-    } catch (error) {
-      console.error("Error opening receipt preview:", error);
-      toast.error("Failed to open receipt preview");
+const handleDownloadRecipt = async (id: string) => {
+  try {
+       let axiosInstance: AxiosInstance;
+    if(userRole === "admin"){
+      axiosInstance = await getAxiosInstance(); // will have role and auth header
     }
-  
-  })
+    else{
+        axiosInstance = await getAxiosInstanceForPublisher();
+    }
+    
+    // Make request with responseType 'blob' to get PDF binary data
+    const response = await axiosInstance.get(`/booking-receipt/${id}`, {
+      responseType: 'blob',
+    });
 
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+
+    window.open(url, '_blank');
+
+    toast.success('Download receipt successful');
+  } catch (error) {
+    console.error('Error opening receipt preview:', error);
+    toast.error('Failed to open receipt preview');
+  }
+};
   useEffect(() => {
     const mappedType = typeMapping[name] || "completed";
     setType(mappedType);
@@ -443,14 +452,19 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
               {type === "upcoming" && (
                 <div className="">
                   <button onClick={() => setIsRefundModalOpen(true)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[10%]">
-                    Cancel Game
+                    {selectedMatch?.isMaintenance === true ? "Cancel Maintainance" : "Cancel Match"}
+                   
                   </button>
                   <RefundConfirmation open={isRefundModalOpen} setOpen={setIsRefundModalOpen} id={selectedMatch?._id} />
                 </div>
               )}
-                  <button onClick={() => handleDownloadRecipt(selectedMatch._id)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[1%]">
+
+              {selectedMatch?.isMaintenance === false ? <>
+               <button onClick={() => handleDownloadRecipt(selectedMatch._id)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[1%]">
                     Download Receipt
                   </button>
+              </> :null }
+                 
             </div>
           ) : (
             <p className="text-center text-gray-500">Select a match to see details</p>

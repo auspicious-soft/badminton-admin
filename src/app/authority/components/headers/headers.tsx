@@ -38,6 +38,7 @@ const Headers = () => {
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false); 
+    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { data, status } = useSession();
   const userRole = (data as any)?.user?.role; 
   const name = data?.user?.name || "User";
@@ -45,11 +46,17 @@ const Headers = () => {
   const pathname = usePathname();
   const isProfileActive = pathname === "/authority/profile";
   const venueId = (data as any)?.user?.venueId;
-   const endpoint =
-    userRole === "employee"
-      ? `/admin/notifications?page=1&limit=10&venueId=${venueId}`
-      : `/admin/notifications?page=1&limit=1000`;
+   let endpoint = ""
+    // userRole === "employee"
+    //   ? `/admin/notifications?page=1&limit=10&venueId=${venueId}`
+    //   : `/admin/notifications?page=1&limit=1000`;
 
+      if(userRole === "admin"){
+        endpoint = `/admin/notifications?page=1&limit=10`
+      }
+      else{
+        endpoint = `/admin/notifications?page=1&limit=10&venueId=${venueId}`
+      }
   const {
   data: notificationsData,
   error: swrError,
@@ -62,9 +69,10 @@ const Headers = () => {
   keepPreviousData: true,
   dedupingInterval: 100,
 });
-const hasUnreadNotifications = Array.isArray(notificationsData?.data?.data)
-  ? notificationsData.data.data.some((n) => n.isReadyByAdmin === false)
-  : false;
+// const hasUnreadNotifications = Array.isArray(notificationsData?.data?.data)
+//   ? notificationsData.data.data.some((n) => n.isReadyByAdmin === true
+// )
+//   : false;
   
 // useEffect(() => {
 //     if (notificationsData) {
@@ -137,6 +145,22 @@ const hasUnreadNotifications = Array.isArray(notificationsData?.data?.data)
     setShowNotificationDropdown(false);
   };
 
+
+// After fetching notifications in SWR:
+// After fetching notifications in SWR:
+useEffect(() => {
+  if (Array.isArray(notificationsData?.data?.data)) {
+    const hasUnread = notificationsData.data.data.some(
+      (n) => n.isReadyByAdmin === false
+    );
+    setHasUnreadNotifications(hasUnread);
+  } else {
+    setHasUnreadNotifications(false);
+  }
+}, [notificationsData]);
+
+
+
   return (
     <div className="sticky top-0 w-full py-4 px-4 md:px-6 z-50 bg-[#fbfaff] pb-1">
       <div className="max-w-[1920px] mx-auto">
@@ -196,6 +220,15 @@ const hasUnreadNotifications = Array.isArray(notificationsData?.data?.data)
                 <NotificationModal
                   open={showNotificationDropdown}
                   onClose={handleNotificationClose}
+                   onAllRead={() => setHasUnreadNotifications(false)}
+  onSingleRead={(id) => {
+    setHasUnreadNotifications((prev) => {
+      if (!prev) return false;
+      // Optional: manually check remaining unread
+      const remaining = notificationsData.data.data.filter(n => n._id !== id && n.isReadyByAdmin === false);
+      return remaining.length > 0;
+    });
+  }}
                 />
               </div>
               

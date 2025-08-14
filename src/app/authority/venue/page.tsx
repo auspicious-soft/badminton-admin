@@ -77,7 +77,7 @@ const Page = () => {
           <p className="text-center text-[#10375C] py-4">No data found.</p>
         ) : (
           venues.map((venue, index) => (
-            <div key={index} className="flex flex-col items-start" onClick={() => router.push(`/authority/venue/${venue._id}`)}>
+            <div key={index} className="flex flex-col items-start cursor-pointer" onClick={() => router.push(`/authority/venue/${venue._id}`)}>
               <Image
                  src={getImageClientS3URL(venue?.image)} // Fallback to firstvenue if image is missing or invalid
                 alt={venue.name}

@@ -28,6 +28,8 @@ interface NotificationItem {
 interface NotificationModalProps {
   open: boolean;
   onClose: () => void;
+   onAllRead?: () => void;
+  onSingleRead?: (id: string) => void;
 }
 
 interface PaginationMeta {
@@ -39,7 +41,7 @@ interface PaginationMeta {
   hasPrevPage: boolean;
 }
 
-const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) => {
+const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, onAllRead, onSingleRead }) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
@@ -52,11 +54,13 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) 
   const userRole = (session as any)?.user?.role;
   const venueId = (session as any)?.user?.venueId;
 
-  const endpoint =
-    userRole === "employee"
-      ? `/admin/notifications?page=${page}&limit=10&venueId=${venueId}`
-      : `/admin/notifications?page=${page}&limit=10`;
+ let endpoint = "";
 
+  if (userRole === "admin") {
+    endpoint = `/admin/notifications?page=${page}&limit=10`;
+  } else {
+    endpoint = `/admin/notifications?page=${page}&limit=10&venueId=${venueId}`;
+  }
   const {
     data,
     error: swrError,
@@ -173,10 +177,12 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) 
     e.preventDefault();
     try {
       await markAllNotificationRead("/admin/notifications");
+         onAllRead?.();
       mutate();
       onClose();
     } catch (error) {
       console.error("❌ Error marking all notifications as read:", error);
+      
     }
   };
 
@@ -185,6 +191,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose }) 
     e.preventDefault();
     try {
       await markNotificationRead("/admin/notifications", { notificationId: notification._id });
+        onSingleRead?.(notification._id);
       mutate();
     } catch (error) {
       console.error("❌ Error marking notification as read:", error);

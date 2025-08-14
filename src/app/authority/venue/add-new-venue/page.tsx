@@ -551,7 +551,7 @@ const timeslots = generateTimeslots(openingTime, closingTime);
             )}
             <label className="absolute bottom-2 right-2 bg-white rounded-full px-2 py-1 flex items-center gap-2 cursor-pointer shadow-md">
               <Edit1 />
-              <span className="text-sm font-medium">Change Image</span>
+              <span className="text-sm font-medium">Upload Image</span>
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             </label>
           </div>
