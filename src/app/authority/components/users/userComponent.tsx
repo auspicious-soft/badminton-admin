@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { getAllUser } from "@/services/admin-services";
 import { getImageClientS3URL } from "@/config/axios";
+import { getProfileImageUrl } from "@/utils";
 
 const games = [
   { label: "Default", value: "createdAt" },
@@ -32,8 +33,6 @@ export default function UsersComponent() {
     `/admin/get-users?search=${searchParams}&page=${page}&limit=${itemsPerPage}&order=asc&sortBy=${selectedGame || "createdAt"}`,
     getAllUser
   );
-  console.log('data: ', data);
-// ?search=${searchParams}&page=${page}&limit=${itemsPerPage}&sortBy=${selectedGame || ""}
   // Extract users and pagination metadata
   let users = useMemo(() => data?.data?.data || [], [data?.data?.data]);
   // let users:any[] = data?.data?.data
@@ -165,7 +164,7 @@ export default function UsersComponent() {
                         }`}
                     >
                       <Image
-                        src={user.profilePic ? getImageClientS3URL(user.profilePic) : UserProfile2}
+                        src={user.profilePic !== null ? getProfileImageUrl(user.profilePic) : UserProfile2}
                         alt="Avatar"
                         className="rounded-full w-[25px] h-[25px] object-cover"
                         width={25}
@@ -234,7 +233,7 @@ export default function UsersComponent() {
                     </svg>
                     <div className="absolute top-0 left-0 w-full h-full flex gap-[15px] items-center p-2 text-white">
                       <Image
-                        src={selectedUser.profilePic !== null ? getImageClientS3URL(selectedUser.profilePic) : UserProfile2}
+                        src={selectedUser.profilePic !== null ? getProfileImageUrl(selectedUser.profilePic) : UserProfile2}
                         alt="User Avatar"
                         className="rounded-full border-2 border-white w-30 h-30 sm:w-30 sm:h-30 lg:w-16 lg:h-16"
                         width="100"
@@ -368,230 +367,3 @@ export default function UsersComponent() {
     </>
   );
 }
-
-
-// "use client";
-// import { useState, useEffect, useRef } from "react";
-// import Image from "next/image";
-// import Human from "@/assets/images/Human.png";
-// import { EyeIcon, DownArrowIcon, UpArrowIcon } from "@/utils/svgicons";
-// import UserProfile2 from "@/assets/images/images.png";
-// import SearchBar from "../SearchBar";
-// import TablePagination from "../TablePagination";
-// import { useRouter } from "next/navigation";
-// import useSWR from "swr";
-// import { getAllUser } from "@/services/admin-services";
-// import { getImageClientS3URL } from "@/config/axios";
-
-// const games = [
-//   { label: "Default", value: null },
-//   { label: "Alphabetically", value: "fullName" },
-//   { label: "Newest", value: "createdAt" }
-// ];
-
-// export default function UsersComponent() {
-//   const router = useRouter();
-//   const dropdownRef = useRef(null);
-//   const [selectedUser, setSelectedUser] = useState(null);
-//   const [searchParams, setSearchParams] = useState("");
-//   const [selectedGame, setSelectedGame] = useState(null);
-//   const [gameDropdown, setGameDropdown] = useState(false);
-//   const [page, setPage] = useState(1);
-//   const itemsPerPage = 10;
-
-//   // Fetch data with SWR
-//   const { data, isLoading, error } = useSWR(`/admin/get-users`, getAllUser,{
-//     revalidateOnMount: true,
-//     revalidateOnFocus: true, // refetch when tab/window refocuses
-//     dedupingInterval: 0,      // disables deduping cache to always refetch
-//     refreshInterval: 0,       // no polling
-//   });
-// //   const { data, isLoading, error, mutate } = useSWR(
-// //   ['/admin/get-users', page, searchParams, selectedGame], // key to ensure uniqueness
-// //   () => getAllUser({ page, searchParams, sortBy: selectedGame }),
-// //   {
-// //     revalidateOnMount: true,
-// //     revalidateOnFocus: true, // refetch when tab/window refocuses
-// //     dedupingInterval: 0,      // disables deduping cache to always refetch
-// //     refreshInterval: 0,       // no polling
-// //   }
-// // );
-//   const users = data?.data?.data || [];
-//   const total = data?.data?.meta?.total || 59;
-//   const totalPages = data?.data?.meta?.totalPages || Math.ceil(total / itemsPerPage);
-//   const hasNextPage = data?.data?.meta?.hasNextPage ?? page < totalPages;
-//   const hasPreviousPage = data?.data?.meta?.hasPreviousPage ?? page > 1;
-
-//   if (error && error.status === 400) {
-//     console.error("Error 400: No users found", error);
-//   }
-
-//   useEffect(() => {
-//     const userList = data?.data?.data || [];
-//     if (userList.length > 0) {
-//       setSelectedUser(userList[0]);
-//     } else {
-//       setSelectedUser(null);
-//     }
-//   }, [data?.data?.data]);
-
-//   useEffect(() => {
-//     const handleClickOutside = (event: MouseEvent) => {
-//       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-//         setGameDropdown(false);
-//       }
-//     };
-
-//     document.addEventListener('mousedown', handleClickOutside);
-//     return () => {
-//       document.removeEventListener('mousedown', handleClickOutside);
-//     };
-//   }, []);
-
-//   const handlePageChange = (newPage: number) => {
-//     if (newPage >= 1 && newPage <= totalPages) {
-//       setPage(newPage);
-//     }
-//   };
-
-//   const handleClick = () => {
-//     if (selectedUser) {
-//       router.push(`/authority/users/${selectedUser._id}`);
-//     }
-//   };
-
-//   if (error && error.status !== 400) {
-//     console.error("Error loading users:", error);
-//     return <p>Error loading users: {error.message}</p>;
-//   }
-
-//   return (
-//     <>
-//       <div className="h-fit flex w-full lg:w-2/3 justify-between mb-[15px]">
-//         <div className="text-[#10375c] text-3xl font-semibold">Users</div>
-//         <div className="relative lg:mr-[15px]" ref={dropdownRef}>
-//           <button
-//             className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]"
-//             onClick={() => setGameDropdown(!gameDropdown)}
-//           >
-//             {selectedGame === null ? "Sort" : games.find(game => game.value === selectedGame)?.label}
-//             <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
-//           </button>
-//           {gameDropdown && (
-//             <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-0 p-[20px] w-[168px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
-//               {games?.map((game) => (
-//                 <label
-//                   key={game.label}
-//                   className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium"
-//                 >
-//                   <input
-//                     type="radio"
-//                     name="game"
-//                     value={game.value || ""}
-//                     checked={selectedGame === game.value}
-//                     onChange={() => {
-//                       setSelectedGame(game.value);
-//                       setGameDropdown(false);
-//                     }}
-//                     className="bg-[#1b2229]"
-//                   />
-//                   {game.label}
-//                 </label>
-//               ))}
-//             </div>
-//           )}
-//         </div>
-//       </div>
-
-//       <div className="flex flex-col lg:flex-row w-full rounded-[20px] gap-6 mb-[40px]">
-//         {/* Left Panel */}
-//         <div className={`w-full h-fit ${users.length === 0 ? 'lg:w-full' : 'lg:w-2/3'} bg-[#f2f2f4] shadow-md rounded-[20px] p-[14px] overflow-auto`}>
-//           <div className="flex justify-between items-center mb-6">
-//             <h2 className="text-[#10375c] text-xl font-semibold">Users</h2>
-//             <SearchBar setQuery={setSearchParams} query={searchParams} />
-//           </div>
-//           <div className="overflow-x-auto max-w-full overflo-custom h-fit">
-//             <div className="w-full min-w-[600px] rounded-[10px] bg-[#f2f2f4] flex text-sm font-semibold text-[#7e7e8a]">
-//               <div className="w-1/4 h-3.5 text-xs font-medium">Name</div>
-//               <div className="w-[14%] h-3.5 text-center text-xs font-medium">Level</div>
-//               <div className="w-[27%] h-3.5 text-xs font-medium">Email</div>
-//               <div className="w-[20%] h-3.5 text-end text-xs font-medium">Phone Number</div>
-//               <div className="w-[10%] h-3.5 text-end text-xs font-medium">Action</div>
-//             </div>
-//             <div className="w-full h-[0px] border border-[#d0d0d0] border-dotted mt-[8px]"></div>
-//             <div className="w-full min-w-[600px]">
-//               {isLoading ? (
-//                 <p>Loading...</p>
-//               ) : users.length === 0 ? (
-//                 <p>No users found</p>
-//               ) : (
-//                 users.map((user, index) => (
-//                   <div
-//                     key={user._id}
-//                     className={`cursor-pointer flex items-center h-[47px] px-3.5 py-3 rounded-[10px] ${selectedUser?._id === user._id
-//                         ? "bg-[#176dbf] text-white"
-//                         : index % 2 === 0
-//                           ? "bg-white"
-//                           : "bg-gray-200"
-//                       }`}
-//                     onClick={() => setSelectedUser(user)}
-//                   >
-//                     <div className={`w-1/4 flex items-center gap-2 break-words text-xs font-medium ${selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"}`}>
-//                       <Image
-//                         src={user.profilePic ? getImageClientS3URL(user.profilePic) : UserProfile2}
-//                         alt="Avatar"
-//                         className="rounded-full w-[25px] h-[25px] object-cover"
-//                         width={25}
-//                         height={25}
-//                       />
-//                       {user.fullName || "N/A"}
-//                     </div>
-//                     <div className={`w-[15%] text-xs text-center font-medium ${selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"}`}>
-//                       {user.level || "0000"}
-//                     </div>
-//                     <div className={`w-[35%] break-words text-xs font-medium ${selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"}`}>
-//                       {user.email || "N/A"}
-//                     </div>
-//                     <div className={`w-[20%] text-center text-xs font-medium ${selectedUser?._id === user._id ? "text-white" : "text-[#1b2229]"}`}>
-//                       {user.phoneNumber || "N/A"}
-//                     </div>
-//                     <div className="w-[10%] text-xs font-medium flex justify-center">
-//                       <EyeIcon stroke={selectedUser?._id === user._id ? "#FFFF" : "#fd5602"} />
-//                     </div>
-//                   </div>
-//                 ))
-//               )}
-//             </div>
-//             {/* Pagination */}
-//             {users.length !== 0 && (
-//               <div className="mt-4 flex justify-end gap-2">
-//                 <TablePagination
-//                   setPage={handlePageChange}
-//                   page={page}
-//                   totalData={total}
-//                   itemsPerPage={itemsPerPage}
-//                 />
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* Right Panel */}
-//         {users.length > 0 && (
-//           <div className="flex flex-col w-full lg:w-1/3 gap-[24px] h-full justify-between">
-//             {/* ... keep your user details card here (unchanged) ... */}
-//             {/* For brevity, I’ve left that part unchanged since you didn’t ask for changes in that part */}
-//             {/* Let me know if you want the full details section again */}
-//             <button
-//               onClick={handleClick}
-//               disabled={!selectedUser}
-//               className={`h-12 py-4 rounded-[28px] justify-center items-center text-white text-sm font-medium ${selectedUser ? 'bg-[#10375c]' : 'bg-gray-400 cursor-not-allowed'}`}
-//             >
-//               View More Details
-//             </button>
-//           </div>
-//         )}
-//       </div>
-//     </>
-//   );
-// }

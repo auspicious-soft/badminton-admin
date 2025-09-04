@@ -77,7 +77,7 @@ const handleDownloadRecipt = async (id: string) => {
     if (userRole === "admin") {
       return `/admin/get-matches${baseParams}`;
     }
-    else if (userRole === "employee" && venueId !== "null") {
+    else if (userRole === "employee" && venueId !== null) {
       return `/admin/get-matches${baseParams}&venueId=${venueId}`;
     }
     return null; // No fetch for other cases
@@ -144,7 +144,7 @@ const handleDownloadRecipt = async (id: string) => {
   };
 
   // Return early if no venue is assigned for employee
-  if (userRole === "employee" && venueId === "null") {
+  if (userRole === "employee" && venueId === null) {
     return <p className="text-center text-[#10375c] text-lg font-semibold">No venue assigned yet</p>;
   }
 
@@ -191,9 +191,9 @@ const handleDownloadRecipt = async (id: string) => {
                     <div className="w-[25px] h-[25px] relative">
                       <Image
                         src={
-                          match?.team1?.length > 0 && match?.team1?.[0]?.userData?.profilePic !== "null"
-                            ? getProfileImageUrl(match?.team1?.[0]?.userData?.profilePic)
-                            : UserProfile2
+                          match?.team1?.length > 0 && match?.team1?.[0]?.userData?.profilePic === null
+                            ? UserProfile2 : getProfileImageUrl(match?.team1?.[0]?.userData?.profilePic)
+                            
                         }
                         alt="Avatar"
                         className="rounded-full object-cover"
@@ -214,7 +214,7 @@ const handleDownloadRecipt = async (id: string) => {
                     <div className="w-[25px] h-[25px] relative">
                       {match.isMaintenance === false && <Image
                         src={
-                          match?.team2?.length > 0 && match?.team2[0]?.userData?.profilePic !== "null"
+                          match?.team2?.length > 0 && match?.team2[0]?.userData?.profilePic !== null
                             ? getProfileImageUrl(match?.team2[0].userData.profilePic)
                             : UserProfile2
                         }
@@ -331,7 +331,7 @@ const handleDownloadRecipt = async (id: string) => {
                     <div className="flex items-center gap-2">
                       <div className="w-[25px] h-[25px] relative">
                         {/* <Image
-                          src={selectedMatch?.venue?.image !== "null" && getProfileImageUrl(selectedMatch?.venue?.image)}
+                          src={selectedMatch?.venue?.image !== null && getProfileImageUrl(selectedMatch?.venue?.image)}
                           alt="Avatar"
                           className="rounded-full object-cover"
                           fill
@@ -358,7 +358,7 @@ const handleDownloadRecipt = async (id: string) => {
                     <div className="flex items-center gap-2">
                       <div className="w-[25px] h-[25px] relative">
                         <Image
-                          src={selectedMatch?.team1?.[0]?.userData?.profilePic !== "null" ? getProfileImageUrl(selectedMatch?.team1?.[0]?.userData?.profilePic) : UserProfile2}
+                          src={selectedMatch?.team1?.[0]?.userData?.profilePic !== null ? getProfileImageUrl(selectedMatch?.team1?.[0]?.userData?.profilePic) : UserProfile2}
                           alt="Avatar"
                           className="rounded-full object-cover"
                           fill
@@ -393,7 +393,7 @@ const handleDownloadRecipt = async (id: string) => {
                         <div key={idx} className="flex flex-col items-center">
                           <div className="w-16 h-16 relative">
                             <Image
-                              src={player.userData?.profilePic !== "null" ? getProfileImageUrl(player.userData?.profilePic) : UserProfile2}
+                              src={player.userData?.profilePic !== null ? getProfileImageUrl(player.userData?.profilePic) : UserProfile2}
                               alt="Player"
                               className="rounded-full object-cover"
                               fill
@@ -409,7 +409,7 @@ const handleDownloadRecipt = async (id: string) => {
                           <div key={idx} className="flex flex-col items-center">
                             <div className="w-16 h-16 relative">
                               <Image
-                                src={player.userData?.profilePic !== "null" ? getProfileImageUrl(player.userData?.profilePic) : UserProfile2}
+                                src={player.userData?.profilePic !== null ? getProfileImageUrl(player.userData?.profilePic) : UserProfile2}
                                 alt="Player"
                                 className="rounded-full object-cover"
                                 fill

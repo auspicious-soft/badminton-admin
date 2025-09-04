@@ -311,3 +311,22 @@ export const createMatch = async (route: string, payload?:any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.post(route,payload)
 }
+
+// <----- Packages routes----->
+export const createPackage = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route,payload)
+}
+export const updatePackage = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.put(route,payload)
+}
+export const getPackages = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+
+export const deletePackage = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.delete(route,payload)
+}

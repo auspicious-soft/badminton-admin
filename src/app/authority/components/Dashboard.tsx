@@ -97,7 +97,7 @@ const Dashboard = () => {
 
   return (
     <div className="bg-[#fbfaff]">
-      {userRole === "employee" && venueId === "null" ? (
+      {userRole === "employee" && venueId === null ? (
         <div className="bg-[#fbfaff] p-1 flex flex-col items-center justify-center min-h-[60vh] ">
           <h2 className="text-[#10375C] text-3xl font-semibold mb-4">You’re not yet assigned to any venue.</h2>
           <p className="text-[#1B2229] text-center text-sm max-w-[60%]">

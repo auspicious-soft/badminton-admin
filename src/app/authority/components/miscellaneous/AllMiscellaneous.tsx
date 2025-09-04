@@ -2,6 +2,7 @@
 "use client";
 import { useState } from "react";
 import TermsPage from './terms';
+import Packages from './packages';
 import MiscellaneousHeader from "./miscHeader";
 
 const MiscellaneousPage = () => {
@@ -19,6 +20,7 @@ const MiscellaneousPage = () => {
       <div className="mt-6 mb-6">
         {selectedTab === "Privacy Policy" && <TermsPage name="privacyPolicy"  />}
         {selectedTab === "Terms & Conditions" && <TermsPage name="termsAndConditions" />}
+        {selectedTab === "Packages" && <Packages />}
       </div>
     </div>
   );

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import SearchBar from "../components/SearchBar";
 import { Add } from "@/utils/svgicons";
 import Image from "next/image";
-import firstvenue from "@/assets/images/firstvenue.png";
 import { useRouter } from "next/navigation";
 import useSWR from 'swr';
 import { getAllVenues } from "@/services/admin-services";
@@ -37,7 +36,6 @@ const Page = () => {
     `/admin/get-venues?search=${searchParams}&page=${page}&limit=${itemsPerPage}`,
     getAllVenues
   );
-  console.log('data: ', data);
 
   // Handle dynamic venues data from API
   const venues = data?.data.data || [];

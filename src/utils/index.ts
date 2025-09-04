@@ -41,7 +41,8 @@ export const states = [
 ]
 
 export const getProfileImageUrl = (profilePic?: string | null): string => {
-  if (profilePic && typeof profilePic === "string" && profilePic.startsWith("https")) {
+  console.log('profilePic: ', profilePic);
+  if ( typeof profilePic === "string" && profilePic.startsWith("https")) {
     return profilePic;
   }
   return profilePic && getImageClientS3URL(profilePic) ;
