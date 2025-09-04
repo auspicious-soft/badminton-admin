@@ -451,10 +451,10 @@ const handleDownloadRecipt = async (id: string) => {
                   </div>
                 </div>
               )}
-              {type === "upcoming" && (
+              {type === "upcoming" && selectedMatch?.isMaintenance === false && (
                 <div className="">
                   <button onClick={() => setIsRefundModalOpen(true)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[10%]">
-                    {selectedMatch?.isMaintenance === true ? "Cancel Maintainance" : "Cancel Match"}
+                     Cancel Match
                    
                   </button>
                   <RefundConfirmation open={isRefundModalOpen} setOpen={setIsRefundModalOpen} id={selectedMatch?._id} />
