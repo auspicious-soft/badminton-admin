@@ -20,13 +20,13 @@ const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (session) {
-      // if ((session as any)?.user?.role === "employee") {
+      if ((session as any)?.user?.role === "employee") {
 
-      //   router.push("/");
-      // } else {
-      //      .push("/authority/dashboard");
-      // }
-              router.push("/authority/dashboard");
+        router.push("/authority/matches");
+      } else {
+           router.push("/authority/dashboard");
+      }
+              // router.push("/authority/dashboard");
 
     }
   }, [session, router]);
@@ -52,12 +52,15 @@ const [showPassword, setShowPassword] = useState(false);
   
       if (response?.success) {
         toast.success("Logged in successfully");
-          if (response?.data?.user?.role === "publisher") {
-          router.push("/publisher/dashboard");
+          if (response?.data?.user?.role === "employee") {
+          router.push("/authority/matches");
+          setTimeout(function() {
+    window.location.reload();
+}, 500);
         } 
-          else {
-            window.location.href = "/authority/dashboard";
-
+        else {
+          window.location.href = "/authority/dashboard";
+          
         }
       }
       else if (response?.message === "Invalid password") {

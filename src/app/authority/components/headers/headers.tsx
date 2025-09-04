@@ -37,55 +37,55 @@ const Headers = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [logoutLoading, setLogoutLoading] = useState(false); 
-    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { data, status } = useSession();
-  const userRole = (data as any)?.user?.role; 
+  const userRole = (data as any)?.user?.role;
   const name = data?.user?.name || "User";
   const router = useRouter();
   const pathname = usePathname();
   const isProfileActive = pathname === "/authority/profile";
   const venueId = (data as any)?.user?.venueId;
-   let endpoint = ""
-    // userRole === "employee"
-    //   ? `/admin/notifications?page=1&limit=10&venueId=${venueId}`
-    //   : `/admin/notifications?page=1&limit=1000`;
+  let endpoint = ""
+  // userRole === "employee"
+  //   ? `/admin/notifications?page=1&limit=10&venueId=${venueId}`
+  //   : `/admin/notifications?page=1&limit=1000`;
 
-      if(userRole === "admin"){
-        endpoint = `/admin/notifications?page=1&limit=10`
-      }
-      else{
-        endpoint = `/admin/notifications?page=1&limit=10&venueId=${venueId}`
-      }
+  if (userRole === "admin") {
+    endpoint = `/admin/notifications?page=1&limit=10`
+  }
+  else {
+    endpoint = `/admin/notifications?page=1&limit=10&venueId=${venueId}`
+  }
   const {
-  data: notificationsData,
-  error: swrError,
-  isLoading,
-  mutate,
-} = useSWR( endpoint , getNotifications, {
-  revalidateOnFocus: false,
-  revalidateOnReconnect: false,
-  revalidateIfStale: false,
-  keepPreviousData: true,
-  dedupingInterval: 100,
-});
-// const hasUnreadNotifications = Array.isArray(notificationsData?.data?.data)
-//   ? notificationsData.data.data.some((n) => n.isReadyByAdmin === true
-// )
-//   : false;
-  
-// useEffect(() => {
-//     if (notificationsData) {
-//       mutate()
-//     }
-//   }, [notificationsData, mutate])
+    data: notificationsData,
+    error: swrError,
+    isLoading,
+    mutate,
+  } = useSWR(endpoint, getNotifications, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: false,
+    keepPreviousData: true,
+    dedupingInterval: 100,
+  });
+  // const hasUnreadNotifications = Array.isArray(notificationsData?.data?.data)
+  //   ? notificationsData.data.data.some((n) => n.isReadyByAdmin === true
+  // )
+  //   : false;
+
+  // useEffect(() => {
+  //     if (notificationsData) {
+  //       mutate()
+  //     }
+  //   }, [notificationsData, mutate])
 
 
   // Filter navigation links based on userRole
   const filteredNavigationLinks = userRole?.toLowerCase() === "employee"
     ? navigationLinks.filter(
-        (link) => link.label !== "Venue" && link.label !== "Employees" && link.label !== "Misc" && link.label !== "Notifications"
-      )
+      (link) => link.label !== "Venue" && link.label !== "Employees" && link.label !== "Misc" && link.label !== "Notifications" && link.label !== "Dashboard"
+    )
     : navigationLinks;
 
   const dropdownRef = useRef(null);
@@ -102,12 +102,12 @@ const Headers = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      
+
       // Check if the click is outside the user dropdown
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
-      
+
       // Check if the click is outside the notification area
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         // Don't close if the click is inside the notification modal content
@@ -124,7 +124,7 @@ const Headers = () => {
       const timer = setTimeout(() => {
         document.addEventListener("mousedown", handleClickOutside);
       }, 100);
-      
+
       return () => {
         clearTimeout(timer);
         document.removeEventListener("mousedown", handleClickOutside);
@@ -146,18 +146,18 @@ const Headers = () => {
   };
 
 
-// After fetching notifications in SWR:
-// After fetching notifications in SWR:
-useEffect(() => {
-  if (Array.isArray(notificationsData?.data?.data)) {
-    const hasUnread = notificationsData.data.data.some(
-      (n) => n.isReadyByAdmin === false
-    );
-    setHasUnreadNotifications(hasUnread);
-  } else {
-    setHasUnreadNotifications(false);
-  }
-}, [notificationsData]);
+  // After fetching notifications in SWR:
+  // After fetching notifications in SWR:
+  useEffect(() => {
+    if (Array.isArray(notificationsData?.data?.data)) {
+      const hasUnread = notificationsData.data.data.some(
+        (n) => n.isReadyByAdmin === false
+      );
+      setHasUnreadNotifications(hasUnread);
+    } else {
+      setHasUnreadNotifications(false);
+    }
+  }, [notificationsData]);
 
 
 
@@ -177,11 +177,10 @@ useEffect(() => {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`py-2 px-3 xl:py-3 xl:px-4 rounded-[28px] text-xs xl:text-sm font-medium whitespace-nowrap transition-colors ${
-                    isTabActive(pathname, link.routes)
+                  className={`py-2 px-3 xl:py-3 xl:px-4 rounded-[28px] text-xs xl:text-sm font-medium whitespace-nowrap transition-colors ${isTabActive(pathname, link.routes)
                       ? "bg-gray-900 text-white"
                       : "text-[#1b2229] hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -199,7 +198,7 @@ useEffect(() => {
                   <Menu className="w-5 h-5 md:w-6 md:h-6" />
                 )}
               </button>
-              
+
               <div className="relative" ref={notificationRef}>
                 {/* <button
                   className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
@@ -208,37 +207,36 @@ useEffect(() => {
                   <Bell className="w-4 h-4 md:w-5 md:h-5" />
                 </button> */}
                 <button
-  className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors relative"
-  onClick={handleNotificationClick}
->
-  <Bell className="w-4 h-4 md:w-5 md:h-5" />
-  {hasUnreadNotifications && (
-    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-  )}
-</button>
-                
+                  className="p-2 md:p-3 rounded-full bg-[#FFF] text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors relative"
+                  onClick={handleNotificationClick}
+                >
+                  <Bell className="w-4 h-4 md:w-5 md:h-5" />
+                  {hasUnreadNotifications && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                  )}
+                </button>
+
                 <NotificationModal
                   open={showNotificationDropdown}
                   onClose={handleNotificationClose}
-                   onAllRead={() => setHasUnreadNotifications(false)}
-  onSingleRead={(id) => {
-    setHasUnreadNotifications((prev) => {
-      if (!prev) return false;
-      // Optional: manually check remaining unread
-      const remaining = notificationsData.data.data.filter(n => n._id !== id && n.isReadyByAdmin === false);
-      return remaining.length > 0;
-    });
-  }}
+                  onAllRead={() => setHasUnreadNotifications(false)}
+                  onSingleRead={(id) => {
+                    setHasUnreadNotifications((prev) => {
+                      if (!prev) return false;
+                      // Optional: manually check remaining unread
+                      const remaining = notificationsData.data.data.filter(n => n._id !== id && n.isReadyByAdmin === false);
+                      return remaining.length > 0;
+                    });
+                  }}
                 />
               </div>
-              
+
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className={`p-2 md:p-3 rounded-full bg-[#FFF] transition-colors ${
-                  isProfileActive
+                className={`p-2 md:p-3 rounded-full bg-[#FFF] transition-colors ${isProfileActive
                     ? "bg-gray-900 text-white hover:bg-gray-800"
                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 <User className="w-4 h-4 md:w-5 md:h-5" />
               </button>
@@ -276,11 +274,10 @@ useEffect(() => {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`block px-4 py-2 text-sm transition-colors ${
-                    isTabActive(pathname, link.routes)
+                  className={`block px-4 py-2 text-sm transition-colors ${isTabActive(pathname, link.routes)
                       ? "bg-gray-900 text-white"
                       : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
+                    }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.label}
