@@ -1,6 +1,5 @@
 "use client";
-import React, { useState } from 'react';
-// import Select, { MultiValue } from 'react-select';
+import React, { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { CrossIcon, EditIcon } from '@/utils/svgicons';
@@ -11,9 +10,11 @@ import { validateImageFile } from '@/utils/fileValidation';
 import { updateAdminSettings, getAdminSettings, getAllUsersForNotification, postNotification } from '@/services/admin-services';
 import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
+import { components, MultiValue, OptionProps, Props } from 'react-select';
+import UserProfile2 from "@/assets/images/images.png";
+import { getProfileImageUrl } from "@/utils";
 
 const Select = dynamic(() => import('react-select'), { ssr: false });
-const MultiValue = dynamic(() => import('react-select'), { ssr: false });
 
 interface NotificationData {
   title: string;
@@ -24,6 +25,7 @@ interface NotificationData {
 interface OptionType {
   value: string;
   label: string;
+  profile?: string;
 }
 
 interface BannerImage {
@@ -31,6 +33,11 @@ interface BannerImage {
   url: string;
   key: string;
   file?: File;
+}
+
+interface Template {
+  Title: string;
+  Description: string;
 }
 
 const NotificationForm = () => {
@@ -42,7 +49,8 @@ const NotificationForm = () => {
   const { data: session } = useSession();
   const userRole = (session as any)?.user?.role;
   const [isUploading, setIsUploading] = useState(false);
-  const [isCheck, setIsCheck] = useState(false)
+  const [isCheck, setIsCheck] = useState(false);
+  const templateSelectRef = useRef<any>(null);
 
   // Fetch existing admin settings including banners
   const { data: adminSettings, mutate: mutateAdminSettings, isLoading: isLoadingSettings } = useSWR(
@@ -53,6 +61,12 @@ const NotificationForm = () => {
     '/admin/custome-notification',
     getAllUsersForNotification
   );
+  // Fetch templates
+  const { data: templateData } = useSWR(
+    '/admin/get-templates',
+    getAllUsersForNotification
+  );
+
   // Convert banner keys to BannerImage objects
   const banners: BannerImage[] = (adminSettings?.data?.data?.banners || []).map((key: string, index: number) => ({
     id: `${index}`,
@@ -62,10 +76,56 @@ const NotificationForm = () => {
 
   const people = userData?.data?.data;
   // Convert people array to react-select options
-  const options: OptionType[] = people?.map(person => ({
+  const userOptions: OptionType[] = people?.map(person => ({
     value: person._id,
-    label: person.fullName
-  }));
+    label: person.fullName,
+    profile: person.profilePic !== null
+                          ? getProfileImageUrl(person.profilePic)
+                          : person.profilePic || UserProfile2
+  })) || [];
+
+  const templateOptions: OptionType[] = templateData?.data?.data?.map((template: Template) => ({
+    value: template.Title,
+    label: template.Title
+  })) || [];
+  console.log('templateData: ', templateData);
+
+  // Custom Option component to display profile picture and name
+  const CustomOption = ({ children, ...props }: OptionProps<OptionType>) => (
+    <components.Option {...props}>
+      <div className="flex items-center gap-2">
+        {props.data.profile && (
+          <Image
+            src={props.data.profile}
+            alt={`${props.data.label} profile`}
+            width={24}
+            height={24}
+            className="rounded-full object-cover"
+          />
+        )}
+        <span>{children}</span>
+      </div>
+    </components.Option>
+  );
+
+  // Custom MultiValueLabel component to display profile picture and name in selected chips
+  const CustomMultiValueLabel = ({ children, ...props }: any) => (
+    <components.MultiValueLabel {...props}>
+      <div className="flex items-center gap-2">
+        {props.data.profile && (
+          <Image
+            src={props.data.profile}
+            alt={`${props.data.label} profile`}
+
+            width={20}
+            height={20}
+            className="rounded-full object-cover"
+          />
+        )}
+        <span>{children}</span>
+      </div>
+    </components.MultiValueLabel>
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -75,7 +135,26 @@ const NotificationForm = () => {
     }));
   };
 
-  const handleRecipientsChange = (selectedOptions: any) => {
+  const handleTemplateChange = (selectedOption: OptionType | null) => {
+    if (selectedOption) {
+      const selectedTemplate = templateData?.data?.data?.find((template: Template) => template.Title === selectedOption.value);
+      if (selectedTemplate) {
+        setFormData(prev => ({
+          ...prev,
+          title: selectedTemplate.Title,
+          text: selectedTemplate.Description
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        title: '',
+        text: ''
+      }));
+    }
+  };
+
+  const handleRecipientsChange = (selectedOptions: MultiValue<OptionType>) => {
     const recipients = selectedOptions?.map(option => option.value);
     setFormData(prev => ({
       ...prev,
@@ -96,13 +175,11 @@ const NotificationForm = () => {
       const timestamp = Date.now();
       const fileName = `${timestamp}-${file.name}`;
 
-      // Generate signed URL for S3 upload
       const { signedUrl, key } = await generateSignedUrlForBanners(
         fileName,
         file.type
       );
 
-      // Upload the file to S3
       const uploadResponse = await fetch(signedUrl, {
         method: "PUT",
         body: file,
@@ -129,34 +206,24 @@ const NotificationForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate the file using our centralized validation
-    const validation = validateImageFile(file, 5); // 5MB limit
+    const validation = validateImageFile(file, 5);
     if (!validation.isValid) {
       toast.error(validation.error);
-      // Reset the input
       e.target.value = '';
       return;
     }
 
     try {
       const imageKey = await uploadBannerToS3(file);
-
-      // Get current banners and add the new one
       const currentBanners = adminSettings?.data?.data?.banners || [];
       const updatedBanners = [...currentBanners, imageKey];
-
-      // Update admin settings with new banner array
-      const reponse = await updateAdminSettings({ banners: updatedBanners });
-
-      // Refresh the data
+      await updateAdminSettings({ banners: updatedBanners });
       await mutateAdminSettings();
-
       toast.success('Banner uploaded successfully');
     } catch (error) {
       console.error('Error uploading banner:', error);
     }
 
-    // Reset input
     e.target.value = '';
   };
 
@@ -165,19 +232,11 @@ const NotificationForm = () => {
     if (!banner) return;
 
     try {
-      // Delete from S3
       await deleteFileFromS3(banner.key);
-
-      // Get current banners and remove the deleted one
       const currentBanners = adminSettings?.data?.data?.banners || [];
       const updatedBanners = currentBanners.filter((key: string) => key !== banner.key);
-
-      // Update admin settings with updated banner array
       await updateAdminSettings({ banners: updatedBanners });
-
-      // Refresh the data
       await mutateAdminSettings();
-
       toast.success('Banner deleted successfully');
     } catch (error) {
       console.error('Error deleting banner:', error);
@@ -189,29 +248,68 @@ const NotificationForm = () => {
     e.preventDefault();
     const response = await postNotification("/admin/custome-notification", formData);
     if (response.status === 200 || response.status === 201) {
-      toast.success(response?.data?.message)
+      toast.success(response?.data?.message);
+      setFormData({
+        title: '',
+        text: '',
+        specificUsers: []
+      });
+      if (templateSelectRef.current) {
+        templateSelectRef.current.clearValue();
+      }
+      setIsCheck(false);
+    } else {
+      toast.error("Failed to create notification");
     }
-    else{
-      toast.error("Failed create notification")
-    }
-    setFormData(prev => ({
-      title: '',
-      text: '',
-      specificUsers: []
-    }));
-    setIsCheck(false);
   };
 
   return (
     <div className="w-full">
-
       <div className="flex flex-col md:flex-row gap-[20px]">
-        {/* Left Side - Notification Form */}
         <div className={`w-full ${userRole === 'employee' ? 'md:w-full' : 'md:w-[60%]'}`}>
           <h1 className="text-[#10375c] text-3xl font-semibold mb-[20px]">Notifications</h1>
           <div className="bg-white rounded-lg shadow-md px-[20px] pt-[20px] pb-[30px] mb-[15px]">
-
             <form onSubmit={handleSubmit}>
+             {userRole ==="employee" &&  <div className="flex flex-col gap-[10px] mb-[20px]">
+                <label htmlFor="template" className="text-[#1c2329] text-sm font-semibold leading-[16.80px]">
+                  Select Template
+                </label>
+                <Select
+                  ref={templateSelectRef}
+                  options={templateOptions}
+                  onChange={handleTemplateChange}
+                  isClearable
+                  className="w-full text-black/60 text-xs font-medium"
+                  classNamePrefix="react-select"
+                  placeholder="Select a template..."
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      borderRadius: '44px',
+                      border: '1px solid #e6e6e6',
+                      boxShadow: 'none',
+                      '&:hover': {
+                        borderColor: '#e6e6e6',
+                      },
+                      padding: '2px',
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    }),
+                    option: (base, { isFocused }) => ({
+                      ...base,
+                      backgroundColor: isFocused ? '#e6f7ff' : 'white',
+                      color: '#1c2329',
+                      '&:active': {
+                        backgroundColor: '#e6f7ff',
+                      },
+                    }),
+                  }}
+                />
+              </div>
+}
               <div className="flex flex-col gap-[10px] mb-[20px]">
                 <label htmlFor="title" className="text-[#1c2329] text-sm font-semibold leading-[16.80px]">
                   Enter Title
@@ -239,7 +337,7 @@ const NotificationForm = () => {
                   onChange={handleInputChange}
                   placeholder="Text here..."
                   rows={4}
-                  className="w-full px-[15px] pt-2.5 pb-[60px] bg-white rounded-[20px] border border-[#e6e6e6] text-black/60 text-xs font-medium "
+                  className="w-full px-[15px] pt-2.5 pb-[60px] bg-white rounded-[20px] border border-[#e6e6e6] text-black/60 text-xs font-medium"
                   required
                 />
               </div>
@@ -253,23 +351,24 @@ const NotificationForm = () => {
                     checked={isCheck}
                     onChange={(e) => setIsCheck(e.target.checked)}
                   />
-                  <label htmlFor="sendToSpecific" className="text-black/60 text-xs font-medium ">
+                  <label htmlFor="sendToSpecific" className="text-black/60 text-xs font-medium">
                     Send to a specific person
                   </label>
                 </div>
-                {isCheck === true && (
-                  < Select
+                {isCheck && (
+                  <Select
                     isMulti
-                    options={options}
-                    value={options?.filter(option => formData.specificUsers.includes(option.value))}
+                    options={userOptions}
+                    value={userOptions?.filter(option => formData.specificUsers.includes(option.value))}
                     onChange={handleRecipientsChange}
-                    className="w-full  text-black/60 text-xs font-medium "
+                    className="w-full text-black/60 text-xs font-medium"
                     classNamePrefix="react-select"
                     placeholder="Select Name..."
+                    components={{ Option: CustomOption, MultiValueLabel: CustomMultiValueLabel }}
                     styles={{
                       control: (base) => ({
                         ...base,
-                        borderRadius: '44px', // Match the rounded style from your input
+                        borderRadius: '44px',
                         border: '1px solid #e6e6e6',
                         boxShadow: 'none',
                         width: '60%',
@@ -291,6 +390,7 @@ const NotificationForm = () => {
                         '&:active': {
                           backgroundColor: '#e6f7ff',
                         },
+                        padding: '8px 12px',
                       }),
                       multiValue: (base) => ({
                         ...base,
@@ -300,7 +400,7 @@ const NotificationForm = () => {
                       multiValueLabel: (base) => ({
                         ...base,
                         color: 'white',
-                        padding: '4px 2px 4px 12px'
+                        padding: '4px 2px 4px 12px',
                       }),
                       multiValueRemove: (base) => ({
                         ...base,
@@ -318,7 +418,7 @@ const NotificationForm = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#10375c] rounded-[5px] hover:opacity-0.2 px-[27px] py-5 text-white text-sm font-medium font-['Inter'] transition duration-200"
+                className="w-full bg-[#10375c] rounded-[5px] hover:opacity-80 px-[27px] py-5 text-white text-sm font-medium font-['Inter'] transition duration-200"
               >
                 Send
               </button>
@@ -326,16 +426,12 @@ const NotificationForm = () => {
           </div>
         </div>
 
-        {/* Right Side - Promotional Banners */}
         {userRole !== 'employee' && (
           <div className="w-full md:w-[40%]">
             <h2 className="text-[#10375c] text-3xl font-semibold mb-[20px]">Promotional Banners</h2>
             <div className="bg-white rounded-lg shadow-md p-[20px]">
-
-              {/* Banner Grid */}
               <div className="grid grid-cols-2 gap-[15px] mb-[20px]">
                 {isLoadingSettings ? (
-                  // Loading skeleton
                   Array.from({ length: 4 }).map((_, index) => (
                     <div key={index} className="aspect-[4/3] rounded-[10px] bg-gray-200 animate-pulse"></div>
                   ))
@@ -350,7 +446,6 @@ const NotificationForm = () => {
                           width={200}
                           height={150}
                         />
-                        {/* Delete Button */}
                         <button
                           onClick={() => handleDeleteBanner(banner.id)}
                           className="absolute top-2 right-2 bg-white text-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-md hover:bg-red-50"
@@ -361,7 +456,6 @@ const NotificationForm = () => {
                     </div>
                   ))
                 ) : (
-                  // Empty state
                   <div className="col-span-2 text-center py-8 text-gray-500">
                     <p>No promotional banners uploaded yet.</p>
                     <p className="text-sm">Upload your first banner below!</p>
@@ -369,12 +463,10 @@ const NotificationForm = () => {
                 )}
               </div>
 
-              {/* Upload Banner Button */}
               <div className="relative">
                 <label
                   htmlFor="bannerUpload"
-                  className={`flex items-center justify-center gap-[10px] w-full h-12 px-5 py-4 bg-[#10375c] rounded-[5px] text-white text-sm font-medium cursor-pointer hover:opacity-90 transition-opacity ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                  className={`flex items-center justify-center gap-[10px] w-full h-12 px-5 py-4 bg-[#10375c] rounded-[5px] text-white text-sm font-medium cursor-pointer hover:opacity-90 transition-opacity ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <EditIcon stroke="white" />
                   {isUploading ? 'Uploading...' : 'Upload Banner'}

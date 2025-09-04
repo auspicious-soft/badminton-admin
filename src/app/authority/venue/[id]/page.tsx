@@ -268,7 +268,6 @@ const Page = () => {
 
   useEffect(() => {
     const venueDataValue = data?.data?.data || {};
-    console.log('venueDataValue: ', venueDataValue);
     if (venueDataValue && Object.keys(venueDataValue).length > 0) {
       setName(venueDataValue.venue?.name || "");
       setAddress(venueDataValue.venue?.address || "");
@@ -501,7 +500,6 @@ const Page = () => {
         if (imageKey && imageKey.startsWith('venues/')) {
           try {
             await deleteFileFromS3(imageKey);
-            console.log("Previous venue image deleted:", imageKey);
           } catch (error) {
             console.error("Error deleting previous venue image:", error);
           }

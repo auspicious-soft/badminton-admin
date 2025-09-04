@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import type { MultiValue } from "react-select";
 import { toast } from "sonner";
-import { getCourts, getVenues, createMatch } from "@/services/admin-services"; // Add createBooking
+import { getCourts, getVenues, createMatch } from "@/services/admin-services";
 import { useSession } from "next-auth/react";
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
@@ -180,11 +180,15 @@ export const BookingModal = ({ onClose }: { onClose: () => void }) => {
     label: venue.name,
   }));
 
-  const courtOptions: CourtOption[] = courts.map((court) => ({
+  const courtOptions: CourtOption[] = courts.map((court:any) => ({
+    
     value: court._id,
-    label: court.name,
+    label: `${court.name} - ${court.games}`
   }));
+  console.log('courtOptions: ', courtOptions);
+  console.log('venueOptions: ', venueOptions);
 
+  console.log('courts: ', courts);
   const paymentOptions: string[] = ["Cash/UPI", "Credit Card", "Debit Card"];
 
   useEffect(() => {
@@ -290,7 +294,7 @@ const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                       <option value="">Select a court</option>
                       {courtOptions.map((option) => (
                         <option key={option.value} value={option.value}>
-                          {option.label}
+                        {option.label}
                         </option>
                       ))}
                     </select>

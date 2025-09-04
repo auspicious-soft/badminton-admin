@@ -13,7 +13,6 @@ const ProductList = () => {
   const   {data, isLoading} = useSWR(
     `/admin/products?page=${page}&limit=${itemsPerPage}`, getAllMerchandise
   );
-  console.log('isLoading: ', isLoading);
  const productData = data?.data?.data || [];
   const handlePageChange = (newPage: number) => {
     setPage(newPage);

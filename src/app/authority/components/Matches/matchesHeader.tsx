@@ -28,7 +28,6 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data, mutate, isLoading } = useSWR("/admin/get-cities", getAllCities)
   const cities = data?.data?.data || [];
-  console.log('data: ', data?.data?.data);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (gameDropdownRef.current && !gameDropdownRef.current.contains(event.target as Node)) {

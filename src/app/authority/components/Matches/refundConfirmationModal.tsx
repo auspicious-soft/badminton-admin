@@ -21,7 +21,6 @@ export default function RefundConfirmation({ open, setOpen, id }) {
             reason,
             percentage,
           };
-          console.log("payload", payload);
           const response = await cancelMatch("/admin/cancel-match", payload);
           setConfirmed(true);
           setTimeout(() => {

@@ -401,6 +401,7 @@ const handleDownloadRecipt = async (id: string) => {
                             />
                           </div>
                           <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
+                            <p className="text-xs mt-1 text-center ">{player.userData?.phoneNumber}</p>
                         </div>
                       ))}
                       <p className="text-sm font-bold">VS</p>
@@ -414,9 +415,10 @@ const handleDownloadRecipt = async (id: string) => {
                                 className="rounded-full object-cover"
                                 fill
                               />
-
+                             
                             </div>
                             <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
+                            <p className="text-xs mt-1 text-center ">{player.userData?.phoneNumber}</p>
                           </div>
                         ))
                       ) : (

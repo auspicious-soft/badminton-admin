@@ -283,7 +283,6 @@ const Page = () => {
       image: emp.image,
       isActive: emp.isActive,
     }));
-    console.log("mappedEmployees", mappedEmployees);
     setEmployees((prev) => [...prev, ...mappedEmployees]);
   };
 
@@ -379,7 +378,6 @@ const Page = () => {
       }))
     );
   };
-console.log("OpeningHours", openingHours)
   // Function to upload a court image to S3
   const uploadCourtImageToS3 = async (file: File): Promise<string> => {
     try {
