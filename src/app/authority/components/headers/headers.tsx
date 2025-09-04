@@ -20,6 +20,7 @@ const navigationLinks = [
   // { href: "/authority/merchandises", label: "Merchandise", routes: ["/authority/merchandises", "/authority/merchandises/[id]", "/authority/merchandises/add"] },
   { href: "/authority/inventory", label: "Inventory", routes: ["/authority/inventory"] },
   { href: "/authority/employees", label: "Employees", routes: ["/authority/employees"] },
+  { href: "/authority/maintenance", label: "Maintenance", routes: ["/authority/maintenance"] },
   { href: "/authority/miscellaneous", label: "Misc", routes: ["/authority/miscellaneous"] },
 ];
 
@@ -84,7 +85,7 @@ const Headers = () => {
   // Filter navigation links based on userRole
   const filteredNavigationLinks = userRole?.toLowerCase() === "employee"
     ? navigationLinks.filter(
-      (link) => link.label !== "Venue" && link.label !== "Employees" && link.label !== "Misc"  && link.label !== "Dashboard"
+      (link) => link.label !== "Venue" && link.label !== "Employees" && link.label !== "Misc" && link.label !== "Dashboard" && link.label !== "Users"
     )
     : navigationLinks;
 

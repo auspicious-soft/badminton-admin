@@ -116,9 +116,9 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, on
             label: venue.name,
         })) || [];
 
-    const courtOptions = courtData?.data?.data?.map((court: { _id: string; name: string }) => ({
+    const courtOptions = courtData?.data?.data?.map((court: { _id: string; name: string, games: string }) => ({
         value: court._id,
-        label: court.name,
+        label: `${court.name} -  ${court.games}`
     })) || [];
 
     const timeslotOptions = [
