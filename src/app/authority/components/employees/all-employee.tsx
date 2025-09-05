@@ -588,7 +588,7 @@ const AllEmployeeComponent = () => {
                   >
                     <Image
                       src={
-                        employee.profilePic && employee.profilePic.startsWith('employees/')
+                        employee.profilePic !== null 
                           ? getImageClientS3URL(employee.profilePic)
                           : employee.profilePic || UserProfile2
                       }

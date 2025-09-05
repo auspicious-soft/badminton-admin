@@ -27,7 +27,6 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   // Derive userRole and venueId from session
   const userRole = status === "authenticated" ? (session as any)?.user?.role : undefined;
   const venueId = status === "authenticated" ? (session as any)?.user?.venueId : undefined;
-  console.log("userRole", userRole, "venueId", venueId);
   const typeMapping: { [key: string]: string } = {
     "Cancelled Matches": "cancelled",
     "Previous Matches": "completed",
@@ -92,12 +91,12 @@ const handleDownloadRecipt = async (id: string) => {
     let total = 0;
     if (match?.team1 && Array.isArray(match?.team1)) {
       match?.team1.forEach(player => {
-        total += (player.racketA || 0) + (player.racketB || 0) + (player.racketC || 0) + (player.balls || 0);
+        total += (player.rackets || 0)  + (player.balls || 0);
       });
     }
     if (match?.team2 && Array.isArray(match?.team2)) {
       match?.team2.forEach(player => {
-        total += (player.racketA || 0) + (player.racketB || 0) + (player.racketC || 0) + (player.balls || 0);
+        total += (player.rackets || 0)  + (player.balls || 0);
       });
     }
     return total === 0 ? "None" : total;

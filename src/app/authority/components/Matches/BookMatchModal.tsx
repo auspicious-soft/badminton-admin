@@ -49,6 +49,8 @@ interface BookingPayload {
   venueId: string;
   courtId: string;
   bookingSlots: string[];
+  balls:number;
+  rackets:number;
 }
 
 export const BookingModal = ({ onClose }: { onClose: () => void }) => {
@@ -59,10 +61,11 @@ export const BookingModal = ({ onClose }: { onClose: () => void }) => {
   const [guestPlayer1, setGuestPlayer1] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
+  const [balls, setBalls] = useState<number>();
+  const [rackets, setRackets] = useState<number>();
   const [guestPlayer2, setGuestPlayer2] = useState<string>("");
   const [guestPlayer3, setGuestPlayer3] = useState<string>("");
   const [guestPlayer4, setGuestPlayer4] = useState<string>("");
-  const [paymentMode, setPaymentMode] = useState<string>("Cash/UPI");
   const [venue, setVenue] = useState<string>("");
   const [venues, setVenues] = useState<Venue[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -144,6 +147,8 @@ export const BookingModal = ({ onClose }: { onClose: () => void }) => {
       player4: guestPlayer4 || "",
       venueId: selectedVenueId,
       courtId: selectedCourtId,
+      rackets:rackets,
+      balls:balls,
       bookingSlots: selectedTimeSlots.map((slot) => slot.value),
     };
 
@@ -387,6 +392,32 @@ const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
+              <div >
+                <label className="block text-xs text-gray-600 mb-2">
+                  Balls
+                </label>
+                <input
+                  type="number"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm"
+                  value={balls}
+                  onChange={(e) => setBalls(parseInt(e.target.value, 10))}
+                  placeholder="Balls"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-2">
+                  Rackets
+                </label>
+                <input
+                  type="number"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm"
+                  value={rackets}
+                  onChange={(e) => setRackets(parseInt(e.target.value, 10))}
+                  placeholder="Rackets"
+                />
+              </div>
+              </div>
             </div>
           </div>
 
@@ -420,6 +451,7 @@ const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                   type="email"
                   className="w-full p-3 border border-gray-300 rounded-lg text-sm"
                   value={email}
+                  placeholder={"Email"}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
