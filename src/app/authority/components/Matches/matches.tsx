@@ -22,7 +22,6 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const [type, setType] = useState("upcoming");
   const [isTabSwitching, setIsTabSwitching] = useState(false);
   const { data: session, status } = useSession();
-  console.log("session", session, "status", status);
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   // Derive userRole and venueId from session
   const userRole = status === "authenticated" ? (session as any)?.user?.role : undefined;
@@ -68,7 +67,6 @@ const handleDownloadRecipt = async (id: string) => {
   }, [name]);
   // Compute the SWR key based on role and conditions
   const swrKey = useMemo(() => {
-    console.log('Computing swrKey - userRole:', userRole, 'venueId:', venueId, 'status:', status);
     if (status !== "authenticated") return null;
 
     const baseParams = `?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}`;

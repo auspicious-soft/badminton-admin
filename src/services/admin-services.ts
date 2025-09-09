@@ -330,3 +330,22 @@ export const deletePackage = async (route: string, payload?:any) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.delete(route,payload)
 }
+
+// <----- Dynamic Pricing routes----->
+export const createPricing = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.post(route,payload)
+}
+export const updatePricing = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.put(route,payload)
+}
+export const getPricing = async (route: string) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.get(route)
+}
+
+export const deletePricing = async (route: string, payload?:any) => {
+    const axiosInstance = await getAxiosInstance()
+    return axiosInstance.delete(route,payload)
+}

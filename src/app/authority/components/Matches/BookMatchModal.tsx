@@ -156,6 +156,7 @@ export const BookingModal = ({ onClose }: { onClose: () => void }) => {
       const response = await createMatch("/admin//create-match", payload);
       if (response.status === 200 || response.status === 201) {
         toast.success("Booking created successfully");
+        window.location.reload();
         onClose();
       } else {
         toast.error("Error creating booking");

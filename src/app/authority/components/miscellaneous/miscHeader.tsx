@@ -4,7 +4,7 @@ import { UpArrowIcon, DownArrowIcon } from "@/utils/svgicons";
 import useSWR from "swr";
 import { getAllCities } from "@/services/admin-services";
 
-const tabs = ["Privacy Policy", "Terms & Conditions","Packages"];
+const tabs = ["Privacy Policy", "Terms & Conditions","Packages","Pricing"];
 const games = ["All", "Padel", "Pickleball"];
 
 interface MatchesHeaderProps {

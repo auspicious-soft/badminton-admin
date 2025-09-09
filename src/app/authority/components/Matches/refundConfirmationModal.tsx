@@ -82,6 +82,7 @@ export default function RefundConfirmation({ open, setOpen, id }) {
               className="w-full h-[50px] px-4 py-2 bg-[#f4f5f7] rounded-[50px] border focus:border-[#176dbf] focus:ring-blue-400 text-gray-700 appearance-none cursor-pointer"
             >
               <option value="">Select Refund Percentage</option>
+              <option value="0">0%</option>
               <option value="25">25%</option>
               <option value="50">50%</option>
               <option value="75">75%</option>
