@@ -188,8 +188,8 @@ const handleDownloadRecipt = async (id: string) => {
                     <div className="w-[25px] h-[25px] relative">
                       <Image
                         src={
-                          match?.team1?.length > 0 && match?.team1?.[0]?.userData?.profilePic === null
-                            ? UserProfile2 : getProfileImageUrl(match?.team1?.[0]?.userData?.profilePic)
+                          match?.team1?.length > 0 && match?.team1?.[0]?.userData?.profilePic !== null
+                            ?   getProfileImageUrl(match?.team1?.[0]?.userData?.profilePic) :UserProfile2
                             
                         }
                         alt="Avatar"
