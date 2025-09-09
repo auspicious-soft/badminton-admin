@@ -348,7 +348,7 @@ function convertToLocalTime(utcTimestamp) {
                     ) : weatherData.length === 0 ? (
                         <tr>
                             <td colSpan={4} className="text-center py-4">
-                                <p className="text-gray-600">No maintenance schedules found</p>
+                                <p className="text-gray-600">No Weather record found.</p>
                             </td>
                         </tr>
                     ) : (
