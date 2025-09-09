@@ -33,7 +33,7 @@ export function convertUTCToLocalISTWithOffset(utcDateString: string, includeMin
   }
 
   // Apply 5.5-hour offset to match 11:33 AM IST
-  date.setHours(date.getHours() + 5.5);
+  date.setHours(date.getHours());
 
   const options: Intl.DateTimeFormatOptions = {
     timeZone: 'Asia/Kolkata',
@@ -46,8 +46,6 @@ export function convertUTCToLocalISTWithOffset(utcDateString: string, includeMin
   };
 
   const formatted = date.toLocaleString('en-US', options).replace(/, (\d{4})/, ' $1');
-  console.log('Input UTC:', utcDateString);
-  console.log('Adjusted Date:', date.toISOString());
-  console.log('Formatted Output:', formatted);
+
   return formatted;
 }

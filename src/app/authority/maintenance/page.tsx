@@ -182,7 +182,18 @@ const ProfileForm = () => {
         }
     };
 
-
+function convertToLocalTime(utcTimestamp) {
+  const date = new Date(utcTimestamp);
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+}
 
     useEffect(() => {
         return () => {
@@ -281,9 +292,7 @@ const ProfileForm = () => {
         if (!itemToDelete) return;
 
         try {
-            console.log('Deleting maintenance item:', itemToDelete);
             const response = await deleteMaintenance(`admin/maintenance-booking/${itemToDelete.id}`);
-            console.log('Delete response:', response);
             maintenanceMutate();
             toast.success("Maintenance schedule deleted successfully");
             setIsDeleteModalOpen(false);
@@ -359,6 +368,7 @@ const ProfileForm = () => {
                                             {/* {convertUTCToLocalIST(group.hour,5.5)} */}
                                             {convertUTCToLocalISTWithOffset(group.hour)}
                                             {/* {group.hour.toLocaleDateString()} */}
+                                            {/* {convertToLocalTime(group.hour)} */}
                                         </td>
                                     </tr>
 
