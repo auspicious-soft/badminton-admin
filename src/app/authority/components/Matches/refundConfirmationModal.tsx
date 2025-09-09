@@ -22,6 +22,7 @@ export default function RefundConfirmation({ open, setOpen, id }) {
             percentage,
           };
           const response = await cancelMatch("/admin/cancel-match", payload);
+          toast.success("Refund done successfully")
           setConfirmed(true);
           setTimeout(() => {
             setOpen(false);
@@ -30,7 +31,7 @@ export default function RefundConfirmation({ open, setOpen, id }) {
             setPercentage("");
           }, 2000);
         } else {
-          alert("Please select both reason and percentage");
+          toast.error("Please select both reason and percentage");
           setReason("");
           setPercentage("");
         }

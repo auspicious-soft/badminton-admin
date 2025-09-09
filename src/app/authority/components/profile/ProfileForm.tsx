@@ -1114,43 +1114,7 @@ const ProfileForm = () => {
                     </div>
                 </form>
             </div>
-             {userRole !== "employee" && (
-            <div className="w-full">
-                <h2 className="text-[#10375c] text-3xl font-semibold">Settings</h2>
-                
-              
-                <DeleteConfirmationModal
-                    open={isDeleteModalOpen}
-                    onClose={() => setIsDeleteModalOpen(false)}
-                    onDelete={handleDeleteMaintenance}
-                    title="Delete Maintenance?"
-                    message={itemToDelete ? `Are you sure you want to delete the maintenance schedule for ${itemToDelete.venue} - ${itemToDelete.court}?` : "Are you sure you want to delete this maintenance schedule?"}
-                    cancelText="Cancel"
-                    deleteText="Delete"
-                />
-                    <div className="mt-5">
-                        {priceLoading ? (
-                            <div className="flex justify-center items-center h-32">
-                                <p className="text-lg text-gray-600">Loading pricing data...</p>
-                            </div>
-                        ) : (
-                            <PricingBlock
-                                weekdayPricing={mappedPricingData.weekdayPricing}
-                                weekendPricing={mappedPricingData.weekendPricing}
-                                onWeekdayPricingUpdate={(data) => {
-                                    console.log("Weekday pricing updated:", data);
-                                    priceMutate();
-                                }}
-                                onWeekendPricingUpdate={(data) => {
-                                    console.log("Weekend pricing updated:", data);
-                                    priceMutate();
-                                }}
-                            />
-                        )}
-                    </div>
-                
-            </div>
-            )}
+             
         </div>
     );
 };

@@ -333,8 +333,8 @@ function convertToLocalTime(utcTimestamp) {
                 <thead>
                     <tr className="text-left text-[#1b2229] text-sm font-medium">
                         <th className="text-[#7E7E8A] text-xs font-medium">Sr No</th>
-                        <th className="text-[#7E7E8A] text-xs font-medium w-[30%]">Venue</th>
-                        <th className="text-[#7E7E8A] text-xs font-medium">Rain</th>
+                        <th className="text-[#7E7E8A] text-xs font-medium w-[32%]">Venue</th>
+                        <th className="text-[#7E7E8A] text-xs font-medium pl-[25px]">Rain</th>
                         <th className="text-[#7E7E8A] text-xs font-medium text-right">Ends in</th>
                     </tr>
                 </thead>
