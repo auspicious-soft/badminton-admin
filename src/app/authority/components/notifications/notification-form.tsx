@@ -10,7 +10,7 @@ import { validateImageFile } from '@/utils/fileValidation';
 import { updateAdminSettings, getAdminSettings, getAllUsersForNotification, postNotification } from '@/services/admin-services';
 import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
-import { components, MultiValue, OptionProps, Props } from 'react-select';
+import { components, MultiValue, OptionProps } from 'react-select';
 import UserProfile2 from "@/assets/images/images.png";
 import { getProfileImageUrl } from "@/utils";
 
@@ -50,6 +50,7 @@ const NotificationForm = () => {
   const userRole = (session as any)?.user?.role;
   const [isUploading, setIsUploading] = useState(false);
   const [isCheck, setIsCheck] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const templateSelectRef = useRef<any>(null);
 
   // Fetch existing admin settings including banners
@@ -88,7 +89,6 @@ const NotificationForm = () => {
     value: template.Title,
     label: template.Title
   })) || [];
-  console.log('templateData: ', templateData);
 
   // Custom Option component to display profile picture and name
   const CustomOption = ({ children, ...props }: OptionProps<OptionType>) => (
@@ -116,7 +116,6 @@ const NotificationForm = () => {
           <Image
             src={props.data.profile}
             alt={`${props.data.label} profile`}
-
             width={20}
             height={20}
             className="rounded-full object-cover"
@@ -246,22 +245,34 @@ const NotificationForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await postNotification("/admin/custome-notification", formData);
-    if (response.status === 200 || response.status === 201) {
-      toast.success(response?.data?.message);
-      setFormData({
-        title: '',
-        text: '',
-        specificUsers: []
-      });
-      if (templateSelectRef.current) {
-        templateSelectRef.current.clearValue();
+    setIsSubmitting(true);
+    try {
+      const response = await postNotification("/admin/custome-notification", formData);
+      if (response.status === 200 || response.status === 201) {
+        toast.success(response?.data?.message);
+        setFormData({
+          title: '',
+          text: '',
+          specificUsers: []
+        });
+        if (templateSelectRef.current) {
+          templateSelectRef.current.clearValue();
+        }
+        setIsCheck(false);
+      } else {
+        toast.error("Failed to create notification");
       }
-      setIsCheck(false);
-    } else {
+    } catch (error) {
       toast.error("Failed to create notification");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  // Check if form is valid (title, text, and specific users when checkbox is checked)
+  const isFormValid = formData.title.trim() !== '' && 
+                     formData.text.trim() !== '' && 
+                     (!isCheck || (isCheck && formData.specificUsers.length > 0));
 
   return (
     <div className="w-full">
@@ -270,7 +281,7 @@ const NotificationForm = () => {
           <h1 className="text-[#10375c] text-3xl font-semibold mb-[20px]">Notifications</h1>
           <div className="bg-white rounded-lg shadow-md px-[20px] pt-[20px] pb-[30px] mb-[15px]">
             <form onSubmit={handleSubmit}>
-             {userRole ==="employee" &&  <div className="flex flex-col gap-[10px] mb-[20px]">
+             {userRole === "employee" &&  <div className="flex flex-col gap-[10px] mb-[20px]">
                 <label htmlFor="template" className="text-[#1c2329] text-sm font-semibold leading-[16.80px]">
                   Select Template
                 </label>
@@ -418,9 +429,10 @@ const NotificationForm = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#10375c] rounded-[5px] hover:opacity-80 px-[27px] py-5 text-white text-sm font-medium font-['Inter'] transition duration-200"
+                className={`w-full bg-[#10375c] rounded-[5px] px-[27px] py-5 text-white text-sm font-medium font-['Inter'] transition duration-200 ${isSubmitting || !isFormValid ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'}`}
+                disabled={isSubmitting || !isFormValid}
               >
-                Send
+                {isSubmitting ? 'Sending...' : 'Send'}
               </button>
             </form>
           </div>

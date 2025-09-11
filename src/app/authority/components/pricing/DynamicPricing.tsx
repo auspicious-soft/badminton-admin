@@ -58,7 +58,6 @@ const DynamicPricingPage: React.FC = () => {
   const [openAccordions, setOpenAccordions] = useState<{ [key: string]: boolean }>({});
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
 
-  console.log('selectedPlan: ', selectedPlan);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

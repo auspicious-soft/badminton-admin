@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { CrossIcon, EditIcon, DeleteMaintenanceIcon } from '@/utils/svgicons';
+import { DeleteMaintenanceIcon } from '@/utils/svgicons';
 import useSWR from 'swr';
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ import DeleteConfirmationModal from './../components/common/DeleteConfirmationMo
 import MaintenanceModal from './../components/profile/MaintenanceModal'
 import WeatherModal from './../components/profile/WeatherModal'
 import Switch from '@mui/material/Switch';
-import { convertUTCToLocalISTWithOffset} from './../../../utils/timeFormat';
+import { convertUTCToLocalISTWithOffset } from './../../../utils/timeFormat';
 
 // Validation schema for profile
 const profileSchema = yup.object().shape({
@@ -53,7 +53,7 @@ const ProfileForm = () => {
     const [openAccordions, setOpenAccordions] = useState({});
 
     const { data, mutate, isLoading } = useSWR("admin/get-admin-details", getAdminDetails);
-    const { data:rainData, mutate:rainMutate, isLoading:rainLoading } = useSWR("admin/rain-toggle", getAdminDetails);
+    const { data: rainData, mutate: rainMutate, isLoading: rainLoading } = useSWR("admin/rain-toggle", getAdminDetails);
     const { data: maintenanceData1, mutate: maintenanceMutate, isLoading: maintenanceLoading } = useSWR("admin/maintenance-booking?page=1&limit=100", getAdminDetails);
     const profileDetails = useMemo(() => data?.data?.data || {}, [data]);
     const weatherData = rainData?.data?.data || [];
@@ -182,18 +182,18 @@ const ProfileForm = () => {
         }
     };
 
-function convertToLocalTime(utcTimestamp) {
-  const date = new Date(utcTimestamp);
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  });
-}
+    function convertToLocalTime(utcTimestamp) {
+        const date = new Date(utcTimestamp);
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+    }
 
     useEffect(() => {
         return () => {
@@ -318,182 +318,183 @@ function convertToLocalTime(utcTimestamp) {
 
     return (
         <div className=" h-[85vh] w-full ">
-           <div>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-[#10375c] text-3xl font-semibold">Weather</h2>
-                <button
-                    onClick={() => setRainIsModalOpen(true)}
-                    className="flex items-center gap-2 bg-[#1C2329] text-white text-sm font-medium px-4 py-2 rounded-full"
-                >
-                    <span className="text-2xl">+</span> Add Weather Record
-                </button>
-            </div>
-             <div className="overflow-x-auto bg-[#f2f2f4] rounded-[20px] p-[15px]">
-            <table className="w-full">
-                <thead>
-                    <tr className="text-left text-[#1b2229] text-sm font-medium">
-                        <th className="text-[#7E7E8A] text-xs font-medium">Sr No</th>
-                        <th className="text-[#7E7E8A] text-xs font-medium w-[32%]">Venue</th>
-                        <th className="text-[#7E7E8A] text-xs font-medium pl-[25px]">Rain</th>
-                        <th className="text-[#7E7E8A] text-xs font-medium text-right">Ends in</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {maintenanceLoading ? (
-                        <tr>
-                            <td colSpan={4} className="text-center py-4">
-                                <p className="text-gray-600">Loading maintenance data...</p>
-                            </td>
-                        </tr>
-                    ) : weatherData.length === 0 ? (
-                        <tr>
-                            <td colSpan={4} className="text-center py-4">
-                                <p className="text-gray-600">No Weather record found.</p>
-                            </td>
-                        </tr>
-                    ) : (
-                        weatherData.map((group, index) => {
-                            return (
-                                <React.Fragment key={group._id}>
-                                    <tr
-                                        className={`text-sm ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[40px] `}
-                                       
-                                    >
-                                        <td>{index+1}</td>
-                                        <td className="text-[#1B2229] text-xs font-medium">{group.name}</td>
-                                        <td className="text-[#1B2229] text-xs font-medium">
-                                            <Switch name='rain' disabled checked={group.rain}/>
-                                        </td>
-                                        <td className="text-[#1B2229] text-xs font-medium text-right">
-                                            {convertUTCToLocalISTWithOffset(group.hour)}
-                                        </td>
-                                    </tr>
-
-                                </React.Fragment>
-                            );
-                        })
-                    )}
-                </tbody>
-            </table>
-        </div>
-        </div>
-           
-    <div className="w-full mt-4">
-        <div className="flex justify-between items-center">
-            <h2 className="text-[#10375c] text-3xl font-semibold">Maintenance</h2>
-            <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 bg-[#1C2329] text-white text-sm font-medium px-4 py-2 rounded-full"
-            >
-                <span className="text-2xl">+</span> Add A New Court
-            </button>
-        </div>
-
-        <div className="mt-6 w-full">
-            <div className="overflow-x-auto bg-[#f2f2f4] rounded-[20px] p-[15px]">
-
-                <table className="w-full">
-                    <thead>
-                        <tr className="text-left text-[#1b2229] text-sm font-medium">
-                            <th className="text-[#7E7E8A] text-xs font-medium">Sr No</th>
-                            <th className="text-[#7E7E8A] text-xs font-medium w-[30%]">Venue</th>
-                            <th className="text-[#7E7E8A] text-xs font-medium">Date</th>
-                            <th className="text-[#7E7E8A] text-xs font-medium text-right">Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {maintenanceLoading ? (
-                            <tr>
-                                <td colSpan={4} className="text-center py-4">
-                                    <p className="text-gray-600">Loading maintenance data...</p>
-                                </td>
+            <div>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-[#10375c] text-3xl font-semibold">Weather</h2>
+                    <button
+                        onClick={() => setRainIsModalOpen(true)}
+                        className="flex items-center gap-2 bg-[#1C2329] text-white text-sm font-medium px-4 py-2 rounded-full"
+                    >
+                        <span className="text-2xl">+</span> Add Weather Record
+                    </button>
+                </div>
+                <div className="overflow-x-auto bg-[#f2f2f4] rounded-[20px] p-[15px]">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="text-left text-[#1b2229] text-sm font-medium">
+                                <th className="text-[#7E7E8A] text-xs font-medium">Sr No</th>
+                                <th className="text-[#7E7E8A] text-xs font-medium w-[32%]">Venue</th>
+                                <th className="text-[#7E7E8A] text-xs font-medium pl-[25px]">Rain</th>
+                                <th className="text-[#7E7E8A] text-xs font-medium text-right">Ends in</th>
                             </tr>
-                        ) : groupedMaintenanceData.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} className="text-center py-4">
-                                    <p className="text-gray-600">No maintenance schedules found</p>
-                                </td>
-                            </tr>
-                        ) : (
-                            groupedMaintenanceData.map((group, index) => {
-                                const key = `${group.venue}-${group.date}`;
-                                const isOpen = !!openAccordions[key];
-                                return (
-                                    <React.Fragment key={key}>
-                                        <tr
-                                            className={`text-sm px-3 py-3 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[40px] cursor-pointer`}
-                                            onClick={() => toggleAccordion(key)}
-                                        >
-                                            <td>{group.srNo}</td>
-                                            <td className="text-[#1B2229] text-xs font-medium">{group.venue}</td>
-                                            <td className="text-[#1B2229] text-xs font-medium">{group.date}</td>
-                                            <td className="text-[#1B2229] text-xs font-medium text-right">
-                                                <span>{isOpen ? '▲' : '▼'}</span>
-                                            </td>
-                                        </tr>
-                                        {isOpen && (
-                                            <tr>
-                                                <td colSpan={4} className="p-0">
-                                                    <div className="bg-[#e7e7e7] p-4 rounded-b-[20px]">
-                                                        <table className="w-full">
-                                                            <thead>
-                                                                <tr className="text-left text-[#7E7E8A] text-xs font-medium">
-                                                                    <th className="py-2">Court</th>
-                                                                    <th className="py-2 text-right">Time</th>
-                                                                    <th className="py-2 text-right">Reason</th>
-                                                                    <th className="py-2 text-right">Action</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {group.items.map((item, itemIndex) => (
-                                                                    <tr
-                                                                        key={item.id}
-                                                                        className={`text-sm ${itemIndex % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[10px]`}
-                                                                    >
-                                                                        <td className="py-2 text-[#1B2229] text-xs font-medium">{item.court}</td>
-                                                                        <td className="py-2 text-[#1B2229] text-xs font-medium text-right">{item.time}</td>
-                                                                        <td className="py-2 text-[#1B2229] text-xs font-medium text-right">{item.maintenanceReason}</td>
-                                                                        <td className="py-2 text-[#1B2229] text-xs font-medium text-right">
-                                                                            <button onClick={() => openDeleteModal(item)} className="text-red-500">
-                                                                                <DeleteMaintenanceIcon />
-                                                                            </button>
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                        </thead>
+                        <tbody>
+                            {maintenanceLoading ? (
+                                <tr>
+                                    <td colSpan={4} className="text-center py-4">
+                                        <p className="text-gray-600">Loading maintenance data...</p>
+                                    </td>
+                                </tr>
+                            ) : weatherData.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="text-center py-4">
+                                        <p className="text-gray-600">No Weather record found.</p>
+                                    </td>
+                                </tr>
+                            ) : (
+                                weatherData.map((group, index) => {
+                                    return (
+                                        <React.Fragment key={group._id}>
+                                            <tr
+                                                className={`text-sm ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[40px] `}
+
+                                            >
+                                                <td>{index + 1}</td>
+                                                <td className="text-[#1B2229] text-xs font-medium">{group.name}</td>
+                                                <td className="text-[#1B2229] text-xs font-medium">
+                                                    <Switch name='rain' disabled checked={group.rain} />
+                                                </td>
+                                                <td className="text-[#1B2229] text-xs font-medium text-right">
+                                                    {convertUTCToLocalISTWithOffset(group.hour)}
                                                 </td>
                                             </tr>
-                                        )}
-                                    </React.Fragment>
-                                );
-                            })
-                        )}
-                    </tbody>
-                </table>
+
+                                        </React.Fragment>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        <MaintenanceModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onSubmit={onMaintenanceSubmit}
-        />
-        <WeatherModal
-            isOpen={isRainModalOpen}
-            onClose={() => setRainIsModalOpen(false)}
-            onSubmit={onWeatherSubmit}
-        />
-        <DeleteConfirmationModal
-            open={isDeleteModalOpen}
-            onClose={() => setIsDeleteModalOpen(false)}
-            onDelete={handleDeleteMaintenance}
-            title="Delete Maintenance?"
-            message={itemToDelete ? `Are you sure you want to delete the maintenance schedule for ${itemToDelete.venue} - ${itemToDelete.court}?` : "Are you sure you want to delete this maintenance schedule?"}
-            cancelText="Cancel"
-            deleteText="Delete"
-        />
-    </div>
+
+            <div className="w-full mt-4">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-[#10375c] text-3xl font-semibold">Maintenance</h2>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-2 bg-[#1C2329] text-white text-sm font-medium px-4 py-2 rounded-full"
+                    >
+                        <span className="text-2xl">+</span> Add A New Court
+                    </button>
+                </div>
+
+                <div className="mt-6 w-full">
+                    <div className="overflow-x-auto bg-[#f2f2f4] rounded-[20px] p-[15px]">
+
+                        <table className="w-full">
+                            <thead>
+                                <tr className="text-left text-[#1b2229] text-sm font-medium">
+                                    <th className="text-[#7E7E8A] text-xs font-medium">Sr No</th>
+                                    <th className="text-[#7E7E8A] text-xs font-medium w-[30%]">Venue</th>
+                                    <th className="text-[#7E7E8A] text-xs font-medium">Date</th>
+                                    <th className="text-[#7E7E8A] text-xs font-medium text-right">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {maintenanceLoading ? (
+                                    <tr>
+                                        <td colSpan={4} className="text-center py-4">
+                                            <p className="text-gray-600">Loading maintenance data...</p>
+                                        </td>
+                                    </tr>
+                                ) : groupedMaintenanceData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="text-center py-4">
+                                            <p className="text-gray-600">No maintenance schedules found</p>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    groupedMaintenanceData.map((group, index) => {
+                                        const key = `${group.venue}-${group.date}`;
+                                        const isOpen = !!openAccordions[key];
+                                        return (
+                                            <React.Fragment key={key}>
+                                                <tr
+                                                    className={`text-sm px-3 py-3 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[40px] cursor-pointer`}
+                                                    onClick={() => toggleAccordion(key)}
+                                                >
+                                                    <td>{group.srNo}</td>
+                                                    <td className="text-[#1B2229] text-xs font-medium">{group.venue}</td>
+                                                    <td className="text-[#1B2229] text-xs font-medium">{group.date}</td>
+                                                    <td className="text-[#1B2229] text-xs font-medium text-right">
+                                                        <span>{isOpen ? '▲' : '▼'}</span>
+                                                    </td>
+                                                </tr>
+                                                {isOpen && (
+                                                    <tr>
+                                                        <td colSpan={4} className="p-0">
+                                                            <div className="bg-[#e7e7e7] p-4 rounded-b-[20px]">
+                                                                <table className="w-full">
+                                                                    <thead>
+                                                                        <tr className="text-left text-[#7E7E8A] text-xs font-medium">
+                                                                            <th className="py-2">Court</th>
+                                                                            <th className="py-2 text-right">Time</th>
+                                                                            <th className="py-2 text-right">Reason</th>
+                                                                            <th className="py-2 text-right">Action</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {group.items.map((item, itemIndex) => (
+                                                                            <tr
+                                                                                key={item.id}
+                                                                                className={`text-sm ${itemIndex % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[10px]`}
+                                                                            >
+                                                                                <td className="py-2 text-[#1B2229] text-xs font-medium">{item.court}</td>
+                                                                                <td className="py-2 text-[#1B2229] text-xs font-medium text-right">{item.time}</td>
+                                                                                <td className="py-2 text-[#1B2229] text-xs font-medium text-right">{item.maintenanceReason}</td>
+                                                                                <td className="py-2 text-[#1B2229] text-xs font-medium text-right">
+                                                                                    <button onClick={() => openDeleteModal(item)} className="text-red-500">
+                                                                                        <DeleteMaintenanceIcon />
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <MaintenanceModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSubmit={onMaintenanceSubmit}
+                />
+                <WeatherModal
+                    isOpen={isRainModalOpen}
+                    onClose={() => setRainIsModalOpen(false)}
+                    onSubmit={onWeatherSubmit}
+                    mutate={rainMutate}
+                />
+                <DeleteConfirmationModal
+                    open={isDeleteModalOpen}
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    onDelete={handleDeleteMaintenance}
+                    title="Delete Maintenance?"
+                    message={itemToDelete ? `Are you sure you want to delete the maintenance schedule for ${itemToDelete.venue} - ${itemToDelete.court}?` : "Are you sure you want to delete this maintenance schedule?"}
+                    cancelText="Cancel"
+                    deleteText="Delete"
+                />
+            </div>
         </div >
     );
 };

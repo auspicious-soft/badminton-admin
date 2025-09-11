@@ -24,7 +24,7 @@ interface Venue {
 
 interface SlotPricing {
   slot: string;
-  price: number;
+  price: string; // Changed to string to handle raw input
   _id?: string;
 }
 
@@ -52,7 +52,7 @@ interface PricingModalProps {
   onClose: () => void;
   onSubmit: (data: any) => void;
   venues: Venue[];
-  pricingPlan?: PricingPlan | null;
+  pricingPlan?: any;
 }
 
 const PricingModal: React.FC<PricingModalProps> = ({
@@ -66,31 +66,30 @@ const PricingModal: React.FC<PricingModalProps> = ({
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [slotPricing, setSlotPricing] = useState<SlotPricing[]>([
-    { slot: '06:00', price: 0 }, // Initialize with 0, will be updated by updateSlotPricing
-    { slot: '07:00', price: 0 },
-    { slot: '08:00', price: 0 },
-    { slot: '09:00', price: 0 },
-    { slot: '10:00', price: 0 },
-    { slot: '11:00', price: 0 },
-    { slot: '12:00', price: 0 },
-    { slot: '13:00', price: 0 },
-    { slot: '14:00', price: 0 },
-    { slot: '15:00', price: 0 },
-    { slot: '16:00', price: 0 },
-    { slot: '17:00', price: 0 },
-    { slot: '18:00', price: 0 },
-    { slot: '19:00', price: 0 },
-    { slot: '20:00', price: 0 },
-    { slot: '21:00', price: 0 },
-    { slot: '22:00', price: 0 },
+    { slot: '06:00', price: '300' },
+    { slot: '07:00', price: '300' },
+    { slot: '08:00', price: '300' },
+    { slot: '09:00', price: '300' },
+    { slot: '10:00', price: '300' },
+    { slot: '11:00', price: '300' },
+    { slot: '12:00', price: '300' },
+    { slot: '13:00', price: '300' },
+    { slot: '14:00', price: '300' },
+    { slot: '15:00', price: '300' },
+    { slot: '16:00', price: '300' },
+    { slot: '17:00', price: '300' },
+    { slot: '18:00', price: '300' },
+    { slot: '19:00', price: '300' },
+    { slot: '20:00', price: '300' },
+    { slot: '21:00', price: '300' },
+    { slot: '22:00', price: '300' },
   ]);
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false); // New loading state
   const calendarRef = useRef<HTMLDivElement>(null);
 
-  // Initialize state for edit mode or create mode
   useEffect(() => {
     if (isOpen && pricingPlan) {
-      // Edit mode
       const venueId = pricingPlan.courtId.venueId._id;
       const courtId = pricingPlan.courtId._id;
       setSelectedCourts({
@@ -99,36 +98,34 @@ const PricingModal: React.FC<PricingModalProps> = ({
         },
       });
       setSelectedDates([new Date(pricingPlan.date)]);
-      setSlotPricing(pricingPlan.slotPricing.map(slot => ({ slot: slot.slot, price: slot.price, _id: slot._id })));
+      setSlotPricing(pricingPlan.slotPricing.map(slot => ({ slot: slot.slot, price: slot.price.toString(), _id: slot._id })));
       setCurrentStep(2);
     } else if (isOpen) {
-      // Create mode
       setSelectedCourts({});
       setSelectedDates([]);
       setSlotPricing([
-        { slot: '06:00', price: 0 },
-        { slot: '07:00', price: 0 },
-        { slot: '08:00', price: 0 },
-        { slot: '09:00', price: 0 },
-        { slot: '10:00', price: 0 },
-        { slot: '11:00', price: 0 },
-        { slot: '12:00', price: 0 },
-        { slot: '13:00', price: 0 },
-        { slot: '14:00', price: 0 },
-        { slot: '15:00', price: 0 },
-        { slot: '16:00', price: 0 },
-        { slot: '17:00', price: 0 },
-        { slot: '18:00', price: 0 },
-        { slot: '19:00', price: 0 },
-        { slot: '20:00', price: 0 },
-        { slot: '21:00', price: 0 },
-        { slot: '22:00', price: 0 },
+        { slot: '06:00', price: '' },
+        { slot: '07:00', price: '' },
+        { slot: '08:00', price: '' },
+        { slot: '09:00', price: '' },
+        { slot: '10:00', price: '' },
+        { slot: '11:00', price: '' },
+        { slot: '12:00', price: '' },
+        { slot: '13:00', price: '' },
+        { slot: '14:00', price: '' },
+        { slot: '15:00', price: '' },
+        { slot: '16:00', price: '' },
+        { slot: '17:00', price: '' },
+        { slot: '18:00', price: '' },
+        { slot: '19:00', price: '' },
+        { slot: '20:00', price: '' },
+        { slot: '21:00', price: '' },
+        { slot: '22:00', price: '' },
       ]);
       setCurrentStep(1);
     }
   }, [isOpen, pricingPlan]);
 
-  // Update slot pricing when courts are selected in create mode
   useEffect(() => {
     if (isOpen && !pricingPlan) {
       updateSlotPricing();
@@ -165,7 +162,6 @@ const PricingModal: React.FC<PricingModalProps> = ({
           [courtId]: !prev[venueId]?.[courtId],
         },
       };
-      // Remove venue from state if no courts are selected
       if (Object.values(updated[venueId] || {}).every(selected => !selected)) {
         delete updated[venueId];
       }
@@ -196,10 +192,12 @@ const PricingModal: React.FC<PricingModalProps> = ({
     });
   };
 
-  const updateSlotPrice = (slotIndex: number, price: number) => {
+  const updateSlotPrice = (slotIndex: number, value: string) => {
+    // Remove leading zeros, keep empty string if cleared
+    const cleanedValue = value.replace(/^0+/, '') || '';
     setSlotPricing(prev =>
       prev.map((slot, index) =>
-        index === slotIndex ? { ...slot, price: isNaN(price) ? 0 : price } : slot
+        index === slotIndex ? { ...slot, price: cleanedValue } : slot
       )
     );
   };
@@ -215,8 +213,8 @@ const PricingModal: React.FC<PricingModalProps> = ({
         }
       });
     });
-    const highestRate = selectedCourtRates.length > 0 ? Math.max(...selectedCourtRates) : 300; // Fallback to 300 if no courts selected
-    setSlotPricing(prev => prev.map(slot => ({ ...slot, price: highestRate })));
+    const highestRate = selectedCourtRates.length > 0 ? Math.max(...selectedCourtRates) : 300;
+    setSlotPricing(prev => prev.map(slot => ({ ...slot, price: highestRate.toString() })));
   };
 
   const handleNext = () => {
@@ -229,7 +227,18 @@ const PricingModal: React.FC<PricingModalProps> = ({
     setCurrentStep(1);
   };
 
-  const handleSubmit = () => {
+  const isFormValid = () => {
+    // Check if dates are selected
+    if (selectedDates.length === 0) return false;
+    // Check if all prices are non-empty and valid numbers
+    return slotPricing.every(slot => {
+      const priceNum = parseInt(slot.price);
+      return slot.price !== '' && !isNaN(priceNum);
+    });
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true); // Start loading
     const selectedCourtIds: string[] = [];
     Object.entries(selectedCourts).forEach(([venueId, courts]) => {
       Object.entries(courts).forEach(([courtId, selected]) => {
@@ -239,20 +248,26 @@ const PricingModal: React.FC<PricingModalProps> = ({
       });
     });
 
+    const formattedDates = selectedDates.map(date => {
+      const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      return utcDate.toISOString().split('T')[0];
+    });
+
     const payload = {
       courts: selectedCourtIds,
-      date: selectedDates.map(date => date.toISOString().split('T')[0]),
+      date: formattedDates,
       slotPricing: slotPricing.map(({ slot, price, _id }) => ({
         slot,
-        price,
+        price: price === '' ? 0 : parseInt(price), // Convert to number only on submit, default to 0 if empty
         ...(pricingPlan && _id ? { _id } : {}),
       })),
       ...(pricingPlan ? { _id: pricingPlan._id } : {}),
     };
-    onSubmit(payload);
+
+    await onSubmit(payload); // Simulate async operation
+    setLoading(false); // Stop loading after submission
   };
 
-  // Calendar component remains unchanged
   const Calendar = () => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     
@@ -340,7 +355,6 @@ const PricingModal: React.FC<PricingModalProps> = ({
 
   if (!isOpen) return null;
 
-  // JSX remains unchanged except for the venue type fix
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ overflow: 'hidden' }}>
       <div className="bg-white rounded-2xl w-full max-w-4xl overflow-hidden">
@@ -473,9 +487,9 @@ const PricingModal: React.FC<PricingModalProps> = ({
                       </div>
                       <input
                         type="number"
-                        value={slot.price}
-                        placeholder="₹0"
-                        onChange={(e) => updateSlotPrice(index, parseInt(e.target.value))}
+                        value={slot.price} // Use string value directly
+                        placeholder="₹"
+                        onChange={(e) => updateSlotPrice(index, e.target.value)}
                         className="border-0 bg-gray-50 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white"
                       />
                     </div>
@@ -508,14 +522,19 @@ const PricingModal: React.FC<PricingModalProps> = ({
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={selectedDates.length === 0}
-              className={`px-8 py-3 rounded-full text-white font-medium ${
-                selectedDates.length > 0
+              disabled={!isFormValid() || loading}
+              className={`px-8 py-3 rounded-full text-white font-medium flex items-center gap-2 ${
+                isFormValid() && !loading
                   ? 'bg-slate-800 hover:bg-slate-900'
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
             >
-              {pricingPlan ? 'Update' : 'Save'}
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  {pricingPlan ? 'Updating...' : 'Saving...'}
+                </>
+              ) : pricingPlan ? 'Update' : 'Save'}
             </button>
           )}
         </div>
