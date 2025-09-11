@@ -54,8 +54,19 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
     setCityDropdown(false);
   };
 
+    useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
+
   return (
-    <div className="space-y-[10px] relative">
+    <div className=" relative">
       <p className="text-[#10375c] text-3xl font-semibold">Matches</p>
       <div className="flex justify-between">
       <div className="flex w-[65%] flex-col md:flex-row justify-between  flex-wrap gap-[15px]">

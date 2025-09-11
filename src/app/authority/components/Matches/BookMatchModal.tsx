@@ -327,70 +327,82 @@ const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                   <label className="block text-xs text-gray-600 mb-2">
                     Select Time Slot
                   </label>
-                  <Select
-                    isMulti
-                    options={timeSlotOptions}
-                    value={selectedTimeSlots}
-                    onChange={(selected: MultiValue<TimeSlotOption>) =>
-                      setSelectedTimeSlots(selected)
-                    }
-                    className="w-full text-sm"
-                    classNamePrefix="react-select"
-                    placeholder="Select Time Slots..."
-                    isOptionDisabled={(option: TimeSlotOption) =>
-                      option.isDisabled
-                    }
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        borderRadius: "8px",
-                        border: "1px solid #d1d5db",
-                        boxShadow: "none",
-                        "&:hover": {
-                          borderColor: "#d1d5db",
-                        },
-                        padding: "4px",
-                        minHeight: "48px",
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        borderRadius: "8px",
-                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                      }),
-                      option: (base, { isFocused, isDisabled }) => ({
-                        ...base,
-                        backgroundColor: isDisabled
-                          ? "#f3f4f6"
-                          : isFocused
-                          ? "#e5e7eb"
-                          : "white",
-                        color: isDisabled ? "#9ca3af" : "#374151",
-                        cursor: isDisabled ? "not-allowed" : "default",
-                        "&:active": {
-                          backgroundColor: isDisabled ? "#f3f4f6" : "#e5e7eb",
-                        },
-                      }),
-                      multiValue: (base) => ({
-                        ...base,
-                        backgroundColor: "#1f2937",
-                        borderRadius: "6px",
-                      }),
-                      multiValueLabel: (base) => ({
-                        ...base,
-                        color: "white",
-                        padding: "4px 8px",
-                        fontSize: "12px",
-                      }),
-                      multiValueRemove: (base) => ({
-                        ...base,
-                        color: "white",
-                        "&:hover": {
-                          backgroundColor: "#374151",
-                          color: "white",
-                        },
-                      }),
-                    }}
-                  />
+                 <Select
+  isMulti
+  options={timeSlotOptions}
+  value={selectedTimeSlots}
+  onChange={(selected: MultiValue<TimeSlotOption>) =>
+    setSelectedTimeSlots(selected)
+  }
+  className="w-full text-sm"
+  classNamePrefix="react-select"
+  placeholder="Select Time Slots..."
+  isOptionDisabled={(option: TimeSlotOption) => option.isDisabled}
+  styles={{
+    control: (base) => ({
+      ...base,
+      borderRadius: "8px",
+      border: "1px solid #d1d5db",
+      boxShadow: "none",
+      minHeight: "36px",
+      height: "36px",
+      padding: "2px 4px",
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: "0 6px",
+    }),
+    input: (base) => ({
+      ...base,
+      margin: 0,
+      padding: 0,
+    }),
+    menu: (base) => ({
+      ...base,
+      borderRadius: "8px",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    }),
+    menuList: (base) => ({
+      ...base,
+      maxHeight: "120px",   // 👈 limits dropdown to ~3-4 items
+     overflowY: "auto",
+      // 👇 apply your custom no-scrollbar class
+      "::-webkit-scrollbar": {
+        display: "none",
+      },    // 👈 enables scroll
+    }),
+    option: (base, { isFocused, isDisabled }) => ({
+      ...base,
+      backgroundColor: isDisabled
+        ? "#f3f4f6"
+        : isFocused
+        ? "#e5e7eb"
+        : "white",
+      color: isDisabled ? "#9ca3af" : "#374151",
+      cursor: isDisabled ? "not-allowed" : "default",
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: "#1f2937",
+      borderRadius: "6px",
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: "white",
+      padding: "2px 6px",
+      fontSize: "12px",
+    }),
+    multiValueRemove: (base) => ({
+      ...base,
+      color: "white",
+      "&:hover": {
+        backgroundColor: "#374151",
+        color: "white",
+      },
+    }),
+  }}
+/>
+
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
