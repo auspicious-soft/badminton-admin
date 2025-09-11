@@ -598,7 +598,7 @@ const Page = () => {
       <h1 className="text-2xl md:text-3xl font-semibold text-[#10375c] mb-6">
         {id ? "Edit Venue" : "Add New Venue"}
       </h1>
-
+      
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Side */}
         <div className="w-full lg:w-2/5 bg-white rounded-2xl p-4 shadow-md h-fit">

@@ -232,7 +232,6 @@ useEffect(() => {
     startDeleteTransition(async () => {
       try {
         const response = await deleteInventory(`/admin/inventory?id=${itemToDelete.id}`);
-        console.log('response: ', response);
 
         if (response.status === 200 || response.status === 204) {
           // Remove the item from the local state

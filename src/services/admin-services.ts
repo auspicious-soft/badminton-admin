@@ -145,6 +145,10 @@ export const getAllVenues = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)
 }
+export const getVenuesTransaction = async (route: string, options = {}) => {
+  const axiosInstance = await getAxiosInstance()
+  return axiosInstance.get(route, { ...options })
+}
 export const getVenue = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
     return axiosInstance.get(route)

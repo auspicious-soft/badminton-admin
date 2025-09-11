@@ -98,23 +98,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
             )}
           </div>
 
-          <div className="relative" onClick={() => dateInputRef.current?.showPicker()}>
-            <button className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] w-full flex items-center justify-between">
-              {selectedDate || "Select Date"}
-              <span className="ml-2">
-                {dateInputRef.current?.showPicker ? <DownArrowIcon /> : <UpArrowIcon />}
-              </span>
-            </button>
-            <input
-              ref={dateInputRef}
-              type="date"
-              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-              value={selectedDate}
-              onChange={(e) => {
-                setSelectedDate(e.target.value);
-              }}
-            />
-          </div>
+          
 
           <div className="relative" ref={cityDropdownRef}>
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setCityDropdown(!cityDropdown)}>
@@ -141,6 +125,23 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
                 ))}
               </div>
             )}
+          </div>
+          <div className="relative" onClick={() => dateInputRef.current?.showPicker()}>
+            <button className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] w-full flex items-center justify-between">
+              {selectedDate || "Select Date"}
+              <span className="ml-2">
+                {dateInputRef.current?.showPicker ? <DownArrowIcon /> : <UpArrowIcon />}
+              </span>
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+              }}
+            />
           </div>
         </div>
       </div>

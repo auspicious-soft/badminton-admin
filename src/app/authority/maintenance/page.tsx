@@ -365,10 +365,7 @@ function convertToLocalTime(utcTimestamp) {
                                             <Switch name='rain' disabled checked={group.rain}/>
                                         </td>
                                         <td className="text-[#1B2229] text-xs font-medium text-right">
-                                            {/* {convertUTCToLocalIST(group.hour,5.5)} */}
                                             {convertUTCToLocalISTWithOffset(group.hour)}
-                                            {/* {group.hour.toLocaleDateString()} */}
-                                            {/* {convertToLocalTime(group.hour)} */}
                                         </td>
                                     </tr>
 

@@ -50,6 +50,7 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, on
     });
 
     const watchedVenue = watch('venue');
+    const watchedDate = watch('date');
 
     // Handle venue change to update courts and timeslots
     useEffect(() => {
@@ -103,6 +104,27 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, on
         };
     }, [isOpen]);
 
+    // Get current date and time
+    const today = new Date().toISOString().split('T')[0];
+    const currentHour = new Date().getHours();
+    const currentMinute = new Date().getMinutes();
+
+    // Filter timeslots based on selected date
+    const getAvailableTimeslots = () => {
+        if (!watchedDate || watchedDate !== today) {
+            return selectedVenueTimeslots;
+        }
+
+        return selectedVenueTimeslots.filter((timeslot: string) => {
+            // Assuming timeslot format is like "HH:MM-HH:MM"
+            const [startTime] = timeslot.split('-');
+            const [hour, minute] = startTime.split(':').map(Number);
+            const slotTime = hour + minute / 60;
+            const currentTime = currentHour + currentMinute / 60;
+            return slotTime > currentTime;
+        });
+    };
+
     // Prepare options for selects
     const venueOptions = userRole === 'employee' && userVenueId
         ? venueData?.data?.data
@@ -123,7 +145,7 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, on
 
     const timeslotOptions = [
         { value: 'select-all', label: 'Select All' },
-        ...selectedVenueTimeslots.map((timeslot: string) => ({
+        ...getAvailableTimeslots().map((timeslot: string) => ({
             value: timeslot,
             label: timeslot,
         })),
@@ -230,7 +252,9 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, on
                         <input
                             type="date"
                             {...register('date')}
-                            className="w-full h-[45px] px-4 py-2 bg-[#f2f2f4] rounded-full text-black/60 text-sm font-medium outline-none"
+                            min={today}
+                            className="w-full h-[45px] px-4 py-2 bg-[#f2f2f4] rounded-full text-black/60 text-sm font-medium outline-none appearance-auto"
+                            style={{ WebkitAppearance: 'none' }}
                         />
                         {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>}
                     </div>

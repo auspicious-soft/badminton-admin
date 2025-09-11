@@ -42,6 +42,7 @@ const Headers = () => {
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { data, status } = useSession();
   const userRole = (data as any)?.user?.role;
+  const logoRoute = typeof userRole === 'string' && userRole === "employee" ? "/authority/matches" : "/authority/dashboard"
   const name = data?.user?.name || "User";
   const router = useRouter();
   const pathname = usePathname();
@@ -75,6 +76,7 @@ const Headers = () => {
   // )
   //   : false;
 
+
   // useEffect(() => {
   //     if (notificationsData) {
   //       mutate()
@@ -91,7 +93,7 @@ const Headers = () => {
 
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
-
+  
   const handleLogout = async () => {
     setLogoutLoading(true);
     if (userRole === "employee") {
@@ -166,7 +168,7 @@ const Headers = () => {
     <div className="sticky top-0 w-full py-4 px-4 md:px-6 z-50 bg-[#fbfaff] pb-1">
       <div className="max-w-[1920px] mx-auto">
         <div className="flex items-center justify-between w-full">
-          <Link href="/authority/dashboard" className="flex items-center hover:bg-gray-50 transition-colors">
+          <Link href={logoRoute} className="flex items-center hover:bg-gray-50 transition-colors">
             <span className="text-orange-500 font-semibold">
               <AppLogoIcon />
             </span>

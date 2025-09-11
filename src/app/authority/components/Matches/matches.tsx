@@ -23,6 +23,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const [isTabSwitching, setIsTabSwitching] = useState(false);
   const { data: session, status } = useSession();
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false); // New state for download loading
   // Derive userRole and venueId from session
   const userRole = status === "authenticated" ? (session as any)?.user?.role : undefined;
   const venueId = status === "authenticated" ? (session as any)?.user?.venueId : undefined;
@@ -32,32 +33,33 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
     "Upcoming Matches": "upcoming",
   };
 
-const handleDownloadRecipt = async (id: string) => {
-  try {
-       let axiosInstance: AxiosInstance;
-    if(userRole === "admin"){
-      axiosInstance = await getAxiosInstance(); // will have role and auth header
+  const handleDownloadRecipt = async (id: string) => {
+    try {
+      setIsDownloading(true); // Set loading state
+      let axiosInstance: AxiosInstance;
+      if(userRole === "admin"){
+        axiosInstance = await getAxiosInstance(); // will have role and auth header
+      }
+      
+      // Make request with responseType 'blob' to get PDF binary data
+      const response = await axiosInstance.get(`/booking-receipt/${id}`, {
+        responseType: 'blob',
+      });
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+
+      window.open(url, '_blank');
+
+      toast.success('Download receipt successful');
+    } catch (error) {
+      console.error('Error opening receipt preview:', error);
+      toast.error('Failed to open receipt preview');
+    } finally {
+      setIsDownloading(false); // Reset loading state
     }
-    else{
-        axiosInstance = await getAxiosInstanceForPublisher();
-    }
-    
-    // Make request with responseType 'blob' to get PDF binary data
-    const response = await axiosInstance.get(`/booking-receipt/${id}`, {
-      responseType: 'blob',
-    });
+  };
 
-    const blob = new Blob([response.data], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
-
-    window.open(url, '_blank');
-
-    toast.success('Download receipt successful');
-  } catch (error) {
-    console.error('Error opening receipt preview:', error);
-    toast.error('Failed to open receipt preview');
-  }
-};
   useEffect(() => {
     const mappedType = typeMapping[name] || "completed";
     setType(mappedType);
@@ -65,6 +67,7 @@ const handleDownloadRecipt = async (id: string) => {
     setSelectedMatch(null);
     setIsTabSwitching(true);
   }, [name]);
+
   // Compute the SWR key based on role and conditions
   const swrKey = useMemo(() => {
     if (status !== "authenticated") return null;
@@ -412,7 +415,6 @@ const handleDownloadRecipt = async (id: string) => {
                                 className="rounded-full object-cover"
                                 fill
                               />
-                             
                             </div>
                             <p className="text-xs mt-1 text-center max-w-[64px] truncate">{player.userData?.fullName || "N/A"}</p>
                             <p className="text-xs mt-1 text-center ">{player.userData?.phoneNumber}</p>
@@ -452,18 +454,26 @@ const handleDownloadRecipt = async (id: string) => {
                 <div className="">
                   <button onClick={() => setIsRefundModalOpen(true)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[10%]">
                      Cancel Match
-                   
                   </button>
                   <RefundConfirmation open={isRefundModalOpen} setOpen={setIsRefundModalOpen} id={selectedMatch?._id} />
                 </div>
               )}
-
-              {selectedMatch?.isMaintenance === false ? <>
-               <button onClick={() => handleDownloadRecipt(selectedMatch._id)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[1%]">
-                    Download Receipt
-                  </button>
-              </> :null }
-                 
+              {selectedMatch?.isMaintenance === false && type !== "upcoming" ? (
+                <button 
+                  onClick={() => handleDownloadRecipt(selectedMatch._id)} 
+                  className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[1%] flex items-center justify-center gap-2"
+                  disabled={isDownloading}
+                >
+                  {isDownloading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Downloading...
+                    </>
+                  ) : (
+                    "Download Receipt"
+                  )}
+                </button>
+              ) : null}
             </div>
           ) : (
             <p className="text-center text-gray-500">Select a match to see details</p>
