@@ -11,6 +11,8 @@ import useSWR from "swr";
 import { getAllUser } from "@/services/admin-services";
 import { getImageClientS3URL } from "@/config/axios";
 import { getProfileImageUrl } from "@/utils";
+import { blockUser } from "@/services/admin-services";
+import { toast } from "sonner";
 
 const games = [
   { label: "Default", value: "createdAt" },
@@ -29,7 +31,7 @@ export default function UsersComponent() {
   const itemsPerPage = 10;
 
   // Fetch data with SWR
-  const { data, isLoading, error } = useSWR(
+  const { data,mutate, isLoading, error } = useSWR(
     `/admin/get-users?search=${searchParams}&page=${page}&limit=${itemsPerPage}&order=asc&sortBy=${selectedGame || "createdAt"}`,
     getAllUser
   );
@@ -81,6 +83,17 @@ export default function UsersComponent() {
     if (selectedUser) {
       router.push(`/authority/users/${selectedUser._id}`);
     }
+  };
+  const handleBlock = async() => {
+    if (selectedUser) {
+     const response = await blockUser(`/admin/get-users/${selectedUser._id}`);  
+    console.log("response",response)
+    if(response.status=== 200){
+      toast.success(response?.data?.message)
+      mutate();
+    }
+
+ }
   };
 
   // Handle other errors (non-400)
@@ -354,6 +367,7 @@ export default function UsersComponent() {
                 <p className="text-center text-gray-500">Select a user to see details</p>
               )}
             </div>
+            <div className="flex flex-col gap-2">
             <button
               onClick={handleClick}
               disabled={!selectedUser}
@@ -361,6 +375,14 @@ export default function UsersComponent() {
             >
               View More Details
             </button>
+            <button
+              onClick={handleBlock}
+              disabled={!selectedUser}
+              className={`h-12 py-2 rounded-[28px] justify-center items-center text-white text-sm font-medium ${selectedUser ? 'bg-[#10375c]' : 'bg-gray-400 cursor-not-allowed'}`}
+            >
+              {selectedUser?.isBlocked===true ? "Unblock User" : "Block User"}
+            </button>
+          </div>
           </div>
         )}
       </div>

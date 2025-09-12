@@ -10,9 +10,11 @@ import { getAllMatches } from "@/services/admin-services";
 import { getAxiosInstance, getAxiosInstanceForPublisher, getImageClientS3URL } from "@/config/axios";
 import { useSession } from "next-auth/react";
 import RefundConfirmation from "./refundConfirmationModal";
+import EquipmentUpdateModal from "./updateRentedEquipments";
 import { getProfileImageUrl } from "@/utils";
 import { toast } from "sonner";
 import { AxiosInstance } from "axios";
+import { convertToAmPm } from "@/utils/timeFormat";
 
 export default function MatchesComponent({ name, selectedGame, selectedCity, selectedDate }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -23,6 +25,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const [isTabSwitching, setIsTabSwitching] = useState(false);
   const { data: session, status } = useSession();
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false); // New state for download loading
   // Derive userRole and venueId from session
   const userRole = status === "authenticated" ? (session as any)?.user?.role : undefined;
@@ -37,10 +40,10 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const handleDownloadRecipt = async (id: string) => {
     try {
       setIsDownloading(true); // Set loading state
-      let axiosInstance: AxiosInstance;
-      if(userRole === "admin"){
-        axiosInstance = await getAxiosInstance(); // will have role and auth header
-      }
+      // let axiosInstance: AxiosInstance;
+      // if(userRole === "admin"){
+       const axiosInstance: AxiosInstance = await getAxiosInstance(); // will have role and auth header
+      // }
       
       // Make request with responseType 'blob' to get PDF binary data
       const response = await axiosInstance.get(`/booking-receipt/${id}`, {
@@ -112,7 +115,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
 
   const currentSelectedMatch = selectedMatch || (matchData.length > 0 ? matchData[0] : null);
 
-  useEffect(() => {
+  useEffect(() => {console.log();
     if (!isLoading) {
       setIsTabSwitching(false);
     }
@@ -162,6 +165,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
             <div className="w-[30%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Team 1</div>
             <div className="w-[30%] h-3.5 text-[#7e7e8a] text-start text-xs font-medium">Team 2</div>
             <div className="w-[15%] h-3.5 text-[#7e7e8a] text-xs font-medium">Game</div>
+            <div className="w-[15%] h-3.5 text-[#7e7e8a] text-xs font-medium">Slot</div>
             <div className="w-[18%] h-3.5 text-[#7e7e8a] text-xs font-medium">Venue</div>
             <div className="w-[20%] h-3.5 text-[#7e7e8a] text-xs font-medium">Court</div>
             <div className="w-[18%] h-3.5 text-[#7e7e8a] text-xs text-center font-medium">Date</div>
@@ -236,6 +240,12 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                       }`}
                   >
                     {match.court?.games || "N/A"}
+                  </div>
+                  <div
+                    className={`w-[15%] text-[#1b2229] text-xs text-start font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
+                      }`}
+                  >
+                    {convertToAmPm(match?.bookingSlots)}
                   </div>
                   <div
                     className={`w-[20%] text-[#1b2229] text-xs text-start font-medium ${currentSelectedMatch?._id === match._id ? "text-white" : "text-[#1b2229]"
@@ -459,10 +469,11 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                   <RefundConfirmation open={isRefundModalOpen} setOpen={setIsRefundModalOpen} id={selectedMatch?._id} />
                 </div>
               )}
+              
               {selectedMatch?.isMaintenance === false && type !== "upcoming" ? (
                 <button 
                   onClick={() => handleDownloadRecipt(selectedMatch._id)} 
-                  className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[1%] flex items-center justify-center gap-2"
+                  className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[2%] flex items-center justify-center gap-2"
                   disabled={isDownloading}
                 >
                   {isDownloading ? (
@@ -475,6 +486,14 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
                   )}
                 </button>
               ) : null}
+              {type !== "cancelled" && selectedMatch?.isMaintenance === false && (
+                <div className="">
+                  <button onClick={() => setIsEquipmentModalOpen(true)} className="w-full bg-[#10375C] text-white p-3 rounded-[28px] mt-[2%]">
+                     Update Rented Items
+                  </button>
+                  <EquipmentUpdateModal open={isEquipmentModalOpen} setOpen={setIsEquipmentModalOpen} bookingId={selectedMatch?._id} selectedMatch={selectedMatch} mutate={mutate}/>
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-center text-gray-500">Select a match to see details</p>

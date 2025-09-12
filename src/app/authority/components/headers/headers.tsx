@@ -88,7 +88,7 @@ const Headers = () => {
   // Filter navigation links based on userRole
   const filteredNavigationLinks = userRole?.toLowerCase() === "employee"
     ? navigationLinks.filter(
-      (link) => link.label !== "Venue" && link.label !== "Employees" && link.label !== "Misc" && link.label !== "Dashboard" && link.label !== "Users"
+      (link) => link.label !== "Venue" && link.label !== "Employees" && link.label !== "Misc" && link.label !== "Dashboard" && link.label !== "Users" && link.label !== "Pricing"
     )
     : navigationLinks;
 

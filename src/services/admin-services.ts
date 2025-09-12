@@ -102,6 +102,10 @@ export const updateUser = async (route: string, payload: any) => {
     const axiosInstance= await getAxiosInstance()
     return axiosInstance.put(route, payload)
 }
+export const blockUser = async (route: string) => {
+    const axiosInstance= await getAxiosInstance()
+    return axiosInstance.put(route)
+}
 //----------Matches Page--------------------------
 export const getAllMatches = async (route: string) => {
     const axiosInstance = await getAxiosInstance()
@@ -115,10 +119,10 @@ export const getAllCities = async (route: string) => {
 //     const axiosInstance = await getAxiosInstance()
 //     return axiosInstance.get(route)
 // }
-// export const updateUser = async (route: string, payload: any) => {
-//     const axiosInstance= await getAxiosInstance()
-//     return axiosInstance.put(route, payload)
-// }
+export const updateEquipment = async (route: string, payload: any) => {
+    const axiosInstance= await getAxiosInstance()
+    return axiosInstance.post(route, payload)
+}
 //----------Users Page--------------------------
 export const createEmployee = async (route: string,payload:any) => {
     const axiosInstance = await getAxiosInstance()

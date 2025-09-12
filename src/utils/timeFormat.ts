@@ -1,28 +1,3 @@
-// // Function to convert UTC ISO date string to local IST format
-// export function convertUTCToLocalIST(
-//   utcDateString: string,
-//   offsetHours: number = 0,
-//   includeMinutes: boolean = true
-// ): string {
-//   const date = new Date(utcDateString);
-//   date.setHours(date.getHours() + offsetHours); // Add offset if needed
-
-//   if (isNaN(date.getTime())) {
-//     return 'Invalid Date';
-//   }
-
-//   const options: Intl.DateTimeFormatOptions = {
-//     timeZone: 'Asia/Kolkata',
-//     year: 'numeric',
-//     month: 'short',
-//     day: '2-digit',
-//     hour: '2-digit',
-//     minute: '2-digit',
-//     hour12: true,
-//   };
-
-//   return date.toLocaleString('en-US', options).replace(/, (\d{4})/, ' $1');
-// }
 
 export function convertUTCToLocalISTWithOffset(utcDateString: string, includeMinutes: boolean = true): string {
   const date = new Date(utcDateString);
@@ -48,4 +23,27 @@ export function convertUTCToLocalISTWithOffset(utcDateString: string, includeMin
   const formatted = date.toLocaleString('en-US', options).replace(/, (\d{4})/, ' $1');
 
   return formatted;
+}
+
+
+
+export function convertToAmPm(timeStr) {
+    // Split the time string into hours and minutes
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    
+    // Determine AM/PM and adjust hours for 12-hour format
+    let period = 'AM';
+    let adjustedHours = hours;
+    
+    if (hours === 0) {
+        adjustedHours = 12;
+    } else if (hours === 12) {
+        period = 'PM';
+    } else if (hours > 12) {
+        adjustedHours = hours - 12;
+        period = 'PM';
+    }
+    
+    // Format the result as HH:MM AM/PM
+    return `${adjustedHours}:${minutes.toString().padStart(2, '0')}${period}`;
 }

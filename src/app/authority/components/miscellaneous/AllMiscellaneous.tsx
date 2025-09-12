@@ -22,7 +22,6 @@ const MiscellaneousPage = () => {
         {selectedTab === "Privacy Policy" && <TermsPage name="privacyPolicy"  />}
         {selectedTab === "Terms & Conditions" && <TermsPage name="termsAndConditions" />}
         {selectedTab === "Packages" && <Packages />}
-        {selectedTab === "Pricing" && <DynamicPricingPage />}
       </div>
     </div>
   );

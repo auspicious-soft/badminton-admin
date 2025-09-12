@@ -44,7 +44,7 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
   const venue = venueId !== "null" ? venueId : selectedCity
 
     const { data: courtData } = useSWR(
-      `admin/court-list?venueId=${venue}`,
+      venue ? `admin/court-list?venueId=${venue}` :null,
       getAllCities
     );
   const availableCourts = courtData?.data?.data || [];
