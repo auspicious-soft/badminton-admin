@@ -168,8 +168,8 @@ const DynamicPricingPage: React.FC = () => {
 
   return (
     <div className="">
-      <div className="flex justify-end items-center">
-        {/* <h1 className="text-3xl font-bold text-gray-900">Pricing</h1> */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-[#10375c]">Pricing</h1>
         <button
           onClick={() => {
             setSelectedPlan(null);

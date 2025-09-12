@@ -4,6 +4,7 @@ import { UpArrowIcon, DownArrowIcon } from "@/utils/svgicons";
 import useSWR from "swr";
 import { getAllCities } from "@/services/admin-services";
 import BookingModal from "./BookMatchModal";
+import { useSession } from "next-auth/react";
 
 const tabs = ["Upcoming", "Previous", "Cancelled"];
 const games = ["All", "Padel", "Pickleball"];
@@ -26,8 +27,28 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
   const gameDropdownRef = useRef<HTMLDivElement>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+    const { data: session, status } = useSession();
+  const venueId = status === "authenticated" ? (session as any)?.user?.venueId : undefined;
   const { data, mutate, isLoading } = useSWR("/admin/get-cities", getAllCities)
+  const { data: venuesData } = useSWR(
+    `/admin/inventory`,
+    getAllCities
+  );
+  
+  const venueDropDown = venuesData?.data?.data?.venues || [];
+  
   const cities = data?.data?.data || [];
+
+  // Get courts for the selected venue
+  const selectedVenueData = venueDropDown.find(venue => venue._id === selectedCity);
+  const venue = venueId !== "null" ? venueId : selectedCity
+
+    const { data: courtData } = useSWR(
+      `admin/court-list?venueId=${venue}`,
+      getAllCities
+    );
+  const availableCourts = courtData?.data?.data || [];
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (gameDropdownRef.current && !gameDropdownRef.current.contains(event.target as Node)) {
@@ -51,10 +72,15 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
 
   const handleCityChange = (value: string) => {
     setSelectedCity(value === "All" ? null : value);
+    // Reset court selection when venue changes
+    if (value === "All" || value === null) {
+      setSelectedGame(null);
+    }
     setCityDropdown(false);
   };
 
-    useEffect(() => {
+
+  useEffect(() => {
     if (isModalOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -84,59 +110,86 @@ const MatchesHeader: React.FC<MatchesHeaderProps> = ({ selectedTab, setSelectedT
         </div>
 
         {/* Filters */}
+        
         <div className="flex gap-[5px] relative">
-          <div className="relative" ref={gameDropdownRef}>
-            <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
-              {selectedGame || "Game"}
-              <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
-            </button>
-            {gameDropdown && (
-              <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-0 p-[20px] w-[168px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
-                {games.map((game) => (
-                  <label key={game} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
-                    <input
-                      type="radio"
-                      name="game"
-                      value={game}
-                      checked={(game === "All" && !selectedGame) || selectedGame === game}
-                      onChange={(e) => handleGameChange(e.target.value)}
-                      className="bg-[#1b2229]"
-                    />
-                    {game}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          
-
+          {/* Venue Dropdown */}
+          {venueId === "null" && 
           <div className="relative" ref={cityDropdownRef}>
             <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setCityDropdown(!cityDropdown)}>
-              {selectedCity || "City"}
+              {selectedCity ? (venueDropDown.find(venue => venue._id === selectedCity)?.name || "Venue") : "Venue"}
               <span className="ml-2">
                 {!cityDropdown ? <DownArrowIcon /> : <UpArrowIcon />}
               </span>
             </button>
-            {cityDropdown && (
-
-              <div className="z-50 w-[220px] flex flex-col gap-[5px] h-[250px] overflow-y-auto overflo-custom absolute top-12 right-2 p-[20px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
-                {["All", ...cities.filter(city => city !== "All")].map((city) => (
-                  <label key={city} className="w-full flex gap-[5px] cursor-pointer text-[#1b2229] text-sm font-medium">
+            {cityDropdown &&  (
+              <div className="z-50 w-[220px] flex flex-col gap-[5px] h-[110px] overflow-y-auto overflo-custom absolute top-12  p-[20px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+                <label className="w-full flex gap-[5px] cursor-pointer text-[#1b2229] text-sm font-medium">
+                  <input
+                    type="radio"
+                    name="city"
+                    value=""
+                    checked={selectedCity === null}
+                    onChange={(e) => handleCityChange("All")}
+                    className="mr-2"
+                  />
+                  All
+                </label>
+                {venueDropDown.map((venue: any) => (
+                  <label key={venue._id} className="w-full flex gap-[5px] cursor-pointer text-[#1b2229] text-sm font-medium">
                     <input
                       type="radio"
                       name="city"
-                      value={city === "All" ? "" : city} // Set value to empty string for "All" (interpreted as null in handleCityChange)
-                      checked={city === "All" ? selectedCity === null : selectedCity === city}
-                      onChange={(e) => handleCityChange(e.target.value === "" ? null : e.target.value)}
+                      value={venue._id}
+                      checked={selectedCity === venue._id}
+                      onChange={(e) => handleCityChange(e.target.value)}
                       className="mr-2"
                     />
-                    {city}
+                    {venue.name}
                   </label>
                 ))}
               </div>
             )}
           </div>
+          }
+
+          {/* Court Dropdown - Only show when a venue is selected */}
+          {selectedCity!== "null" && availableCourts.length > 0 && (
+            <div className="relative" ref={gameDropdownRef}>
+              <button className="flex h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px]" onClick={() => setGameDropdown(!gameDropdown)}>
+                {selectedGame ? (availableCourts.find(court => court._id === selectedGame)?.name || "Court") : "Court"}
+                <span className="ml-2">{!gameDropdown ? <DownArrowIcon /> : <UpArrowIcon />}</span>
+              </button>
+              {gameDropdown && (
+                <div className="z-50 flex flex-col gap-[5px] absolute top-12 left-0 p-[20px] w-[200px] bg-white rounded-[10px] shadow-[0px_4px_20px_0px_rgba(92,138,255,0.10)]">
+                  <label className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
+                    <input
+                      type="radio"
+                      name="game"
+                      value=""
+                      checked={!selectedGame}
+                      onChange={(e) => handleGameChange("All")}
+                      className="bg-[#1b2229]"
+                    />
+                    All
+                  </label>
+                  {availableCourts.map((court: any) => (
+                    <label key={court._id} className="flex gap-[10px] cursor-pointer text-[#1b2229] text-sm font-medium">
+                      <input
+                        type="radio"
+                        name="game"
+                        value={court._id}
+                        checked={selectedGame === court._id}
+                        onChange={(e) => handleGameChange(e.target.value)}
+                        className="bg-[#1b2229]"
+                      />
+                      {court.name} ({court.games || ""})
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="relative" onClick={() => dateInputRef.current?.showPicker()}>
             <button className="h-10 px-5 py-3 bg-[#1b2229] text-white rounded-[28px] w-full flex items-center justify-between">
               {selectedDate || "Select Date"}

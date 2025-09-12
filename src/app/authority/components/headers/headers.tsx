@@ -21,6 +21,7 @@ const navigationLinks = [
   { href: "/authority/inventory", label: "Inventory", routes: ["/authority/inventory"] },
   { href: "/authority/employees", label: "Employees", routes: ["/authority/employees"] },
   { href: "/authority/maintenance", label: "Maintenance", routes: ["/authority/maintenance"] },
+  { href: "/authority/pricing", label: "Pricing", routes: ["/authority/pricing"] },
   { href: "/authority/miscellaneous", label: "Misc", routes: ["/authority/miscellaneous"] },
 ];
 

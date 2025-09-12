@@ -27,6 +27,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   // Derive userRole and venueId from session
   const userRole = status === "authenticated" ? (session as any)?.user?.role : undefined;
   const venueId = status === "authenticated" ? (session as any)?.user?.venueId : undefined;
+  console.log('venueId: ', venueId);
   const typeMapping: { [key: string]: string } = {
     "Cancelled Matches": "cancelled",
     "Previous Matches": "completed",
@@ -72,13 +73,13 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
   const swrKey = useMemo(() => {
     if (status !== "authenticated") return null;
 
-    const baseParams = `?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&city=${selectedCity}` : ''}`;
+    const baseParams = `?page=${page}&limit=${itemsPerPage}&type=${type}${searchParams ? `&search=${searchParams}` : ''}${selectedGame ? `&game=${selectedGame}` : ''}${selectedDate ? `&date=${selectedDate}` : ''}${selectedCity ? `&venueId=${selectedCity}` : ''}`;
 
     if (userRole === "admin") {
       return `/admin/get-matches${baseParams}`;
     }
     else if (userRole === "employee" && venueId !== null) {
-      return `/admin/get-matches${baseParams}&venueId=${venueId}`;
+      return `/admin/get-matches${baseParams}`;
     }
     return null; // No fetch for other cases
   }, [status, userRole, venueId, page, itemsPerPage, type, searchParams, selectedGame, selectedDate, selectedCity]);
