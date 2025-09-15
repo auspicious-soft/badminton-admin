@@ -18,6 +18,7 @@ interface Court {
   imageFile?: File | null;
   game: string;
   venueId: any;
+  hourlyRate: number;
 }
 
 interface CourtManagementProps {
@@ -31,7 +32,10 @@ interface CourtManagementProps {
 const gamesAvailableOptions = ["Padel", "Pickleball"];
 
 const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagementProps) => {
+  console.log("court",court)
+ 
   const [courtName, setCourtName] = useState("");
+  const [hourlyRate, setHourlyRate] = useState<number | null>(null);
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -43,6 +47,7 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
     if (court) {
       setCourtName(court.name);
       setStatus(court.status);
+      setHourlyRate(court.hourlyRate);
       setImageKey(court.imageKey || null);
 
       // Handle image display
@@ -59,6 +64,7 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
       setCourtName("");
       setStatus("Active");
       setSelectedImage(null);
+      setHourlyRate(null);
       setImageKey(null);
       setImageFile(null);
       setSelectedGame(gamesAvailableOptions[0]);
@@ -111,7 +117,6 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
           try {
             // Upload the new image
             finalImageKey = await uploadCourtImageToS3(imageFile);
-            console.log("Uploaded new court image, key:", finalImageKey);
 
             // Delete the previous image if it exists
             if (court?.imageKey && court.imageKey.startsWith('courts/')) {
@@ -143,6 +148,7 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
           // No need to store the image file anymore since we've already uploaded it
           imageFile: null,
           game: selectedGame,
+          hourlyRate: hourlyRate,
           venueId,
         };
 
@@ -160,6 +166,7 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
             name: courtName,
             isActive: status === "Active",
             games: selectedGame,
+            hourlyRate:hourlyRate,
             // Include the new image key
             image: finalImageKey || null,
           };
@@ -179,6 +186,7 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
             name: courtName,
             isActive: status === "Active",
             games: selectedGame,
+            hourlyRate:hourlyRate,
             // Include the image key
             image: finalImageKey || null,
           };
@@ -270,6 +278,19 @@ const CourtManagement = ({ open, onClose, onSave, court, venueId }: CourtManagem
                 value={courtName}
                 placeholder="Enter court name"
                 onChange={(e) => setCourtName(e.target.value)}
+                className="mt-1 block w-full px-[15px] py-2.5 text-black/60 text-xs font-medium bg-white rounded-[39px] sm:text-sm p-2"
+              />
+            </div>
+            <div className="mb-[15px]">
+              <label htmlFor="hourlyRate" className="block text-[#1b2229] text-xs font-medium">
+                Hourly Rate
+              </label>
+              <input
+                type="number"
+                id="hourlyRate"
+                value={hourlyRate}
+                placeholder="Enter hourly Rate"
+                onChange={(e) => setHourlyRate(parseFloat(e.target.value))}
                 className="mt-1 block w-full px-[15px] py-2.5 text-black/60 text-xs font-medium bg-white rounded-[39px] sm:text-sm p-2"
               />
             </div>

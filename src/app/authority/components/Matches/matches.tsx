@@ -115,7 +115,7 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
 
   const currentSelectedMatch = selectedMatch || (matchData.length > 0 ? matchData[0] : null);
 
-  useEffect(() => {console.log();
+  useEffect(() => {
     if (!isLoading) {
       setIsTabSwitching(false);
     }

@@ -18,6 +18,7 @@ interface Court {
   imageKey?: string;
   imageFile?: File | null;
   game: string;
+  hourlyRate: number;
 }
 
 interface CourtManagementProps {
@@ -30,8 +31,10 @@ interface CourtManagementProps {
 const gamesAvailableOptions = ["Padel", "Pickleball"]; // Hardcoded; fetch from API if needed
 
 const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps) => {
+  console.log('court: ', court);
   const [courtName, setCourtName] = useState("");
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
+ const [hourlyRate, setHourlyRate] = useState<number>(() => court?.hourlyRate || 0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageKey, setImageKey] = useState<string | null>(null);
@@ -41,11 +44,11 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
 
   // Initialize form with court data if editing
   useEffect(() => {
-      if (court) {
+    if (court) {
       setCourtName(court.name);
       setStatus(court.status);
       setImageKey(court.imageKey || null);
-
+      setHourlyRate(court?.hourlyRate || 0);
       // Handle S3 image URLs
       if (court.imageKey && court.imageKey.startsWith('courts/')) {
         const imageUrl = getImageClientS3URL(court.imageKey);
@@ -63,17 +66,21 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
       setSelectedImage(null);
       setImageKey(null);
       setImageFile(null);
+      setHourlyRate(null);
+
       setSelectedGame(gamesAvailableOptions[0]);
     }
   }, [court]);
 
   const handleDelete = () => {
-      setCourtName("");
-      setStatus("Active");
-      setSelectedImage(null);
-      setImageKey(null);
-      setImageFile(null);
-      setSelectedGame(gamesAvailableOptions[0]);
+    setCourtName("");
+    setStatus("Active");
+    setSelectedImage(null);
+    setImageKey(null);
+    setImageFile(null);
+    setHourlyRate(null);
+
+    setSelectedGame(gamesAvailableOptions[0]);
     onClose();
   };
 
@@ -85,6 +92,7 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
           id: court ? court.id : uuidv4(),
           name: courtName,
           status,
+          hourlyRate: hourlyRate,
           // For UI display purposes
           image: selectedImage || MatchImage.src,
           // Store the existing S3 key if we're editing and not changing the image
@@ -100,6 +108,8 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
         setSelectedImage(null);
         setImageKey(null);
         setImageFile(null);
+        setHourlyRate(null);
+
         setSelectedGame(gamesAvailableOptions[0]);
         onClose();
       } catch (error) {
@@ -186,6 +196,19 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
                 className="mt-1 block w-full px-[15px] py-2.5 text-black/60 text-xs font-medium bg-white rounded-[39px] sm:text-sm p-2"
               />
             </div>
+            <div className="mb-[15px]">
+              <label htmlFor="hourlyRate" className="block text-[#1b2229] text-xs font-medium">
+                Hourly Rate
+              </label>
+              <input
+                type="number"
+                id="hourlyRate"
+                value={hourlyRate}
+                placeholder="Enter hourly Rate"
+                onChange={(e) => setHourlyRate(parseInt(e.target.value))}
+                className="mt-1 block w-full px-[15px] py-2.5 text-black/60 text-xs font-medium bg-white rounded-[39px] sm:text-sm p-2"
+              />
+            </div>
 
             {/* Status Select */}
             <div className="mb-[15px]">
@@ -236,7 +259,7 @@ const CourtManagement = ({ open, onClose, onSave, court }: CourtManagementProps)
                 onClick={handleSave}
                 className="w-full text-white text-sm font-medium h-12 py-2 bg-[#10375c] rounded-[28px] flex items-center justify-center"
               >
-                    {isPending && (
+                {isPending && (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 )}
                 {isPending ? (court ? "Updating..." : "Saving...") : (court ? "Update" : "Save")}

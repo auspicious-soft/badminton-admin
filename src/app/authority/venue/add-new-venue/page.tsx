@@ -42,6 +42,7 @@ interface Court {
   imageKey?: string;
   imageFile?: File | null;
   game: string;
+  hourlyRate: number
 }
 
 interface Employee {
@@ -479,6 +480,7 @@ const timeslots = generateTimeslots(openingTime, closingTime);
           isActive: court.status === "Active",
           games: court.game,
           image: court.imageKey || undefined,
+          hourlyRate: court.hourlyRate,
         })),
         employees: employees.map((emp) => ({
           employeeId: emp.id,

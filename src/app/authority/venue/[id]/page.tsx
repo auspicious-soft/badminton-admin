@@ -48,6 +48,7 @@ interface Court {
   imageKey?: string;
   imageFile?: File | null;
   game: string;
+  hourlyRate: number;
 }
 
 interface Employee {
@@ -285,6 +286,7 @@ const Page = () => {
         image: court.image ? getImageClientS3URL(court.image) : Court.src,
         imageKey: court.image || null,
         imageFile: null,
+        hourlyRate: court.hourlyRate,
       })) || [];
       setCourts(mappedCourts);
 
@@ -363,6 +365,7 @@ const Page = () => {
         isActive: newStatus === "Active",
         games: court.game,
         image: court.imageKey || null,
+        hourlyRate: court.hourlyRate,
       };
 
       const response = await updateCourt("/admin/court", payload);
@@ -403,6 +406,7 @@ const Page = () => {
   };
 
   const handleEditCourt = (court: Court) => {
+    console.log('court------: ', court);
     setEditingCourt(court);
     setModalOpen(true);
   };
@@ -532,6 +536,7 @@ const Page = () => {
           games: court.game,
           image: court.imageKey || null,
           id: court.id,
+          hourlyRate: court.hourlyRate,
         })),
         employees: employees.map((emp) => ({
           employeeId: emp.id,
