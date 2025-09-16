@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { TiltedArrowIcon } from "@/utils/svgicons";
 import { useRouter } from "next/navigation";
+import { convertToAmPm } from "@/utils/timeFormat";
 
 // Function to get current week days dynamically
 const getCurrentWeekDays = () => {
@@ -111,7 +112,7 @@ const ScheduleCalender = ({ data = [] }: any) => {
                     : "bg-white rounded-[19px] border border-[#1b2229]"
                 }`}
               >
-                {item.time}
+                {convertToAmPm(item.time)}
               </span>
               <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full mt-1">
                 {item.matches}

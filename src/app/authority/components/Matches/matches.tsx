@@ -92,22 +92,6 @@ export default function MatchesComponent({ name, selectedGame, selectedCity, sel
     getAllMatches
   );
 
-  // const getTotalEquipmentRented = (match) => {
-  //   let total = 0;
-  //   if (match?.team1 && Array.isArray(match?.team1)) {
-  //     match?.team1.forEach(player => {
-  //       total += (player.rackets || 0)  + (player.balls || 0);
-  //     });
-  //   }
-  //   if (match?.team2 && Array.isArray(match?.team2)) {
-  //     match?.team2.forEach(player => {
-  //       total += (player.rackets || 0)  + (player.balls || 0);
-  //     });
-  //   }
-  //   return total === 0 ? "None" : total;
-  // };
-
-
     const getTotalEquipmentRented = (match) => {
     let rackets = 0;
     let balls = 0;
