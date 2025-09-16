@@ -45,5 +45,5 @@ export function convertToAmPm(timeStr) {
     }
     
     // Format the result as HH:MM AM/PM
-    return `${adjustedHours}:${minutes.toString().padStart(2, '0')}${period}`;
+    return `${adjustedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
