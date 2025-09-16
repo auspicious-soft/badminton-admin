@@ -31,10 +31,11 @@ interface MaintenanceModalProps {
     onClose: () => void;
     onSubmit: (data: any) => void;
     mutate: () => void;
+    maintainaceMutate: any;
 
 }
 
-const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, onSubmit, mutate }) => {
+const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, onSubmit, mutate, maintainaceMutate }) => {
     const [selectedVenue, setSelectedVenue] = useState<string>('');
     const [selectedVenueTimeslots, setSelectedVenueTimeslots] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -161,6 +162,7 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({ isOpen, onClose, on
                 reset();
             }
             mutate();
+            maintainaceMutate()
             onClose();
         } catch (error: any) {
             console.error('Error creating maintenance booking:', error);

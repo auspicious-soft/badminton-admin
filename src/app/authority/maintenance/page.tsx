@@ -484,6 +484,7 @@ const ProfileForm = () => {
                     onClose={() => setRainIsModalOpen(false)}
                     onSubmit={onWeatherSubmit}
                     mutate={rainMutate}
+                    maintainaceMutate={maintenanceMutate}
                 />
                 <DeleteConfirmationModal
                     open={isDeleteModalOpen}
