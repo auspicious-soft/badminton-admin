@@ -106,15 +106,15 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap justify-between mb-4 pt-6 p-2">
-            <h1 className="text-[#10375c] text-2xl md:text-3xl font-semibold">Welcome to Barnton Park LTC</h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* <div className=" mb-4 pt-6 p-2"> */}
+            {/* <h1 className="text-[#10375c] text-2xl md:text-3xl font-semibold">Welcome to Barnton Park LTC</h1> */}
+            <div className="flex flex-wrap sm:justify-center gap-8 mb-8 pt-2 p-2">
               <StatCard value={data1?.stats?.totalMatchesThisMonth || "0"} label="Total matches this month" Icon={<DashbordStat1Icon />} />
               <StatCard value={data1?.stats?.pickleballMatchesThisMonth || "0"} label="Pickleball matches this month" Icon={<DashbordPickleBallIcon />} />
               <StatCard value={data1?.stats?.padelMatchesThisMonth || "0"} label="Padel matches this month" Icon={<DashbordPadelBallIcon />} />
               <StatCard value={isLoading ? "" : `₹${data1?.stats?.incomeThisMonth || "0"}`} label="Income this month" Icon={<DashbordRupeeIcon />} />
             </div>
-          </div>
+          {/* </div> */}
           <div className="flex flex-col md:flex-row gap-8 w-full">
             <div className="w-full md:w-1/4">
               <ScheduleCalender data={data1?.todaySchedule} />
