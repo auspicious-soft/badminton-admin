@@ -224,7 +224,7 @@ export default function SingleUserProfile() {
                 <Image
                   src={Human}
                   alt="Tennis Player Illustration"
-                  className="object-contain max-w-full h-auto absolute right-1 top-[-30px] w-[250px] sm:top-[-130px] md:top-[-260px] lg:top-[-80px] z-10 sm:w-[300px] md:w-[380px] lg:w-[280px]"
+                  className="object-contain max-w-full h-auto absolute right-0 top-[-30px] w-[250px] sm:top-[-130px] md:top-[-250px] lg:top-[-50px] z-10 sm:w-[300px] md:w-[380px] lg:w-[280px]"
                   width={300}
                   height={180}
                   sizes="(max-width: 640px) 200px, (max-width: 768px) 150px, (max-width: 1024px) 180px, 300px"

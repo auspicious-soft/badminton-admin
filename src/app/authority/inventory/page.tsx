@@ -707,11 +707,11 @@ useEffect(() => {
     <DialogTitle className="text-center text-[#10375c] text-[22px] sm:text-[28px] font-extrabold mb-[30px] sm:mb-[30px]">
       Add New Item
     </DialogTitle>
-    <DialogContent className="p-0" sx={{ overflowY: 'hidden' }}>
+    <DialogContent className="p-0" sx={{ }}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex flex-col gap-6 mb-2">
+        <div className="flex flex-col gap-6 ">
           <div className="flex-1">
-            <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-2">
+            <label className="block text-[#1b2229] text-xs sm:text-sm font-medium mb-1">
               Name of The Item
             </label>
             <input
@@ -832,7 +832,7 @@ useEffect(() => {
 }
           </div>
         </div>
-        <DialogActions className="p-0 flex justify-between gap-4 w-full">
+        <DialogActions className="p-0 flex justify-between gap-4 w-full p-2">
           <Button
             type="button"
             fullWidth
