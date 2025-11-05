@@ -81,6 +81,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, on
     FREE_GAME_USED: (user) => `${user} has used a free game.`,
     PLAYER_JOINED_GAME: (user) => `${user} has joined the game`,
     REFUND_COMPLETED: (user) => `Refund is provided to ${user} `,
+    PAYMENT_FAILED: (user) => `${user} 's payment failed for the game`,
   };
 
   const notificationTitle = {
@@ -89,12 +90,14 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, on
     BOOKING_CANCELLED: `Booking Cancelled`,
     FREE_GAME_USED: `Free Game Used`,
     PLAYER_JOINED_GAME: `New Player Joined`,
-    REFUND_COMPLETED:'Refund Successfully'
+    REFUND_COMPLETED:'Refund Successfully',
+    PAYMENT_FAILED:'Payment Failed'
   };
 
   const notificationIcons = {
     PAYMENT_SUCCESSFUL: { src: Success, alt: "Success", wrapper: false },
     BOOKING_CANCELLED: { src: Cancel, alt: "Cancel", wrapper: true },
+    PAYMENT_FAILED: { src: Cancel, alt: "Cancel", wrapper: true },
     FREE_GAME_EARNED: { src: StarBadge, alt: "StarBadge", wrapper: false },
     FREE_GAME_USED: { src: FreeGame, alt: "FreeGame", wrapper: false },
     PLAYER_JOINED_GAME: { src: Player, alt: "player", wrapper: false },
@@ -178,14 +181,15 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, on
     try {
       await markAllNotificationRead("/admin/notifications");
          onAllRead?.();
-      mutate();
-      onClose();
-    } catch (error) {
-      console.error("❌ Error marking all notifications as read:", error);
+         mutate();
+         onClose();
+        } catch (error) {
+          console.error("❌ Error marking all notifications as read:", error);
+          
+        }
+      };
       
-    }
-  };
-
+      console.log('notifications: ', notifications);
   const handleNotificationClick = async (notification: NotificationItem, e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -248,7 +252,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, on
           {notifications.length > 0 ? (
             <div className="divide-y divide-gray-100">
               {notifications.map((notification, index) => {
-                const { src, alt, wrapper } = notificationIcons[notification?.type];
+                console.log('notification?.type: ', notification?.type);
+                const {  src ,alt, wrapper } = notificationIcons[notification?.type];
 
                 return (
                   <div
