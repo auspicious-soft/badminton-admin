@@ -111,9 +111,9 @@ const DynamicPricingPage: React.FC = () => {
         setSelectedPlan(null);
         mutate(); // Refresh the data
         if (selectedPlan !== null) {
-          toast.success('Pricing updated successfully!');
+          toast.success('Price updated successfully!');
         } else {
-          toast.success('Pricing created successfully!');
+          toast.success('Price created successfully!');
         }
       } else {
         toast.error('Failed to create pricing');
@@ -132,9 +132,9 @@ const DynamicPricingPage: React.FC = () => {
         setSelectedPlan(null);
         mutate(); // Refresh the data
         if (selectedPlan !== null) {
-          toast.success('Pricing updated successfully!');
+          toast.success('Base Price updated successfully!');
         } else {
-          toast.success('Pricing created successfully!');
+          toast.success('Base Price created successfully!');
         }
       } else {
         toast.error('Failed to create pricing');
