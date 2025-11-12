@@ -123,6 +123,27 @@ const DynamicPricingPage: React.FC = () => {
       toast.error('Error creating pricing');
     }
   };
+  const handleCreateBasePricing = async (formData: any) => {
+    try {
+      const response = await createPricing('/admin/base-price', formData);
+
+      if (response.status === 200 || response.status === 201) {
+        setIsModalOpen(false);
+        setSelectedPlan(null);
+        mutate(); // Refresh the data
+        if (selectedPlan !== null) {
+          toast.success('Pricing updated successfully!');
+        } else {
+          toast.success('Pricing created successfully!');
+        }
+      } else {
+        toast.error('Failed to create pricing');
+      }
+    } catch (err) {
+      console.error('Error creating pricing:', err);
+      toast.error('Error creating pricing');
+    }
+  };
 
   const handleEditPricing = (plan: PricingPlan) => {
     setSelectedPlan(plan);
@@ -276,6 +297,7 @@ const DynamicPricingPage: React.FC = () => {
           setSelectedPlan(null);
         }}
         onSubmit={handleCreatePricing}
+        onSubmitBasePrice={handleCreateBasePricing}
         venues={venues}
         pricingPlan={selectedPlan}
       />

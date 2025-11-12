@@ -34,6 +34,7 @@ interface PricingModalProps {
   onSubmit: (data: any) => void;
   venues: Venue[];
   pricingPlan?: any;
+  onSubmitBasePrice: (data: any) => void
 }
 
 const PricingModal: React.FC<PricingModalProps> = ({
@@ -42,6 +43,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
   onSubmit,
   venues,
   pricingPlan,
+  onSubmitBasePrice
 }) => {
   const [selectedCourts, setSelectedCourts] = useState<{ [venueId: string]: { [courtId: string]: boolean } }>({});
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -68,8 +70,11 @@ const PricingModal: React.FC<PricingModalProps> = ({
   ]);
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [pricingType, setPricingType] = useState<'base' | 'dynamic' | null>(null);
+  const [basePriceChanges, setBasePriceChanges] = useState<{ [courtId: string]: string }>({});
   const calendarRef = useRef<HTMLDivElement>(null);
 
+  // Reset states when modal opens
   useEffect(() => {
     if (isOpen && pricingPlan) {
       const venueId = pricingPlan.courtId.venueId._id;
@@ -78,17 +83,19 @@ const PricingModal: React.FC<PricingModalProps> = ({
         [venueId]: { [courtId]: true },
       });
       setSelectedDates([new Date(pricingPlan.date)]);
-      setSlotPricing(pricingPlan.slotPricing.map(slot => ({
+      setSlotPricing(pricingPlan.slotPricing.map((slot: any) => ({
         slot: slot.slot,
         price: slot.price.toString(),
         _id: slot._id
       })));
-      setCurrentStep(2);
+      setCurrentStep(3);
     } else if (isOpen) {
       setSelectedCourts({});
       setSelectedDates([]);
       setSlotPricing(slotPricing.map(slot => ({ ...slot, price: '' })));
       setCurrentStep(1);
+      setPricingType(null);
+      setBasePriceChanges({});
     }
   }, [isOpen, pricingPlan]);
 
@@ -111,6 +118,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // --- Handlers ---
   const toggleCourtSelection = (venueId: string, courtId: string) => {
     setSelectedCourts(prev => {
       const updated = {
@@ -164,8 +172,16 @@ const PricingModal: React.FC<PricingModalProps> = ({
 
   const handleNext = () => {
     if (currentStep === 1 && getSelectedCourtsCount() > 0) setCurrentStep(2);
+    else if (currentStep === 2 && pricingType) {
+      if (pricingType === 'base') handleBasePriceSubmit();
+      else setCurrentStep(3);
+    }
   };
-  const handleBack = () => setCurrentStep(1);
+
+  const handleBack = () => {
+    if (currentStep === 3) setCurrentStep(2);
+    else if (currentStep === 2) setCurrentStep(1);
+  };
 
   const isFormValid = () => selectedDates.length > 0 &&
     slotPricing.every(slot => slot.price !== '' && !isNaN(parseInt(slot.price)));
@@ -192,12 +208,30 @@ const PricingModal: React.FC<PricingModalProps> = ({
     setLoading(false);
   };
 
+  const handleBasePriceSubmit = async () => {
+    setLoading(true);
+    const updatedCourts = Object.entries(basePriceChanges)
+      .filter(([_, price]) => price !== '')
+      .map(([courtId, price]) => ({
+        courtId,
+        price: parseInt(price),
+      }));
+
+    const payload = {
+      courts: updatedCourts,
+    };
+
+    await onSubmitBasePrice(payload);
+    setLoading(false);
+    onClose();
+  };
+
   const handleCalendarToggle = () => {
-    if (!showCalendar) setCalendarMonth(new Date()); // reset to current month on open
+    if (!showCalendar) setCalendarMonth(new Date());
     setShowCalendar(!showCalendar);
   };
 
-  // 📅 Calendar Component
+  // Calendar Component
   const Calendar = ({ currentMonth, setCurrentMonth, handleDateSelect, selectedDates }: any) => {
     const getDaysInMonth = (date: Date) => {
       const year = date.getFullYear();
@@ -244,15 +278,14 @@ const PricingModal: React.FC<PricingModalProps> = ({
               key={index}
               onClick={() => day && handleDateSelect(day)}
               disabled={!day || day < new Date()}
-              className={`p-2 text-xs rounded ${
-                !day
+              className={`p-2 text-xs rounded ${!day
                   ? 'invisible'
                   : day < new Date()
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : isDateSelected(day)
-                  ? 'bg-blue-500 text-white'
-                  : 'hover:bg-gray-100'
-              }`}
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : isDateSelected(day)
+                      ? 'bg-blue-500 text-white'
+                      : 'hover:bg-gray-100'
+                }`}
             >
               {day?.getDate()}
             </button>
@@ -269,7 +302,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
       <div className="bg-white rounded-2xl w-full max-w-4xl overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
-            {currentStep === 2 && !pricingPlan && (
+            {currentStep > 1 && !pricingPlan && (
               <button onClick={handleBack} className="text-gray-500 hover:text-gray-700">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="15,18 9,12 15,6"></polyline>
@@ -287,6 +320,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
 
         <div className="p-4">
           {currentStep === 1 ? (
+            // STEP 1 — COURT SELECTION
             <div className="space-y-6">
               <div className={`grid ${venues.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-6`}>
                 {venues.map((venue: any) => (
@@ -310,12 +344,10 @@ const PricingModal: React.FC<PricingModalProps> = ({
                         <button
                           key={court._id}
                           onClick={() => toggleCourtSelection(venue.venueId, court._id)}
-                          className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
-                            isCourtSelected(venue.venueId, court._id)
+                          className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${isCourtSelected(venue.venueId, court._id)
                               ? 'bg-blue-500 text-white'
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          } ${pricingPlan ? 'cursor-not-allowed' : ''}`}
-                          disabled={!!pricingPlan}
+                            }`}
                         >
                           {court.name}
                           <div className="text-xs mt-1">{court.games}</div>
@@ -327,7 +359,120 @@ const PricingModal: React.FC<PricingModalProps> = ({
                 ))}
               </div>
             </div>
+          ) : currentStep === 2 ? (
+            // STEP 2 — SELECT PRICING TYPE
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium">Select Pricing Type</h3>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setPricingType('base')}
+                  className={`flex-1 py-4 rounded-lg border text-center font-medium ${pricingType === 'base'
+                      ? 'bg-blue-500 text-white border-blue-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Base Price Change
+                </button>
+                <button
+                  onClick={() => setPricingType('dynamic')}
+                  className={`flex-1 py-4 rounded-lg border text-center font-medium ${pricingType === 'dynamic'
+                      ? 'bg-blue-500 text-white border-blue-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Dynamic Prices
+                </button>
+              </div>
+
+              {pricingType === 'base' && (
+                <div className="mt-4 space-y-4">
+                  {Object.entries(selectedCourts).flatMap(([venueId, courts]) => {
+                    const venue = venues.find(v => v.venueId === venueId);
+                    return Object.entries(courts)
+                      .filter(([_, sel]) => sel)
+                      .map(([courtId]) => {
+                        const court = venue?.courts.find(c => c._id === courtId);
+                        if (!court) return null;
+                        return (
+                          <div
+                            key={courtId}
+                            className="flex items-center justify-between border p-3 rounded-lg bg-gray-50"
+                          >
+                            <div>
+                              <p className="font-medium">{court.name}</p>
+                              <p className="text-sm text-gray-500">Current: ₹{court.hourlyRate}</p>
+                            </div>
+                            <input
+                              type="number"
+                              placeholder="New Price"
+                              value={basePriceChanges[courtId] || ''}
+                              onChange={(e) =>
+                                setBasePriceChanges((prev) => ({
+                                  ...prev,
+                                  [courtId]: e.target.value,
+                                }))
+                              }
+                              className="border rounded-lg px-3 py-2 w-28 text-sm focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        );
+                      });
+                  })}
+                </div>
+              )}
+            </div>
           ) : (
+            // STEP 3 — EXISTING DYNAMIC PRICING FLOW
+            // <div className="space-y-6">
+            //   <div>
+            //     <div className="flex justify-between">
+            //       <h3 className="flex text-lg font-medium items-center">Select Date</h3>
+            //       <div className="relative w-[50%]">
+            //         <button
+            //           onClick={handleCalendarToggle}
+            //           className={`flex min-w-[300px] w-full justify-between items-center border rounded-lg px-4 py-2 text-sm ${selectedDates.length > 0 ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-300 text-gray-600'
+            //             }`}
+            //         >
+            //           {selectedDates.length > 0
+            //             ? `${selectedDates.length} date${selectedDates.length > 1 ? 's' : ''} selected`
+            //             : 'Select Date'}
+            //           <ChevronDown size={18} className={`${showCalendar ? 'rotate-180' : ''} transition-transform`} />
+            //         </button>
+            //         {showCalendar && (
+            //           <div className="absolute mt-2 left-0 z-50 w-full bg-white shadow-lg border rounded-lg">
+            //             <Calendar
+            //               currentMonth={calendarMonth}
+            //               setCurrentMonth={setCalendarMonth}
+            //               handleDateSelect={handleDateSelect}
+            //               selectedDates={selectedDates}
+            //             />
+            //           </div>
+            //         )}
+            //       </div>
+            //     </div>
+            //   </div>
+
+            //   <div>
+            //     <h3 className="text-lg font-medium mb-2">Slot Pricing</h3>
+            //     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            //       {slotPricing.map((slot, index) => (
+            //         <div
+            //           key={index}
+            //           className="flex flex-col items-center justify-center border rounded-lg p-3"
+            //         >
+            //           <span className="text-sm font-medium text-gray-600">{slot.slot}</span>
+            //           <input
+            //             type="number"
+            //             value={slot.price}
+            //             onChange={(e) => updateSlotPrice(index, e.target.value)}
+            //             className="mt-1 text-center border rounded-lg px-2 py-1 w-20 text-sm"
+            //           />
+            //         </div>
+            //       ))}
+            //     </div>
+            //   </div>
+            // </div>
+
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between">
@@ -401,45 +546,154 @@ const PricingModal: React.FC<PricingModalProps> = ({
                 </div>
               </div>
             </div>
+
           )}
         </div>
 
-        <div className="flex justify-between p-2 border-t bg-gray-50">
+        {/* FOOTER BUTTONS */}
+        {/* <div className="border-t p-6 flex justify-end gap-3 bg-gray-50">
           <button
             onClick={onClose}
-            className="px-8 py-3 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-100 font-medium"
+            className="px-4 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium"
           >
             Cancel
           </button>
-          {currentStep === 1 ? (
+
+          {!pricingPlan && currentStep < 3 && (
             <button
               onClick={handleNext}
-              disabled={getSelectedCourtsCount() === 0}
-              className={`px-8 py-3 rounded-full text-white font-medium ${
-                getSelectedCourtsCount() > 0
-                  ? 'bg-slate-800 hover:bg-slate-900'
-                  : 'bg-gray-400 cursor-not-allowed'
-              }`}
+              disabled={currentStep === 1 && getSelectedCourtsCount() === 0}
+              className={`px-5 py-2 rounded-lg font-medium ${currentStep === 1 && getSelectedCourtsCount() === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
             >
               Next
             </button>
-          ) : (
+          )}
+
+          {(pricingPlan || currentStep === 3) && (
             <button
               onClick={handleSubmit}
               disabled={!isFormValid() || loading}
-              className={`px-8 py-3 rounded-full text-white font-medium ${
-                isFormValid() && !loading
-                  ? 'bg-slate-800 hover:bg-slate-900'
-                  : 'bg-gray-400 cursor-not-allowed'
-              }`}
+              className={`px-5 py-2 rounded-lg font-medium ${!isFormValid() || loading
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
             >
-              {loading ? 'Saving...' : pricingPlan ? 'Update' : 'Submit'}
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          )}
+        </div> */}
+        {/* FOOTER BUTTONS */}
+        <div className="border-t p-6 flex justify-end gap-3 bg-gray-50">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className={`px-4 py-2 rounded-lg font-medium ${loading
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+          >
+            Cancel
+          </button>
+
+          {/* STEP 1 or STEP 2 BUTTONS */}
+          {!pricingPlan && currentStep < 3 && (
+            <button
+              onClick={
+                pricingType === 'base' && currentStep === 2
+                  ? handleBasePriceSubmit // ✅ Directly submit for base pricing
+                  : handleNext
+              }
+              disabled={
+                (currentStep === 1 && getSelectedCourtsCount() === 0) ||
+                (pricingType === 'base' && Object.keys(basePriceChanges).length === 0) ||
+                loading
+              }
+              className={`px-5 py-2 rounded-lg font-medium flex items-center justify-center gap-2 ${(currentStep === 1 && getSelectedCourtsCount() === 0) ||
+                  (pricingType === 'base' && Object.keys(basePriceChanges).length === 0) ||
+                  loading
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 00-8 8z"
+                    ></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                pricingType === 'base' && currentStep === 2 ? 'Submit' : 'Next'
+              )}
+            </button>
+          )}
+
+          {/* STEP 3 or EDIT MODE */}
+          {(pricingPlan || currentStep === 3) && (
+            <button
+              onClick={handleSubmit}
+              disabled={!isFormValid() || loading}
+              className={`px-5 py-2 rounded-lg font-medium flex items-center justify-center gap-2 ${!isFormValid() || loading
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 00-8 8z"
+                    ></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
             </button>
           )}
         </div>
+
       </div>
     </div>
   );
 };
 
 export default PricingModal;
+
+
