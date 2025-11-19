@@ -258,7 +258,7 @@ const handleBasePriceSubmit = async () => {
      updatedCourts,
   };
   console.log("Final", updatedCourts)
-  await onSubmitBasePrice(payload);
+  await onSubmitBasePrice(updatedCourts);
   setLoading(false);
   onClose();
 };
