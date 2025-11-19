@@ -51,6 +51,7 @@ const DynamicPricingPage: React.FC = () => {
   const { data, mutate, isLoading } = useSWR("/admin/dynamic-pricing", getPricing);
   const pricingPlans: PricingPlan[] = data?.data?.data?.pricingPlans || [];
   const venues = data?.data?.data?.courtsWithVenue || [];
+  console.log("venues",venues)
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false); // State for delete modal
@@ -58,6 +59,23 @@ const DynamicPricingPage: React.FC = () => {
   const [openAccordions, setOpenAccordions] = useState<{ [key: string]: boolean }>({});
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
 
+const mapVenueData = (venues: any[]) => {
+  return venues.map((venue) => ({
+    _id: venue.venueId,  
+    venueId: venue.venueId,
+    venueName: venue.venueName,
+    address: venue.address,
+    courts: venue.courts.map((court: any) => ({
+      _id: court._id,
+      name: court.name,
+      courtNumber: court.name, // if no court number, use name
+      games: court.games,
+      hourlyRate: Array.isArray(court.hourlyRate)
+        ? court.hourlyRate[0]        // if array (older format)
+        : Object.values(court.hourlyRate || {})[0] ?? 300, // if time-based map
+    }))
+  }));
+};
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -298,7 +316,7 @@ const DynamicPricingPage: React.FC = () => {
         }}
         onSubmit={handleCreatePricing}
         onSubmitBasePrice={handleCreateBasePricing}
-        venues={venues}
+        venues={mapVenueData(venues)}
         pricingPlan={selectedPlan}
       />
 

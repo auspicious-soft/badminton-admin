@@ -107,7 +107,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
     document.body.style.overflow = isOpen ? 'hidden' : 'auto';
     return () => { document.body.style.overflow = 'auto'; };
   }, [isOpen]);
-
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
@@ -173,8 +173,9 @@ const PricingModal: React.FC<PricingModalProps> = ({
   const handleNext = () => {
     if (currentStep === 1 && getSelectedCourtsCount() > 0) setCurrentStep(2);
     else if (currentStep === 2 && pricingType) {
-      if (pricingType === 'base') handleBasePriceSubmit();
-      else setCurrentStep(3);
+      // if (pricingType === 'base') handleBasePriceSubmit();
+      // else setCurrentStep(3);
+      setCurrentStep(3);
     }
   };
 
@@ -183,50 +184,94 @@ const PricingModal: React.FC<PricingModalProps> = ({
     else if (currentStep === 2) setCurrentStep(1);
   };
 
-  const isFormValid = () => selectedDates.length > 0 &&
-    slotPricing.every(slot => slot.price !== '' && !isNaN(parseInt(slot.price)));
+  // const isFormValid = () =>{
+  //   if( pricingPlan === "dynamic") selectedDates.length > 0 && slotPricing.every(slot => slot.price !== '' && !isNaN(parseInt(slot.price)));
+  // else{
+  //   slotPricing.every(slot => slot.price !== '' && !isNaN(parseInt(slot.price)));
+  // }
+  // } 
+const isFormValid = () => {
+  if (pricingType === "dynamic") {
+    return (
+      selectedDates.length > 0 &&
+      slotPricing.every(slot => slot.price !== "" && !isNaN(parseInt(slot.price)))
+    );
+  }
+
+  if (pricingType === "base") {
+    // Now base requires ONLY slot pricing values
+    return slotPricing.every(slot => slot.price !== "" && !isNaN(parseInt(slot.price)));
+  }
+
+  return false;
+};
+
 
   const handleSubmit = async () => {
     setLoading(true);
     const selectedCourtIds = Object.entries(selectedCourts).flatMap(([_, courts]) =>
       Object.entries(courts).filter(([_, sel]) => sel).map(([id]) => id)
-    );
-    const formattedDates = selectedDates.map(date =>
-      new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString().split('T')[0]
-    );
-    const payload = {
-      courts: selectedCourtIds,
-      date: formattedDates,
-      slotPricing: slotPricing.map(({ slot, price, _id }) => ({
-        slot,
-        price: parseInt(price),
-        ...(pricingPlan && _id ? { _id } : {}),
-      })),
-      ...(pricingPlan ? { _id: pricingPlan._id } : {}),
-    };
-    await onSubmit(payload);
-    setLoading(false);
+  );
+  const formattedDates = selectedDates.map(date =>
+    new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString().split('T')[0]
+  );
+  const payload = {
+    courts: selectedCourtIds,
+    date: formattedDates,
+    slotPricing: slotPricing.map(({ slot, price, _id }) => ({
+      slot,
+      price: parseInt(price),
+      ...(pricingPlan && _id ? { _id } : {}),
+    })),
+    ...(pricingPlan ? { _id: pricingPlan._id } : {}),
   };
+  await onSubmit(payload);
+  setLoading(false);
+};
 
-  const handleBasePriceSubmit = async () => {
-    setLoading(true);
-    const updatedCourts = Object.entries(basePriceChanges)
-      .filter(([_, price]) => price !== '')
-      .map(([courtId, price]) => ({
-        courtId,
-        price: parseInt(price),
-      }));
-
-    const payload = {
-      courts: updatedCourts,
-    };
-
-    await onSubmitBasePrice(payload);
-    setLoading(false);
-    onClose();
+const handleBasePriceSubmit = async () => {
+  setLoading(true);
+  // const updatedCourts = Object.entries(basePriceChanges)
+  // .filter(([_, price]) => price !== '')
+  // .map(([courtId, price]) => ({
+  //   courtId,
+  //   slotPricing: slotPricing.map(({ slot, price, _id }) => ({
+  //     slot,
+  //     price: parseInt(price),
+  //     ...(pricingPlan && _id ? { _id } : {}),
+  //   })),
+  //   ...(pricingPlan ? { _id: pricingPlan._id } : {}),
+  // }));
+  const selectedCourtIds = Object.entries(selectedCourts).flatMap(([_, courts]) =>
+      Object.entries(courts).filter(([_, sel]) => sel).map(([id]) => id)
+  );
+   const updatedCourts = {
+    courts: selectedCourtIds,
+    slotPricing: slotPricing.map(({ slot, price, _id }) => ({
+      slot,
+      price: parseInt(price),
+      ...(pricingPlan && _id ? { _id } : {}),
+    })),
+    ...(pricingPlan ? { _id: pricingPlan._id } : {}),
   };
+  const payload = {
+     updatedCourts,
+  };
+  console.log("Final", updatedCourts)
+  await onSubmitBasePrice(payload);
+  setLoading(false);
+  onClose();
+};
 
-  const handleCalendarToggle = () => {
+const submitHandler = async(type) =>{
+  if(type === 'base'){
+      handleBasePriceSubmit()
+  }
+  else{
+    handleSubmit()
+  }
+}
+const handleCalendarToggle = () => {
     if (!showCalendar) setCalendarMonth(new Date());
     setShowCalendar(!showCalendar);
   };
@@ -384,7 +429,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
                 </button>
               </div>
 
-              {pricingType === 'base' && (
+              {/* {pricingType === 'base' && (
                 <div className="mt-4 space-y-4">
                   {Object.entries(selectedCourts).flatMap(([venueId, courts]) => {
                     const venue = venues.find(v => v.venueId === venueId);
@@ -419,61 +464,12 @@ const PricingModal: React.FC<PricingModalProps> = ({
                       });
                   })}
                 </div>
-              )}
+              )} */}
             </div>
           ) : (
-            // STEP 3 — EXISTING DYNAMIC PRICING FLOW
-            // <div className="space-y-6">
-            //   <div>
-            //     <div className="flex justify-between">
-            //       <h3 className="flex text-lg font-medium items-center">Select Date</h3>
-            //       <div className="relative w-[50%]">
-            //         <button
-            //           onClick={handleCalendarToggle}
-            //           className={`flex min-w-[300px] w-full justify-between items-center border rounded-lg px-4 py-2 text-sm ${selectedDates.length > 0 ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-300 text-gray-600'
-            //             }`}
-            //         >
-            //           {selectedDates.length > 0
-            //             ? `${selectedDates.length} date${selectedDates.length > 1 ? 's' : ''} selected`
-            //             : 'Select Date'}
-            //           <ChevronDown size={18} className={`${showCalendar ? 'rotate-180' : ''} transition-transform`} />
-            //         </button>
-            //         {showCalendar && (
-            //           <div className="absolute mt-2 left-0 z-50 w-full bg-white shadow-lg border rounded-lg">
-            //             <Calendar
-            //               currentMonth={calendarMonth}
-            //               setCurrentMonth={setCalendarMonth}
-            //               handleDateSelect={handleDateSelect}
-            //               selectedDates={selectedDates}
-            //             />
-            //           </div>
-            //         )}
-            //       </div>
-            //     </div>
-            //   </div>
-
-            //   <div>
-            //     <h3 className="text-lg font-medium mb-2">Slot Pricing</h3>
-            //     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            //       {slotPricing.map((slot, index) => (
-            //         <div
-            //           key={index}
-            //           className="flex flex-col items-center justify-center border rounded-lg p-3"
-            //         >
-            //           <span className="text-sm font-medium text-gray-600">{slot.slot}</span>
-            //           <input
-            //             type="number"
-            //             value={slot.price}
-            //             onChange={(e) => updateSlotPrice(index, e.target.value)}
-            //             className="mt-1 text-center border rounded-lg px-2 py-1 w-20 text-sm"
-            //           />
-            //         </div>
-            //       ))}
-            //     </div>
-            //   </div>
-            // </div>
-
             <div className="space-y-6">
+              {pricingType === "dynamic" && (
+              
               <div>
                 <div className="flex justify-between">
                   <h3 className="flex text-lg font-medium items-center">Select Date</h3>
@@ -522,6 +518,8 @@ const PricingModal: React.FC<PricingModalProps> = ({
                   </div>
                 )}
               </div>
+              )}
+
 
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm font-medium text-gray-600 mb-2">
@@ -546,45 +544,10 @@ const PricingModal: React.FC<PricingModalProps> = ({
                 </div>
               </div>
             </div>
-
           )}
         </div>
 
-        {/* FOOTER BUTTONS */}
-        {/* <div className="border-t p-6 flex justify-end gap-3 bg-gray-50">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium"
-          >
-            Cancel
-          </button>
-
-          {!pricingPlan && currentStep < 3 && (
-            <button
-              onClick={handleNext}
-              disabled={currentStep === 1 && getSelectedCourtsCount() === 0}
-              className={`px-5 py-2 rounded-lg font-medium ${currentStep === 1 && getSelectedCourtsCount() === 0
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-                }`}
-            >
-              Next
-            </button>
-          )}
-
-          {(pricingPlan || currentStep === 3) && (
-            <button
-              onClick={handleSubmit}
-              disabled={!isFormValid() || loading}
-              className={`px-5 py-2 rounded-lg font-medium ${!isFormValid() || loading
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-                }`}
-            >
-              {loading ? 'Saving...' : 'Save Changes'}
-            </button>
-          )}
-        </div> */}
+   
         {/* FOOTER BUTTONS */}
         <div className="border-t p-6 flex justify-end gap-3 bg-gray-50">
           <button
@@ -602,17 +565,18 @@ const PricingModal: React.FC<PricingModalProps> = ({
           {!pricingPlan && currentStep < 3 && (
             <button
               onClick={
-                pricingType === 'base' && currentStep === 2
-                  ? handleBasePriceSubmit // ✅ Directly submit for base pricing
-                  : handleNext
+                handleNext
+                // pricingType === 'base' && currentStep === 2
+                //   ? handleBasePriceSubmit // ✅ Directly submit for base pricing
+                //   : handleNext
               }
               disabled={
                 (currentStep === 1 && getSelectedCourtsCount() === 0) ||
-                (pricingType === 'base' && Object.keys(basePriceChanges).length === 0) ||
+                (currentStep === 2 && !pricingType) ||
                 loading
               }
               className={`px-5 py-2 rounded-lg font-medium flex items-center justify-center gap-2 ${(currentStep === 1 && getSelectedCourtsCount() === 0) ||
-                  (pricingType === 'base' && Object.keys(basePriceChanges).length === 0) ||
+                  (currentStep === 2 && !pricingType) ||
                   loading
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-blue-500 text-white hover:bg-blue-600'
@@ -643,7 +607,8 @@ const PricingModal: React.FC<PricingModalProps> = ({
                   Saving...
                 </>
               ) : (
-                pricingType === 'base' && currentStep === 2 ? 'Submit' : 'Next'
+                // pricingType === 'base' && currentStep === 2 ? 'Submit' : 'Next'
+                <>Next</>
               )}
             </button>
           )}
@@ -651,7 +616,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
           {/* STEP 3 or EDIT MODE */}
           {(pricingPlan || currentStep === 3) && (
             <button
-              onClick={handleSubmit}
+              onClick={() => submitHandler(pricingType)}
               disabled={!isFormValid() || loading}
               className={`px-5 py-2 rounded-lg font-medium flex items-center justify-center gap-2 ${!isFormValid() || loading
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -695,5 +660,9 @@ const PricingModal: React.FC<PricingModalProps> = ({
 };
 
 export default PricingModal;
+
+
+
+
 
 
