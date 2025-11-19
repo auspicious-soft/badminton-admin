@@ -245,7 +245,7 @@ const handleBasePriceSubmit = async () => {
   const selectedCourtIds = Object.entries(selectedCourts).flatMap(([_, courts]) =>
       Object.entries(courts).filter(([_, sel]) => sel).map(([id]) => id)
   );
-   const updatedCourts = {
+   const payload = {
     courts: selectedCourtIds,
     slotPricing: slotPricing.map(({ slot, price, _id }) => ({
       slot,
@@ -254,11 +254,9 @@ const handleBasePriceSubmit = async () => {
     })),
     ...(pricingPlan ? { _id: pricingPlan._id } : {}),
   };
-  const payload = {
-     updatedCourts,
-  };
-  console.log("Final", updatedCourts)
-  await onSubmitBasePrice(updatedCourts);
+ 
+  console.log("Final", payload)
+  await onSubmitBasePrice(payload);
   setLoading(false);
   onClose();
 };
