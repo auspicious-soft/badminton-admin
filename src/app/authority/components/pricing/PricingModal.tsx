@@ -78,8 +78,6 @@ const PricingModal: React.FC<PricingModalProps> = ({
   const [basePriceChanges, setBasePriceChanges] = useState<{ [courtId: string]: string }>({});
   const calendarRef = useRef<HTMLDivElement>(null);
 
-  console.log('pricingPlan: ', pricingPlan);
-  // Reset states when modal opens
   useEffect(() => {
     if (isOpen && pricingPlan) {
       const venueId = pricingPlan.courtId.venueId._id;
@@ -215,21 +213,11 @@ useEffect(() => {
     setSlotPricing(prev => prev.map(slot => ({ ...slot, price: highestRate.toString() })));
   };
 
-  // const handleNext = () => {
-  //   if (currentStep === 1 && getSelectedCourtsCount() > 0) setCurrentStep(2);
-  //   else if (currentStep === 2 && pricingType) {
-  //     // if (pricingType === 'base') handleBasePriceSubmit();
-  //     // else setCurrentStep(3);
-  //     setCurrentStep(3);
-  //   }
-  // };
-
   const handleNext = () => {
   if (currentStep === 1 && getSelectedCourtsCount() > 0) {
-    setPricingType('dynamic'); // set default pricingType to dynamic
-    setCurrentStep(3);         // skip Step 2
+    setPricingType('dynamic'); 
+    setCurrentStep(3);         
   }
-  // Step 2 removed, so no else-if needed
 };
 
   const handleBack = () => {
@@ -237,12 +225,7 @@ useEffect(() => {
     else if (currentStep === 2) setCurrentStep(1);
   };
 
-  // const isFormValid = () =>{
-  //   if( pricingPlan === "dynamic") selectedDates.length > 0 && slotPricing.every(slot => slot.price !== '' && !isNaN(parseInt(slot.price)));
-  // else{
-  //   slotPricing.every(slot => slot.price !== '' && !isNaN(parseInt(slot.price)));
-  // }
-  // } 
+
 const isFormValid = () => {
   if (pricingType === "dynamic" ) {
     return (
@@ -286,17 +269,7 @@ const isFormValid = () => {
 
 const handleBasePriceSubmit = async () => {
   setLoading(true);
-  // const updatedCourts = Object.entries(basePriceChanges)
-  // .filter(([_, price]) => price !== '')
-  // .map(([courtId, price]) => ({
-  //   courtId,
-  //   slotPricing: slotPricing.map(({ slot, price, _id }) => ({
-  //     slot,
-  //     price: parseInt(price),
-  //     ...(pricingPlan && _id ? { _id } : {}),
-  //   })),
-  //   ...(pricingPlan ? { _id: pricingPlan._id } : {}),
-  // }));
+
   const selectedCourtIds = Object.entries(selectedCourts).flatMap(([_, courts]) =>
       Object.entries(courts).filter(([_, sel]) => sel).map(([id]) => id)
   );
@@ -328,7 +301,6 @@ const handleCalendarToggle = () => {
     setShowCalendar(!showCalendar);
   };
 
-  // Calendar Component
   const Calendar = ({ currentMonth, setCurrentMonth, handleDateSelect, selectedDates }: any) => {
     const getDaysInMonth = (date: Date) => {
       const year = date.getFullYear();
@@ -598,7 +570,6 @@ const handleCalendarToggle = () => {
                   Saving...
                 </>
               ) : (
-                // pricingType === 'base' && currentStep === 2 ? 'Submit' : 'Next'
                 <>Next</>
               )}
             </button>
@@ -610,7 +581,7 @@ const handleCalendarToggle = () => {
     arrow
     disableHoverListener={isFormValid() && !loading} // tooltip only shows when disabled
   >
-    <span> {/* Span is needed because disabled buttons do not trigger tooltips */}
+    <span> 
       <button
         onClick={() => submitHandler(pricingType)}
         disabled={!isFormValid() || loading}

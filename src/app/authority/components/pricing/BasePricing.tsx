@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { deletePricing, getPricing, updatePricing, createPricing } from "@/services/admin-services";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { DeleteMaintenanceIcon, EditIcon, Add } from '@/utils/svgicons';
-import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
+import {  EditIcon } from '@/utils/svgicons';
 import PricingModal from './PricingModal';
 
 
@@ -60,25 +59,6 @@ const BasePricingPage: React.FC = () => {
   const [openAccordions, setOpenAccordions] = useState<{ [key: string]: boolean }>({});
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [pricingSelected, setPricingSelected] = useState<string>("dynamic");
-
-  // const mapVenueData = (venues: any[]) => {
-  //   return venues.map((venue) => ({
-  //     _id: venue.venueId,  
-  //     venueId: venue.venueId,
-  //     venueName: venue.venueName,
-  //     address: venue.address,
-  //     courts: venue.courts.map((court: any) => ({
-  //       _id: court._id,
-  //       name: court.name,
-  //       courtNumber: court.name, // if no court number, use name
-  //       games: court.games,
-  //       hourlyRate: court.hourlyRate
-  //       // hourlyRate: Array.isArray(court.hourlyRate)
-  //       //   ? court.hourlyRate       // if array (older format)
-  //       //   : Object.values(court.hourlyRate || {})[0] ?? 300, // if time-based map
-  //     }))
-  //   }));
-  // };
 
   const mapVenueData = (venues: any[]) => {
     return venues.map((venue) => ({
@@ -291,18 +271,8 @@ const BasePricingPage: React.FC = () => {
 
   return (
     <div className="">
-      <div className="flex justify-end items-center">
-        {/* <h1 className="text-3xl font-bold text-[#10375c]">Pricing</h1> */}
-        {/* <button
-          onClick={() => {
-            setSelectedPlan(null);
-            setIsModalOpen(true);
-          }}
-          className="flex h-10 px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium"
-        >
-         <Add /> Add A New Pricing
-        </button> */}
-      </div>
+      {/* <div className="flex justify-end items-center">
+      </div> */}
 
       <div className="mt-4 w-full">
         <div className="overflow-x-auto bg-[#f2f2f4] rounded-[20px] p-[15px]">
@@ -316,79 +286,6 @@ const BasePricingPage: React.FC = () => {
                 <th className="text-[#7E7E8A] text-xs font-medium text-right">Actions</th>
               </tr>
             </thead>
-            {/* <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-4">
-                    <p className="text-gray-600">Loading pricing data...</p>
-                  </td>
-                </tr>
-              ) : groupedPricingData.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-4">
-                    <p className="text-gray-600">No pricing schedules found</p>
-                  </td>
-                </tr>
-              ) : (
-                groupedPricingData.map((group, index) => {
-                  const key = `${group.venue}-${group.court}-${group.date}`;
-                  const isOpen = !!openAccordions[key];
-                  const originalPlan = pricingPlans.find((plan) => plan._id === group.id);
-                  return (
-                    <React.Fragment key={key}>
-                      <tr
-                        className={`text-sm px-3 py-3 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[40px]`}
-                      >
-                        <td>{group.srNo}</td>
-                        <td className="text-[#1B2229] text-xs font-medium">{group.venue}</td>
-                        <td className="text-[#1B2229] text-xs font-medium">{group.court}</td>
-                        <td className="text-[#1B2229] text-xs font-medium">{group.game}</td>
-                        <td className="text-[#1B2229] text-xs font-medium">{group.date}</td>
-                        <td className="text-[#1B2229] text-xs font-medium text-right flex justify-end gap-6">
-                          <button
-                            onClick={() => originalPlan && handleEditPricing(originalPlan)}
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            <EditIcon width={14} height={14} stroke={"#1d4ed8"} />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(group.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <DeleteMaintenanceIcon />
-                          </button>
-                          <button
-                            onClick={() => toggleAccordion(key)}
-                            className="text-[#1B2229]"
-                          >
-                            {isOpen ? '▲' : '▼'}
-                          </button>
-                        </td>
-                      </tr>
-                      {isOpen && (
-                        <tr>
-                          <td colSpan={6} className="p-0">
-                            <div className="bg-[#e7e7e7] p-4 rounded-b-[20px]">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {group.slotPricing.map((slot, slotIndex) => (
-                                  <div
-                                    key={slot._id}
-                                    className={`text-sm p-3 ${slotIndex % 1.5 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[10px] flex justify-between items-center`}
-                                  >
-                                    <span className="text-[#1B2229] text-xs font-medium">{slot.slot}</span>
-                                    <span className="text-[#1B2229] text-xs font-medium">₹{slot.price}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })
-              )}
-            </tbody> */}
             <tbody>
               {courtsList.length === 0 ? (
                 <tr>
@@ -480,15 +377,7 @@ const BasePricingPage: React.FC = () => {
         pricingSelected={pricingSelected}
       />
 
-      <DeleteConfirmationModal
-        open={deleteModalOpen}
-        onClose={closeDeleteModal}
-        onDelete={handleDeletePricing}
-        title="Delete Pricing?"
-        message="Are you sure you want to delete this pricing plan? This action cannot be undone."
-        cancelText="Cancel"
-        deleteText="Delete"
-      />
+     
     </div>
   );
 };
