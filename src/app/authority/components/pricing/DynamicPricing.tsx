@@ -51,7 +51,6 @@ const DynamicPricingPage: React.FC = () => {
   const { data, mutate, isLoading } = useSWR("/admin/dynamic-pricing", getPricing);
   const pricingPlans: PricingPlan[] = data?.data?.data?.pricingPlans || [];
   const venues = data?.data?.data?.courtsWithVenue || [];
-  console.log("venues",venues)
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false); // State for delete modal
@@ -59,23 +58,70 @@ const DynamicPricingPage: React.FC = () => {
   const [openAccordions, setOpenAccordions] = useState<{ [key: string]: boolean }>({});
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
 
+// const mapVenueData = (venues: any[]) => {
+//   return venues.map((venue) => ({
+//     _id: venue.venueId,  
+//     venueId: venue.venueId,
+//     venueName: venue.venueName,
+//     address: venue.address,
+//     courts: venue.courts.map((court: any) => ({
+//       _id: court._id,
+//       name: court.name,
+//       courtNumber: court.name, // if no court number, use name
+//       games: court.games,
+//       hourlyRate: court.hourlyRate
+//       // hourlyRate: Array.isArray(court.hourlyRate)
+//       //   ? court.hourlyRate       // if array (older format)
+//       //   : Object.values(court.hourlyRate || {})[0] ?? 300, // if time-based map
+//     }))
+//   }));
+// };
+
 const mapVenueData = (venues: any[]) => {
   return venues.map((venue) => ({
-    _id: venue.venueId,  
+    _id: venue.venueId,
     venueId: venue.venueId,
     venueName: venue.venueName,
     address: venue.address,
-    courts: venue.courts.map((court: any) => ({
-      _id: court._id,
-      name: court.name,
-      courtNumber: court.name, // if no court number, use name
-      games: court.games,
-      hourlyRate: Array.isArray(court.hourlyRate)
-        ? court.hourlyRate[0]        // if array (older format)
-        : Object.values(court.hourlyRate || {})[0] ?? 300, // if time-based map
-    }))
+
+    courts: venue.courts.map((court: any) => {
+      let hourlyRateArray: any[] = [];
+
+      // CASE 1: hourlyRate is a single number → apply same value to all slots
+      if (typeof court.hourlyRate === "number") {
+        const defaultSlots = [
+          "06:00","07:00","08:00","09:00","10:00","11:00","12:00",
+          "13:00","14:00","15:00","16:00","17:00","18:00","19:00",
+          "20:00","21:00","22:00"
+        ];
+        hourlyRateArray = defaultSlots.map(slot => ({
+          slot,
+          price: court.hourlyRate
+        }));
+      }
+
+      // CASE 2: hourlyRate is an object → convert object → array
+      else if (court.hourlyRate && typeof court.hourlyRate === "object") {
+        hourlyRateArray = Object.entries(court.hourlyRate).map(
+          ([slot, price]) => ({
+            slot,
+            price: Number(price)
+          })
+        );
+      }
+
+      return {
+        _id: court._id,
+        name: court.name,
+        courtNumber: court.name,
+        games: court.games,
+        hourlyRate: hourlyRateArray  // FINAL CONSISTENT ARRAY
+      };
+    })
   }));
 };
+
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

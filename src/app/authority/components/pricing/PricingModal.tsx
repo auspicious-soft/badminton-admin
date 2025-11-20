@@ -9,7 +9,7 @@ import Image from "next/image";
 interface Court {
   name: string;
   courtNumber: string;
-  hourlyRate: number;
+  hourlyRate: any;
   games: string;
   _id: string;
 }
@@ -45,6 +45,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
   pricingPlan,
   onSubmitBasePrice
 }) => {
+
   const [selectedCourts, setSelectedCourts] = useState<{ [venueId: string]: { [courtId: string]: boolean } }>({});
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -108,6 +109,44 @@ const PricingModal: React.FC<PricingModalProps> = ({
     return () => { document.body.style.overflow = 'auto'; };
   }, [isOpen]);
   
+useEffect(() => {
+  if (currentStep === 3 ) {
+
+    const selectedCourtIds = Object.entries(selectedCourts).flatMap(([_, courts]) =>
+      Object.entries(courts)
+        .filter(([_, sel]) => sel)
+        .map(([courtId]) => courtId)
+    );
+
+    if (selectedCourtIds.length === 0) return;
+
+    let selectedCourt: any = null;
+    venues.forEach(v => {
+      const court = v.courts.find(c => c._id === selectedCourtIds[0]);
+      if (court) selectedCourt = court;
+    });
+
+    if (!selectedCourt || !selectedCourt.hourlyRate) return;
+
+    const baseRates = selectedCourt.hourlyRate;
+
+
+    setSlotPricing(prev =>
+  prev.map(slot => {
+    const match = baseRates.find(
+      (r: any) => r.slot.trim() === slot.slot.trim()
+    );
+
+    return {
+      ...slot,
+      price: match ? String(match.price) : ""
+    };
+  })
+);
+  }
+}, [currentStep, pricingType]);
+
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
@@ -117,6 +156,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
 
   // --- Handlers ---
   const toggleCourtSelection = (venueId: string, courtId: string) => {
@@ -154,6 +194,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
       prev.map((slot, i) => i === index ? { ...slot, price: cleanedValue } : slot)
     );
   };
+  
 
   const updateSlotPricing = () => {
     const selectedRates: number[] = [];
@@ -255,7 +296,6 @@ const handleBasePriceSubmit = async () => {
     ...(pricingPlan ? { _id: pricingPlan._id } : {}),
   };
  
-  console.log("Final", payload)
   await onSubmitBasePrice(payload);
   setLoading(false);
   onClose();
@@ -394,7 +434,7 @@ const handleCalendarToggle = () => {
                         >
                           {court.name}
                           <div className="text-xs mt-1">{court.games}</div>
-                          <div className="text-xs mt-1">Base price- ₹{court.hourlyRate}</div>
+                          <div className="text-xs mt-1">Base price- ₹{court.hourlyRate?.[0].price}</div>
                         </button>
                       ))}
                     </div>
@@ -474,7 +514,7 @@ const handleCalendarToggle = () => {
                   <div className="relative w-[50%]">
                     <button
                       onClick={handleCalendarToggle}
-                      className={`flex min-w-[300px] w-full justify-between items-center gap-2 border border-gray-300 rounded-lg px-4 py-3 text-sm hover:bg-gray-50 ${pricingPlan ? 'cursor-not-allowed' : ''}`}
+                      className={`flex min-w-[300px] w-full justify-between items-center gap-2 border border-black rounded-lg px-4 py-3 text-sm hover:bg-gray-50 ${pricingPlan ? 'cursor-not-allowed' : ''}`}
                       disabled={!!pricingPlan}
                     >
                       <span>
