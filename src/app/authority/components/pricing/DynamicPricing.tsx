@@ -43,6 +43,7 @@ interface GroupedPricing {
   venue: string;
   court: string;
   date: string;
+  game: string;
   slotPricing: SlotPricing[];
   id: string;
 }
@@ -83,7 +84,6 @@ const mapVenueData = (venues: any[]) => {
     venueId: venue.venueId,
     venueName: venue.venueName,
     address: venue.address,
-
     courts: venue.courts.map((court: any) => {
       let hourlyRateArray: any[] = [];
 
@@ -141,6 +141,7 @@ const mapVenueData = (venues: any[]) => {
     sortedPlans.forEach((plan, index) => {
       const venueName = plan.courtId?.venueId?.name || 'Unknown Venue';
       const courtName = plan.courtId?.name || 'Unknown Court';
+      const game = plan.courtId?.games || 'Unknown Game';
       const date = formatDate(plan.date);
       const key = `${venueName}-${courtName}-${date}`;
 
@@ -150,6 +151,7 @@ const mapVenueData = (venues: any[]) => {
           venue: venueName,
           court: courtName,
           date: date,
+          game:game,
           slotPricing: plan.slotPricing,
           id: plan._id,
         };
@@ -274,6 +276,7 @@ const mapVenueData = (venues: any[]) => {
                 <th className="text-[#7E7E8A] text-xs font-medium">Sr No</th>
                 <th className="text-[#7E7E8A] text-xs font-medium w-[30%]">Venue</th>
                 <th className="text-[#7E7E8A] text-xs font-medium">Court</th>
+                <th className="text-[#7E7E8A] text-xs font-medium">Game</th>
                 <th className="text-[#7E7E8A] text-xs font-medium">Date</th>
                 <th className="text-[#7E7E8A] text-xs font-medium text-right">Actions</th>
               </tr>
@@ -304,6 +307,7 @@ const mapVenueData = (venues: any[]) => {
                         <td>{group.srNo}</td>
                         <td className="text-[#1B2229] text-xs font-medium">{group.venue}</td>
                         <td className="text-[#1B2229] text-xs font-medium">{group.court}</td>
+                        <td className="text-[#1B2229] text-xs font-medium">{group.game}</td>
                         <td className="text-[#1B2229] text-xs font-medium">{group.date}</td>
                         <td className="text-[#1B2229] text-xs font-medium text-right flex justify-end gap-6">
                           <button
