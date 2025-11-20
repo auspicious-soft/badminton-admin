@@ -332,7 +332,7 @@ const mapVenueData = (venues: any[]) => {
                       </tr>
                       {isOpen && (
                         <tr>
-                          <td colSpan={5} className="p-0">
+                          <td colSpan={6} className="p-0">
                             <div className="bg-[#e7e7e7] p-4 rounded-b-[20px]">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {group.slotPricing.map((slot, slotIndex) => (
