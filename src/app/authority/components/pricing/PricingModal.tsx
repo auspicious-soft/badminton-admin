@@ -35,7 +35,8 @@ interface PricingModalProps {
   onSubmit: (data: any) => void;
   venues: Venue[];
   pricingPlan?: any;
-  onSubmitBasePrice: (data: any) => void
+  onSubmitBasePrice: (data: any) => void;
+  pricingSelected?:string;
 }
 
 const PricingModal: React.FC<PricingModalProps> = ({
@@ -44,7 +45,8 @@ const PricingModal: React.FC<PricingModalProps> = ({
   onSubmit,
   venues,
   pricingPlan,
-  onSubmitBasePrice
+  onSubmitBasePrice,
+  pricingSelected
 }) => {
 
   const [selectedCourts, setSelectedCourts] = useState<{ [venueId: string]: { [courtId: string]: boolean } }>({});
@@ -76,6 +78,7 @@ const PricingModal: React.FC<PricingModalProps> = ({
   const [basePriceChanges, setBasePriceChanges] = useState<{ [courtId: string]: string }>({});
   const calendarRef = useRef<HTMLDivElement>(null);
 
+  console.log('pricingPlan: ', pricingPlan);
   // Reset states when modal opens
   useEffect(() => {
     if (isOpen && pricingPlan) {
@@ -212,14 +215,22 @@ useEffect(() => {
     setSlotPricing(prev => prev.map(slot => ({ ...slot, price: highestRate.toString() })));
   };
 
+  // const handleNext = () => {
+  //   if (currentStep === 1 && getSelectedCourtsCount() > 0) setCurrentStep(2);
+  //   else if (currentStep === 2 && pricingType) {
+  //     // if (pricingType === 'base') handleBasePriceSubmit();
+  //     // else setCurrentStep(3);
+  //     setCurrentStep(3);
+  //   }
+  // };
+
   const handleNext = () => {
-    if (currentStep === 1 && getSelectedCourtsCount() > 0) setCurrentStep(2);
-    else if (currentStep === 2 && pricingType) {
-      // if (pricingType === 'base') handleBasePriceSubmit();
-      // else setCurrentStep(3);
-      setCurrentStep(3);
-    }
-  };
+  if (currentStep === 1 && getSelectedCourtsCount() > 0) {
+    setPricingType('dynamic'); // set default pricingType to dynamic
+    setCurrentStep(3);         // skip Step 2
+  }
+  // Step 2 removed, so no else-if needed
+};
 
   const handleBack = () => {
     if (currentStep === 3) setCurrentStep(2);
@@ -233,15 +244,17 @@ useEffect(() => {
   // }
   // } 
 const isFormValid = () => {
-  if (pricingType === "dynamic") {
+  if (pricingType === "dynamic" ) {
     return (
       selectedDates.length > 0 &&
       slotPricing.every(slot => slot.price !== "" && !isNaN(parseInt(slot.price)))
     );
   }
+  if ( pricingPlan) {
+    return slotPricing.every(slot => slot.price !== "" && !isNaN(parseInt(slot.price)));
+  }
 
   if (pricingType === "base") {
-    // Now base requires ONLY slot pricing values
     return slotPricing.every(slot => slot.price !== "" && !isNaN(parseInt(slot.price)));
   }
 
@@ -303,7 +316,7 @@ const handleBasePriceSubmit = async () => {
 };
 
 const submitHandler = async(type) =>{
-  if(type === 'base'){
+  if(type === 'base' || pricingSelected==="base"){
       handleBasePriceSubmit()
   }
   else{
@@ -443,69 +456,8 @@ const handleCalendarToggle = () => {
                 ))}
               </div>
             </div>
-          ) : currentStep === 2 ? (
-            // STEP 2 — SELECT PRICING TYPE
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium">Select Pricing Type</h3>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setPricingType('base')}
-                  className={`flex-1 py-4 rounded-lg border text-center font-medium ${pricingType === 'base'
-                      ? 'bg-blue-500 text-white border-blue-600'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                  Base Price Change
-                </button>
-                <button
-                  onClick={() => setPricingType('dynamic')}
-                  className={`flex-1 py-4 rounded-lg border text-center font-medium ${pricingType === 'dynamic'
-                      ? 'bg-blue-500 text-white border-blue-600'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                  Dynamic Prices
-                </button>
-              </div>
-
-              {/* {pricingType === 'base' && (
-                <div className="mt-4 space-y-4">
-                  {Object.entries(selectedCourts).flatMap(([venueId, courts]) => {
-                    const venue = venues.find(v => v.venueId === venueId);
-                    return Object.entries(courts)
-                      .filter(([_, sel]) => sel)
-                      .map(([courtId]) => {
-                        const court = venue?.courts.find(c => c._id === courtId);
-                        if (!court) return null;
-                        return (
-                          <div
-                            key={courtId}
-                            className="flex items-center justify-between border p-3 rounded-lg bg-gray-50"
-                          >
-                            <div>
-                              <p className="font-medium">{court.name}</p>
-                              <p className="text-sm text-gray-500">Current: ₹{court.hourlyRate}</p>
-                            </div>
-                            <input
-                              type="number"
-                              placeholder="New Price"
-                              value={basePriceChanges[courtId] || ''}
-                              onChange={(e) =>
-                                setBasePriceChanges((prev) => ({
-                                  ...prev,
-                                  [courtId]: e.target.value,
-                                }))
-                              }
-                              className="border rounded-lg px-3 py-2 w-28 text-sm focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                        );
-                      });
-                  })}
-                </div>
-              )} */}
-            </div>
-          ) : (
+          ) : 
+           (
             <div className="space-y-6">
               {pricingType === "dynamic" && (
               

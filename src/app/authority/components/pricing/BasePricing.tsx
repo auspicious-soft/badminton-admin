@@ -4,7 +4,7 @@ import { deletePricing, getPricing, updatePricing, createPricing } from "@/servi
 import useSWR from "swr";
 import { toast } from "sonner";
 import { DeleteMaintenanceIcon, EditIcon, Add } from '@/utils/svgicons';
-import DeleteConfirmationModal from './../common/DeleteConfirmationModal';
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 import PricingModal from './PricingModal';
 
 
@@ -48,80 +48,94 @@ interface GroupedPricing {
   id: string;
 }
 
-const DynamicPricingPage: React.FC = () => {
+const BasePricingPage: React.FC = () => {
   const { data, mutate, isLoading } = useSWR("/admin/dynamic-pricing", getPricing);
-  const pricingPlans: PricingPlan[] = data?.data?.data?.pricingPlans || [];
+  const pricingPlans: any[] = data?.data?.data?.pricingPlans || [];
   const venues = data?.data?.data?.courtsWithVenue || [];
+  console.log('venues: ', venues);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false); // State for delete modal
   const [planToDelete, setPlanToDelete] = useState<string | null>(null); // Track plan to delete
   const [openAccordions, setOpenAccordions] = useState<{ [key: string]: boolean }>({});
-  const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
+  const [pricingSelected, setPricingSelected] = useState<string>("dynamic");
 
-// const mapVenueData = (venues: any[]) => {
-//   return venues.map((venue) => ({
-//     _id: venue.venueId,  
-//     venueId: venue.venueId,
-//     venueName: venue.venueName,
-//     address: venue.address,
-//     courts: venue.courts.map((court: any) => ({
-//       _id: court._id,
-//       name: court.name,
-//       courtNumber: court.name, // if no court number, use name
-//       games: court.games,
-//       hourlyRate: court.hourlyRate
-//       // hourlyRate: Array.isArray(court.hourlyRate)
-//       //   ? court.hourlyRate       // if array (older format)
-//       //   : Object.values(court.hourlyRate || {})[0] ?? 300, // if time-based map
-//     }))
-//   }));
-// };
+  // const mapVenueData = (venues: any[]) => {
+  //   return venues.map((venue) => ({
+  //     _id: venue.venueId,  
+  //     venueId: venue.venueId,
+  //     venueName: venue.venueName,
+  //     address: venue.address,
+  //     courts: venue.courts.map((court: any) => ({
+  //       _id: court._id,
+  //       name: court.name,
+  //       courtNumber: court.name, // if no court number, use name
+  //       games: court.games,
+  //       hourlyRate: court.hourlyRate
+  //       // hourlyRate: Array.isArray(court.hourlyRate)
+  //       //   ? court.hourlyRate       // if array (older format)
+  //       //   : Object.values(court.hourlyRate || {})[0] ?? 300, // if time-based map
+  //     }))
+  //   }));
+  // };
 
-const mapVenueData = (venues: any[]) => {
-  return venues.map((venue) => ({
-    _id: venue.venueId,
-    venueId: venue.venueId,
-    venueName: venue.venueName,
-    address: venue.address,
-    courts: venue.courts.map((court: any) => {
-      let hourlyRateArray: any[] = [];
+  const mapVenueData = (venues: any[]) => {
+    return venues.map((venue) => ({
+      _id: venue.venueId,
+      venueId: venue.venueId,
+      venueName: venue.venueName,
+      address: venue.address,
+      courts: venue.courts.map((court: any) => {
+        let hourlyRateArray: any[] = [];
 
-      // CASE 1: hourlyRate is a single number → apply same value to all slots
-      if (typeof court.hourlyRate === "number") {
-        const defaultSlots = [
-          "06:00","07:00","08:00","09:00","10:00","11:00","12:00",
-          "13:00","14:00","15:00","16:00","17:00","18:00","19:00",
-          "20:00","21:00","22:00"
-        ];
-        hourlyRateArray = defaultSlots.map(slot => ({
-          slot,
-          price: court.hourlyRate
-        }));
-      }
-
-      // CASE 2: hourlyRate is an object → convert object → array
-      else if (court.hourlyRate && typeof court.hourlyRate === "object") {
-        hourlyRateArray = Object.entries(court.hourlyRate).map(
-          ([slot, price]) => ({
+        // CASE 1: hourlyRate is a single number → apply same value to all slots
+        if (typeof court.hourlyRate === "number") {
+          const defaultSlots = [
+            "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00",
+            "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00",
+            "20:00", "21:00", "22:00"
+          ];
+          hourlyRateArray = defaultSlots.map(slot => ({
             slot,
-            price: Number(price)
-          })
-        );
-      }
+            price: court.hourlyRate
+          }));
+        }
 
-      return {
-        _id: court._id,
-        name: court.name,
-        courtNumber: court.name,
+        // CASE 2: hourlyRate is an object → convert object → array
+        else if (court.hourlyRate && typeof court.hourlyRate === "object") {
+          hourlyRateArray = Object.entries(court.hourlyRate).map(
+            ([slot, price]) => ({
+              slot,
+              price: Number(price)
+            })
+          );
+        }
+
+        return {
+          _id: court._id,
+          name: court.name,
+          courtNumber: court.name,
+          games: court.games,
+          hourlyRate: hourlyRateArray  // FINAL CONSISTENT ARRAY
+        };
+      })
+    }));
+  };
+
+
+  const courtsList = React.useMemo(() => {
+    return mapVenueData(venues).flatMap((venue) =>
+      venue.courts.map((court: any) => ({
+        venueName: venue.venueName,
+        venueId: venue._id,
+        courtId: court._id,
+        courtName: court.name,
         games: court.games,
-        hourlyRate: hourlyRateArray  // FINAL CONSISTENT ARRAY
-      };
-    })
-  }));
-};
-
-
+        hourlyRate: court.hourlyRate
+      }))
+    );
+  }, [venues]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -129,6 +143,28 @@ const mapVenueData = (venues: any[]) => {
       month: 'short',
       day: 'numeric',
     });
+  };
+  const handleEditCourtBasePricing = (court: any) => {
+    const formattedCourt = {
+      _id: court.courtId,
+      courtId: {
+        _id: court.courtId,
+        name: court.courtName,
+        games: court.games,
+        venueId: {
+          _id: court.venueId,
+          name: court.venueName
+        }
+      },
+      slotPricing: court.hourlyRate.map((slot: any) => ({
+        slot: slot.slot,
+        price: slot.price,
+        _id: slot._id || ""
+      }))
+    };
+    setPricingSelected("base")
+    setSelectedPlan(formattedCourt);
+    setIsModalOpen(true);
   };
 
   // Group and sort pricing plans by date in ascending order
@@ -151,7 +187,7 @@ const mapVenueData = (venues: any[]) => {
           venue: venueName,
           court: courtName,
           date: date,
-          game:game,
+          game: game,
           slotPricing: plan.slotPricing,
           id: plan._id,
         };
@@ -257,15 +293,15 @@ const mapVenueData = (venues: any[]) => {
     <div className="">
       <div className="flex justify-end items-center">
         {/* <h1 className="text-3xl font-bold text-[#10375c]">Pricing</h1> */}
-        <button
+        {/* <button
           onClick={() => {
             setSelectedPlan(null);
             setIsModalOpen(true);
           }}
           className="flex h-10 px-5 py-3 bg-[#1b2229] rounded-full justify-between items-center gap-2 text-white text-sm font-medium"
         >
-         <Add /> Add A New Dynamic Pricing
-        </button>
+         <Add /> Add A New Pricing
+        </button> */}
       </div>
 
       <div className="mt-4 w-full">
@@ -277,11 +313,10 @@ const mapVenueData = (venues: any[]) => {
                 <th className="text-[#7E7E8A] text-xs font-medium w-[30%]">Venue</th>
                 <th className="text-[#7E7E8A] text-xs font-medium">Court</th>
                 <th className="text-[#7E7E8A] text-xs font-medium">Game</th>
-                <th className="text-[#7E7E8A] text-xs font-medium">Date</th>
                 <th className="text-[#7E7E8A] text-xs font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            {/* <tbody>
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="text-center py-4">
@@ -353,7 +388,81 @@ const mapVenueData = (venues: any[]) => {
                   );
                 })
               )}
+            </tbody> */}
+            <tbody>
+              {courtsList.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-4">
+                    <p className="text-gray-600">No courts found</p>
+                  </td>
+                </tr>
+              ) : (
+                courtsList.map((court, index) => {
+                  const key = court.courtId;
+                  const isOpen = !!openAccordions[key];
+
+                  return (
+                    <React.Fragment key={key}>
+                      <tr
+                        className={`text-sm px-3 py-3 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[40px]`}
+                      >
+                        <td className="text-[#1B2229] text-xs font-medium">{index + 1}</td>
+
+                        <td className="text-[#1B2229] text-xs font-medium">{court.venueName}</td>
+                        <td className="text-[#1B2229] text-xs font-medium">{court.courtName}</td>
+                        <td className="text-[#1B2229] text-xs font-medium">{court.games}</td>
+                        {/* <td>Base</td> */}
+
+                        <td className="text-right flex justify-end gap-6">
+
+                          {/* EDIT BUTTON */}
+                          <button
+                            onClick={() => handleEditCourtBasePricing(court)}
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            <EditIcon width={14} height={14} stroke={"#1d4ed8"} />
+                          </button>
+
+                          {/* DROPDOWN */}
+                          <button
+                            onClick={() =>
+                              setOpenAccordions((prev) => ({
+                                ...prev,
+                                [key]: !prev[key],
+                              }))
+                            }
+                          >
+                            {isOpen ? "▲" : "▼"}
+                          </button>
+                        </td>
+                      </tr>
+
+                      {isOpen && (
+                        <tr>
+                          <td colSpan={6} className="p-0">
+                            <div className="bg-[#e7e7e7] p-4 rounded-b-[20px]">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {court.hourlyRate.map((slot: any, idx: number) => (
+                                  <div
+                                    key={idx}
+                                    className={`text-sm p-3 ${idx % 1.5 === 0 ? 'bg-white' : 'bg-[#f2f2f4]'} rounded-[10px] flex justify-between items-center`}
+                                  >
+                                    <span className="text-[#1B2229] text-xs font-medium">{slot.slot}</span>
+                                    <span className="text-[#1B2229] text-xs font-medium">₹{slot.price}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
+
+              )}
             </tbody>
+
           </table>
         </div>
       </div>
@@ -368,7 +477,7 @@ const mapVenueData = (venues: any[]) => {
         onSubmitBasePrice={handleCreateBasePricing}
         venues={mapVenueData(venues)}
         pricingPlan={selectedPlan}
-        
+        pricingSelected={pricingSelected}
       />
 
       <DeleteConfirmationModal
@@ -384,4 +493,4 @@ const mapVenueData = (venues: any[]) => {
   );
 };
 
-export default DynamicPricingPage;
+export default BasePricingPage;
