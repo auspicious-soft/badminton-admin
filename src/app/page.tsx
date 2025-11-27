@@ -48,7 +48,7 @@ export default function LoginPage() {
 
     startTransition(async () => {
       try {
-        const response = await loginAction({ email, password });
+        const response = await loginAction({ email:email.trim().toLowerCase(), password });
 
         if (response?.success) {
           toast.success("Logged in successfully");

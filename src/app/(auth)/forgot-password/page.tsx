@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     startTransition(async () => {
       try {
-        const response = await forgotPasswordService({ username: email });
+        const response = await forgotPasswordService({ username: email.trim().toLowerCase() });
         if (response?.status === 200) {
           toast.success("OTP sent successfully");
           router.push("/otp");
