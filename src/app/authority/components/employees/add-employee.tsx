@@ -135,7 +135,7 @@ const AddEmployee = () => {
         try {
           const payload = {
             fullName: formData.name,
-            email: formData.email,
+            email: formData.email.trim().toLowerCase(),
             status: formData.status,
             password: formData.password,
             phoneNumber: formData.phoneNumber,
