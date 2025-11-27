@@ -66,6 +66,9 @@ export default function LoginPage() {
         else if (response?.message === "Invalid password") {
           toast.error(response?.message)
         }
+        else if (response?.message === "User not found") {
+          toast.error(response?.message)
+        }
         else {
           console.error("Login failed: ", response);
           toast.error("An error occurred during login.");
