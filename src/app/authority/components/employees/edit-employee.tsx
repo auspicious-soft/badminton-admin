@@ -210,7 +210,7 @@ const EditEmployee = ({ employeeId }: EditEmployeeProps) => {
           const payload: any = {
             id: employeeId,
             fullName: formData.name,
-            email: formData.email,
+            email: formData.email.trim().toLowerCase(),
             status: formData.status,
             phoneNumber: formData.phoneNumber,
           };
