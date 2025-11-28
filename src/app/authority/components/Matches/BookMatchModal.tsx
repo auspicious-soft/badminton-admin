@@ -130,15 +130,20 @@ export const BookingModal = ({ onClose }: { onClose: () => void }) => {
       !selectedVenueId ||
       !selectedCourtId ||
       !guestPlayer1 ||
+      !guestPlayer2 ||
       !email ||
       !phone ||
       selectedTimeSlots.length === 0
     ) {
       toast.error(
-        "Please fill in all required fields (Venue, Court, Player 1, Email, Phone, and at least one Time Slot)."
+        "Please fill in all required fields (Venue, Court, Player 1,Player 2, Email, Phone, and at least one Time Slot)."
       );
       return;
     }
+    if (!/^\d{10}$/.test(phone)) {
+  toast.error("Phone number must be exactly 10 digits.");
+  return;
+}
 
     const payload: BookingPayload = {
       player1: guestPlayer1,
@@ -153,8 +158,8 @@ export const BookingModal = ({ onClose }: { onClose: () => void }) => {
       balls:balls,
       bookingSlots: selectedTimeSlots.map((slot) => slot.value),
     };
-startTransition(async () => {
-    try {
+    startTransition(async () => {
+      try {
       const response = await createMatch("/admin//create-match", payload);
       if (response.status === 200 || response.status === 201) {
         toast.success("Booking created successfully");
@@ -419,6 +424,7 @@ const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                   value={balls}
                   onChange={(e) => setBalls(parseInt(e.target.value, 10))}
                   placeholder="Balls"
+                  onWheel={(e) => e.currentTarget.blur()}
                 />
               </div>
               <div>
@@ -431,6 +437,7 @@ const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                   value={rackets}
                   onChange={(e) => setRackets(parseInt(e.target.value, 10))}
                   placeholder="Rackets"
+                  onWheel={(e) => e.currentTarget.blur()}
                 />
               </div>
               </div>
@@ -477,13 +484,29 @@ const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                 <label className="block text-xs text-gray-600 mb-2">
                   Phone
                 </label>
-                <input
-                  type="text"
+                {/* <input
+                  type="number"
                   className="w-full p-3 border border-gray-300 rounded-lg text-sm"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Phone"
-                />
+                  maxLength={10}
+                /> */}
+
+                <input
+  type="tel"
+  className="w-full p-3 border border-gray-300 rounded-lg text-sm"
+  value={phone}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, ""); // numbers only
+    if (value.length <= 10) {
+      setPhone(value);
+    }
+  }}
+  placeholder="Phone"
+  maxLength={10}
+/>
+
               </div>
 
               {/* Guest Player 2 */}
