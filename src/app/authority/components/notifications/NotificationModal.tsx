@@ -23,6 +23,14 @@ interface NotificationItem {
   userData?: { fullName?: string };
   isReadyByAdmin?: boolean;
   title?: string;
+    message?: string; 
+ metadata?: {
+    type?: string;
+    bookingId?: string;
+    transactionId?: string;
+    amount?: number;
+    timestamp?: string;
+  };
 }
 
 interface NotificationModalProps {
@@ -43,6 +51,7 @@ interface PaginationMeta {
 
 const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, onAllRead, onSingleRead }) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  console.log('notifications: ', notifications);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
@@ -189,7 +198,6 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, on
         }
       };
       
-      console.log('notifications: ', notifications);
   const handleNotificationClick = async (notification: NotificationItem, e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -217,6 +225,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, on
   const handleModalContentClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
+
+  console.log("notifications",notifications)
 
   return (
     <Modal
@@ -254,7 +264,14 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, on
               {notifications.map((notification, index) => {
                 console.log('notification?.type: ', notification?.type);
                 const {  src ,alt, wrapper } = notificationIcons[notification?.type];
-
+                // const notificationText =
+                // notifications?.metadata?.type === "Admin"
+                // ? notifications?.message
+                // : notificationMessages?.[notification?.type]?.(
+                //   notification?.userData?.fullName || "Someone"
+                // ) ??
+                // `${notification?.userData?.fullName || "Someone"} performed an action.`;
+                // console.log('notificationText: ', notificationText);
                 return (
                   <div
                     key={notification._id}
@@ -284,11 +301,13 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ open, onClose, on
                           <span className="font-medium">
                             {notificationTitle[notification.type] || "Notification"}
                           </span>
-                          <span className="text-gray-600">
-                            {notificationMessages[notification.type]
-                              ? notificationMessages[notification.type](notification?.userData?.fullName)
-                              : `${notification?.userData?.fullName} performed an action.`}
-                          </span>
+                         <span className="text-gray-600">
+  {notification?.metadata?.type === "Admin"
+    ? notification?.message
+    : notificationMessages[notification.type]
+      ? notificationMessages[notification.type](notification?.userData?.fullName)
+      : `${notification?.userData?.fullName || "Someone"} performed an action.`}
+</span>
                         </div>
                         <div className="text-xs text-gray-500 mt-1">{notification.timestamp}</div>
                       </div>
