@@ -353,7 +353,7 @@ const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       border: "1px solid #d1d5db",
       boxShadow: "none",
       minHeight: "36px",
-      height: "36px",
+      height: "auto",
       padding: "2px 4px",
     }),
     valueContainer: (base) => ({
