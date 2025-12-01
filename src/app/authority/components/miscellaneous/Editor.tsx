@@ -37,8 +37,8 @@ const TextEditor = ({ value = "", setDescription }: TextEditorProps) => {
         height: 300,
         menubar: false,
         statusbar: false,
-        plugins: 'table', // Add the table plugin
-        toolbar: 'fontfamily fontsizeinput blocks forecolor bold italic underline alignleft aligncenter alignright undo redo | table', // Add table to toolbar
+        plugins: 'table link autolink',
+        toolbar:'fontfamily fontsizeinput blocks forecolor bold italic underline alignleft aligncenter alignright undo redo | link | table',
         toolbar_location: 'top',
         content_css: 'default',
         font_family_formats:
