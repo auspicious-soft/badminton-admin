@@ -202,6 +202,8 @@ const Page = () => {
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [courts, setCourts] = useState([]);
   const [employees, setEmployees] = useState([]);
+
+
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
@@ -278,16 +280,23 @@ const Page = () => {
       setContactNumber(venueDataValue.venue?.contactInfo || "");
       setDescription(venueDataValue.venue?.venueInfo || "");
 
-      const mappedCourts = venueDataValue.courts?.map((court: any) => ({
-        id: court._id,
-        name: court.name,
-        status: court.isActive ? "Active" : "Inactive",
-        game: court.games,
-        image: court.image ? getImageClientS3URL(court.image) : Court.src,
-        imageKey: court.image || null,
-        imageFile: null,
-        hourlyRate: court.hourlyRate,
-      })) || [];
+      const mappedCourts =
+  venueDataValue.courts?.map((court: any) => {
+    const hourlyRate = court.hourlyRate || {};
+    const [, firstValue] = Object.entries(hourlyRate)[0] || [];
+
+    return {
+      id: court._id,
+      name: court.name,
+      status: court.isActive ? "Active" : "Inactive",
+      game: court.games,
+      image: court.image ? getImageClientS3URL(court.image) : Court.src,
+      imageKey: court.image || null,
+      imageFile: null,
+      hourlyRate: firstValue ?? 0, // fallback safety
+    };
+  }) || [];
+
       setCourts(mappedCourts);
 
       const mappedEmployees = venueDataValue.venue?.employees?.map((emp: any) => ({
@@ -352,6 +361,7 @@ const Page = () => {
   const handleToggleCourtStatus = async (courtId: string) => {
     try {
       const court = courts.find(c => c.id === courtId);
+      console.log('court-------: ', courts);
       if (!court) return;
 
       setTogglingCourtId(courtId);
