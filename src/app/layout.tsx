@@ -14,8 +14,8 @@ const raleway = Raleway({
   variable: "--font-raleway" // Optional: Use CSS variable
 });
 export const metadata: Metadata = {
-  title: "Badminton Admin",
-  description: "Badminton court management and booking system",
+  title: "Project Play",
+  description: "Padel and Pickelball court management and booking system",
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },

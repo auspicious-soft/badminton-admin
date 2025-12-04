@@ -1,7 +1,7 @@
 {
-  "name": "Badminton Admin",
-  "short_name": "Badminton",
-  "description": "Badminton court management and booking system",
+  "name": "Project Play",
+  "short_name": "Project Play",
+  "description": "Padel and Pickleball court management and booking system",
   "icons": [
     {
       "src": "/favicon.ico",
