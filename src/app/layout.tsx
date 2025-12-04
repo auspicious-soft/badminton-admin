@@ -14,7 +14,7 @@ const raleway = Raleway({
   variable: "--font-raleway" // Optional: Use CSS variable
 });
 export const metadata: Metadata = {
-  title: "Project Play",
+  title: "Project Play App",
   description: "Padel and Pickelball court management and booking system",
   icons: {
     icon: [
