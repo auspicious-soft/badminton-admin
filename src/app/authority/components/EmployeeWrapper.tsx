@@ -30,7 +30,7 @@ const calculateDistance = (
   return R * c; // Distance in meters
 };
 
-export default async function EmployeeClientWrapper({
+export default  function EmployeeClientWrapper({
   children,
   tabParam,
   session
@@ -43,51 +43,56 @@ export default async function EmployeeClientWrapper({
  const venueLat = (session as any).user.venueLat;
  const venueLong = (session as any).user.venueLong;
  
- const fcmToken = await getBrowserToken();
  useEffect(() => {
-   let watchId;
-   
-   if ('geolocation' in navigator) {
-     watchId = navigator.geolocation.watchPosition(
-       ({ coords }) => {
-         const userLocation = {
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-        };
-        setLocation(userLocation);
+   let watchId: number | undefined;
 
-        const distance = calculateDistance(
-          userLocation.latitude,
-          userLocation.longitude,
-          venueLat,
-          venueLong
-        );
+   const initializeGeolocation = async () => {
+     const fcmToken = await getBrowserToken();
+     
+     if ('geolocation' in navigator) {
+       watchId = navigator.geolocation.watchPosition(
+         ({ coords }) => {
+           const userLocation = {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          };
+          setLocation(userLocation);
 
-        if (distance > 500) {
-          logOutService('admin/logout-employee', fcmToken);
-          signOut({ callbackUrl: "/" });
+          const distance = calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            venueLat,
+            venueLong
+          );
+
+          if (distance > 500) {
+            logOutService('admin/logout-employee', fcmToken);
+            signOut({ callbackUrl: "/" });
+          }
+
+
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 10000, // max cached location age
+          timeout: 10000
         }
-
-
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 10000, // max cached location age
-        timeout: 10000
-      }
-    );
-  } else {
-    console.error('Geolocation not supported');
-  }
-
-  return () => {
-    if (watchId) {
-      navigator.geolocation.clearWatch(watchId);
+      );
+    } else {
+      console.error('Geolocation not supported');
     }
-  };
+   };
+
+   initializeGeolocation();
+
+   return () => {
+     if (watchId !== undefined) {
+       navigator.geolocation.clearWatch(watchId);
+     }
+   };
 }, [venueLat, venueLong]);
 
   // Log location when it changes
