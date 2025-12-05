@@ -9,6 +9,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Eye, EyeOff } from "@/utils/svgicons";
+import { getBrowserToken } from "@/utils/firebase";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -48,8 +49,10 @@ export default function LoginPage() {
 
     startTransition(async () => {
       try {
-        const response = await loginAction({ email:email.trim().toLowerCase(), password });
-
+        const fcmToken = await getBrowserToken();
+                console.log("fcmtoken:", fcmToken);
+        const response = await loginAction({ email:email.trim().toLowerCase(), password,fcmToken  });
+     
         if (response?.success) {
           toast.success("Logged in successfully");
           if (response?.data?.user?.role === "employee") {

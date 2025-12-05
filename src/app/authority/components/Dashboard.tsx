@@ -34,7 +34,6 @@ const StatCard = ({ value, label, Icon }) => (
 
 const BookingRow = ({ fullName, game, city, date, image, index, isMaintenance }) => {
   const bgColor = index % 2 === 0 ? "bg-[#f2f2f4]" : "bg-white";
-
   return (
     <div className={`rounded-[10px] justify-start items-center inline-flex ${bgColor} w-full ring-offset-purple-950 py-3`}>
       <div className="w-[30%] grow shrink basis-0 self-stretch justify-start items-center gap-1 flex">

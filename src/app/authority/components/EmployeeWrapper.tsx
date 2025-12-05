@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { logOutService } from "@/services/admin-services";
+import { getBrowserToken } from "@/utils/firebase";
 
 interface EmployeeClientWrapperProps {
   children: React.ReactNode;
@@ -29,7 +30,7 @@ const calculateDistance = (
   return R * c; // Distance in meters
 };
 
-export default function EmployeeClientWrapper({
+export default async function EmployeeClientWrapper({
   children,
   tabParam,
   session
@@ -41,15 +42,15 @@ export default function EmployeeClientWrapper({
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
  const venueLat = (session as any).user.venueLat;
  const venueLong = (session as any).user.venueLong;
-
-
-  useEffect(() => {
-  let watchId;
-
-  if ('geolocation' in navigator) {
-    watchId = navigator.geolocation.watchPosition(
-      ({ coords }) => {
-        const userLocation = {
+ 
+ const fcmToken = await getBrowserToken();
+ useEffect(() => {
+   let watchId;
+   
+   if ('geolocation' in navigator) {
+     watchId = navigator.geolocation.watchPosition(
+       ({ coords }) => {
+         const userLocation = {
           latitude: coords.latitude,
           longitude: coords.longitude,
         };
@@ -63,7 +64,7 @@ export default function EmployeeClientWrapper({
         );
 
         if (distance > 500) {
-          logOutService('admin/logout-employee');
+          logOutService('admin/logout-employee', fcmToken);
           signOut({ callbackUrl: "/" });
         }
 

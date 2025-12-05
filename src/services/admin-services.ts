@@ -1,12 +1,12 @@
 import { axiosInstance, getAxiosInstance } from "@/config/axios";
 
-export const loginService = async (payload: any) => await axiosInstance.post(`/login`, { email: payload.email, password: payload.password });
+export const loginService = async (payload: any) => await axiosInstance.post(`/login`, { email: payload.email, password: payload.password,fcmToken: payload.fcmToken });
 export const forgotPasswordService = async (payload: any) => await axiosInstance.post(`/forgot-password`, payload)
 export const sendOtpService = async (payload: any) => await axiosInstance.post(`/verify-otp-reset-pass`, payload)
 export const resetUserPassword = async (payload: any) => await axiosInstance.patch(`/new-password-otp-verified`, payload)
-export const logOutService = async (route: string) => {
+export const logOutService = async (route: string,payload?:any) => {
     const axiosInstance = await getAxiosInstance()
-    return axiosInstance.post(route)
+    return axiosInstance.post(route, payload)
 }
 
 //----------Profile Page--------------------------

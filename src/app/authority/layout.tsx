@@ -53,7 +53,6 @@
 // }
 
 
-
 import React from 'react';
 import Headers from './components/headers/headers';
 import { auth } from '@/auth';

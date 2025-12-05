@@ -9,6 +9,7 @@ import { logOutService } from "@/services/admin-services";
 import NotificationModal from "../notifications/NotificationModal";
 import { getNotifications } from "@/services/admin-services";
 import useSWR from "swr";
+import { getBrowserToken } from "@/utils/firebase";
 
 const navigationLinks = [
   { href: "/authority/dashboard", label: "Dashboard", routes: ["/authority/dashboard"] },
@@ -96,10 +97,12 @@ const Headers = () => {
   const notificationRef = useRef(null);
   
   const handleLogout = async () => {
+    const fcmToken = await getBrowserToken();
+                console.log("fcmtoken:", fcmToken);
     setLogoutLoading(true);
-    if (userRole === "employee") {
-      await logOutService('admin/logout-employee');
-    }
+    // if (userRole === "employee") {
+      await logOutService('admin/logout-employee',{fcmToken});
+    // }
     signOut({ callbackUrl: "/" });
     setLogoutLoading(false);
   }

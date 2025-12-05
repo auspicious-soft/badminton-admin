@@ -9,6 +9,7 @@ import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, ObjectCannedA
 import { getImageClientS3URL } from "@/config/axios";
 
 export const loginAction = async (payload: any) => {
+  console.log('payload: ', payload);
   try {
     const res: any = await loginService(payload);
     const user = res?.data?.data?.user;
